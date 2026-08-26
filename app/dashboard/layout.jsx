@@ -111,7 +111,7 @@ export default function DashboardLayout({ children }) {
           <Link href="/dashboard" className="flex items-center gap-2.5 group">
             <div className="relative w-[65px] h-[65px] shrink-0 group-hover:scale-105 transition-transform flex items-center justify-center">
               <img
-                src="/assets/LOGO.png"
+                src="/assets/logo.png"
                 alt="WellMade Digital Logo"
                 className="w-full h-full object-contain"
                 onError={(e) => {
