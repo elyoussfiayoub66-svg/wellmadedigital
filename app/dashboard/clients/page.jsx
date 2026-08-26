@@ -3,14 +3,18 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Edit2, Trash2, X, Search } from 'lucide-react';
+import ConfirmModal from '@/components/ConfirmModal';
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function ClientsPage() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [leadStatuses, setLeadStatuses] = useState([]);
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   
   const [formData, setFormData] = useState({
     id: null,
@@ -60,8 +64,17 @@ export default function ClientsPage() {
     setLoading(false);
   };
 
+  const fetchSettings = async () => {
+    const supabase = createClient();
+    const { data, error } = await supabase.from('crm_settings').select('lead_statuses').single();
+    if (!error && data?.lead_statuses) {
+      setLeadStatuses(data.lead_statuses);
+    }
+  };
+
   useEffect(() => {
     fetchClients();
+    fetchSettings();
   }, []);
 
   const openEditModal = (client) => {
@@ -118,29 +131,32 @@ export default function ClientsPage() {
 
       closeModal();
       fetchClients();
+      toast.success('Client updated!');
     } catch (err) {
       console.error(err);
-      alert("Failed to update client.");
+      toast.error("Failed to update client.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this client? This will also delete their appointments and projects.")) return;
+  const handleDelete = (client) => {
+    setDeleteTarget(client);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
     
     const supabase = createClient();
     try {
-      // Due to ON DELETE CASCADE (or we just rely on Supabase handling it if set),
-      // deleting the lead should ideally delete related records. If not set, manual delete is required.
-      // We will just delete the lead here. If it fails due to foreign keys, the user will need cascade enabled.
-      // The schema script didn't explicitly add ON DELETE CASCADE to leads(id) in appointments/projects, 
-      // but let's try it.
-      await supabase.from('leads').delete().eq('id', id);
+      await supabase.from('leads').delete().eq('id', deleteTarget.id);
+      toast.success('Client deleted');
       fetchClients();
     } catch (err) {
       console.error(err);
-      alert("Failed to delete client. Make sure projects are deleted first if cascade is not enabled.");
+      toast.error("Failed to delete client.");
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -235,7 +251,7 @@ export default function ClientsPage() {
                         <button onClick={() => openEditModal(client)} className="p-1.5 text-brand-text/50 hover:text-brand-accent hover:bg-brand-accent/10 rounded-md transition-colors" title="Edit">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(client.id)} className="p-1.5 text-brand-text/50 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Delete">
+                        <button onClick={() => handleDelete(client)} className="p-1.5 text-brand-text/50 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Delete">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -261,6 +277,20 @@ export default function ClientsPage() {
             
             <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
               <form id="edit-form" onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-brand-text">Lead Status</label>
+                  <select 
+                    value={formData.status} 
+                    onChange={e => updateForm('status', e.target.value)} 
+                    className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent"
+                  >
+                    {leadStatuses.length === 0 && <option value={formData.status}>{formData.status || 'NEW'}</option>}
+                    {leadStatuses.map((status, idx) => (
+                      <option key={idx} value={status}>{status}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-brand-text">Full Name</label>
                   <input required type="text" value={formData.full_name} onChange={e => updateForm('full_name', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
@@ -330,6 +360,17 @@ export default function ClientsPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal 
+        isOpen={!!deleteTarget} 
+        onClose={() => setDeleteTarget(null)} 
+        onConfirm={handleConfirmDelete} 
+        title='Delete Client?' 
+        message={`${deleteTarget?.full_name || deleteTarget?.agency_name} and all their meeting data will be permanently removed.`} 
+        confirmText='Yes, Delete' 
+        confirmStyle='danger' 
+      />
+      <Toaster position='top-right' />
     </div>
   );
 }

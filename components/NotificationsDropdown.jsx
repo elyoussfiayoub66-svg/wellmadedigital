@@ -9,10 +9,21 @@ export default function NotificationsDropdown({ userId }) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [overdueTasks, setOverdueTasks] = useState([]);
+  const [alertPreferences, setAlertPreferences] = useState(null);
   const dropdownRef = useRef(null);
 
   const fetchAlerts = async () => {
     const supabase = createClient();
+    
+    // Fetch preferences first
+    const { data: settings } = await supabase
+      .from('crm_settings')
+      .select('alert_preferences')
+      .eq('user_id', userId)
+      .single();
+      
+    const prefs = settings?.alert_preferences || {};
+    setAlertPreferences(prefs);
     
     // Fetch unread notifications
     const { data: notifs } = await supabase
@@ -23,7 +34,10 @@ export default function NotificationsDropdown({ userId }) {
       .order('created_at', { ascending: false })
       .limit(10);
       
-    if (notifs) setNotifications(notifs);
+    if (notifs) {
+      const filteredNotifs = notifs.filter(n => prefs[n.type] !== false);
+      setNotifications(filteredNotifs);
+    }
 
     // Fetch overdue tasks for this user (or globally if admin, but here just assignees)
     // To make it simple, we'll fetch overdue tasks where assignee_id = userId

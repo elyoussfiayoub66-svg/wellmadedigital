@@ -56,6 +56,7 @@ export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -69,6 +70,56 @@ export default function DashboardLayout({ children }) {
     };
     checkUser();
   }, [router]);
+
+  useEffect(() => {
+    if (!user) return;
+    
+    let subscription;
+    const setupUnread = async () => {
+      const supabase = createClient();
+      
+      const { data: members } = await supabase
+        .from('project_members')
+        .select('project_id')
+        .eq('user_id', user.id);
+        
+      if (members && members.length > 0) {
+        const projectIds = members.map(m => m.project_id);
+        const { count, error } = await supabase
+          .from('project_messages')
+          .select('*', { count: 'exact', head: true })
+          .in('project_id', projectIds)
+          .neq('sender_id', user.id)
+          .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+          
+        if (!error && count !== null) {
+          setUnreadCount(count);
+        }
+      }
+
+      subscription = supabase.channel('chat_unread')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'project_messages' }, (payload) => {
+          if (payload.new.sender_id !== user.id) {
+            setUnreadCount(prev => prev + 1);
+          }
+        })
+        .subscribe();
+    };
+    
+    setupUnread();
+    
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (pathname === '/dashboard/chat') {
+      setUnreadCount(0);
+    }
+  }, [pathname]);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -158,6 +209,9 @@ export default function DashboardLayout({ children }) {
                           : 'text-brand-dark/40 group-hover:text-brand-dark group-hover:scale-110'
                       }`}
                     />
+                    {item.name === 'Chat' && unreadCount > 0 && (
+                      <span className='absolute top-1.5 right-1.5 w-2 h-2 bg-brand-accent rounded-full' />
+                    )}
                   </Link>
                 </NavTooltip>
               );
@@ -182,6 +236,11 @@ export default function DashboardLayout({ children }) {
                   }`}
                 />
                 <span className="text-sm">{item.name}</span>
+                {item.name === 'Chat' && unreadCount > 0 && (
+                  <span className='ml-auto bg-brand-accent text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center'>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}

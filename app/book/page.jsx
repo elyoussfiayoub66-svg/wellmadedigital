@@ -86,8 +86,11 @@ export default function BookingPage() {
         email: formData.email,
         phone: formData.phone,
         agency_name: formData.businessName,
+        business_type: formData.businessType,
+        website: formData.website,
         main_problem: formData.problem,
         current_booking_method: formData.currentProcess,
+        desired_outcome: formData.desiredOutcome,
         buying_timeline: formData.budget, // mapping budget roughly here
         status: 'NEW'
       }]).select().single();

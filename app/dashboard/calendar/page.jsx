@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Plus, X, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Plus, X, ChevronRight, ChevronLeft, Calendar as CalendarIcon, Clock, Link as LinkIcon, User, Phone, Mail, AtSign, Briefcase, FileText, Edit2, Trash2, Video } from 'lucide-react';
+import { Toaster, toast } from 'react-hot-toast';
+import ConfirmModal from '@/components/ConfirmModal';
 
 export default function CalendarPage() {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -30,6 +32,25 @@ export default function CalendarPage() {
     time: '',
     meetingLink: ''
   });
+
+  // Panel & Action State
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  
+  // Edit State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    status: '',
+    meetingLink: '',
+    notes: '',
+    date: '',
+    time: '',
+    hostId: ''
+  });
+  
+  // Delete State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [appointmentToDelete, setAppointmentToDelete] = useState(null);
 
   // Helper to get Monday of current week
   function getStartOfWeek(date) {
@@ -71,9 +92,9 @@ export default function CalendarPage() {
     let query = supabase
       .from('appointments')
       .select(`
-        id, scheduled_at, status, title, meeting_link,
+        id, scheduled_at, status, title, meeting_link, notes, assignee_id,
         profiles!appointments_assignee_id_fkey(full_name),
-        leads(full_name, agency_name)
+        leads(id, full_name, agency_name, phone, email, instagram, business_type, website, main_problem, current_booking_method, desired_outcome, buying_timeline)
       `)
       .gte('scheduled_at', startDate.toISOString())
       .lte('scheduled_at', endDate.toISOString());
@@ -125,8 +146,36 @@ export default function CalendarPage() {
     fetchSlots();
   }, [formData.hostId, formData.date]);
 
+  // Fetch available slots for EDIT modal
+  useEffect(() => {
+    async function fetchEditSlots() {
+      if (!editFormData.hostId || !editFormData.date || !isEditModalOpen) {
+        return;
+      }
+      setLoadingSlots(true);
+      try {
+        const res = await fetch(`/api/availability?date=${editFormData.date}&assignee_id=${editFormData.hostId}`);
+        const data = await res.json();
+        if (data.availableSlots) {
+          // If editing the same date as originally scheduled, we should probably add the current time slot back to available
+          // For simplicity, we just set the available slots
+          setAvailableSlots(data.availableSlots);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingSlots(false);
+      }
+    }
+    fetchEditSlots();
+  }, [editFormData.hostId, editFormData.date, isEditModalOpen]);
+
   const updateForm = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const updateEditForm = (key, value) => {
+    setEditFormData(prev => ({ ...prev, [key]: value }));
   };
 
   const openModal = () => {
@@ -148,7 +197,7 @@ export default function CalendarPage() {
     }
 
     if (!formData.time) {
-      alert("Please select a meeting time.");
+      toast.error("Please select a meeting time.");
       return;
     }
 
@@ -184,13 +233,113 @@ export default function CalendarPage() {
       if (apptError) throw apptError;
 
       // Success
+      toast.success("Meeting scheduled successfully");
       closeModal();
-      fetchAppointments(); // Refresh the calendar
+      fetchAppointments();
     } catch (err) {
       console.error(err);
-      alert("Failed to schedule meeting.");
+      toast.error("Failed to schedule meeting.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleAppointmentClick = (appt) => {
+    setSelectedAppointment(appt);
+    setIsPanelOpen(true);
+  };
+
+  const closePanel = () => {
+    setIsPanelOpen(false);
+    setTimeout(() => setSelectedAppointment(null), 300); // clear after animation
+  };
+
+  const openEditModal = () => {
+    if (!selectedAppointment) return;
+    
+    const d = new Date(selectedAppointment.scheduled_at);
+    // Pad month and day
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+
+    setEditFormData({
+      status: selectedAppointment.status || 'SCHEDULED',
+      meetingLink: selectedAppointment.meeting_link || '',
+      notes: selectedAppointment.notes || '',
+      date: `${year}-${month}-${day}`,
+      time: `${hours}:${minutes}`,
+      hostId: selectedAppointment.assignee_id || ''
+    });
+    
+    // Add current time to available slots temporarily so it shows as selected
+    setAvailableSlots([`${hours}:${minutes}`]);
+    
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedAppointment) return;
+    if (!editFormData.time) {
+      toast.error("Please select a meeting time.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const supabase = createClient();
+      const scheduledAt = new Date(`${editFormData.date}T${editFormData.time}:00.000Z`).toISOString();
+      
+      const { error } = await supabase
+        .from('appointments')
+        .update({
+          status: editFormData.status,
+          meeting_link: editFormData.meetingLink,
+          notes: editFormData.notes,
+          scheduled_at: scheduledAt,
+          assignee_id: editFormData.hostId
+        })
+        .eq('id', selectedAppointment.id);
+
+      if (error) throw error;
+      
+      toast.success("Appointment updated successfully");
+      setIsEditModalOpen(false);
+      closePanel();
+      fetchAppointments();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update appointment");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const confirmDelete = () => {
+    setAppointmentToDelete(selectedAppointment);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!appointmentToDelete) return;
+    
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from('appointments').delete().eq('id', appointmentToDelete.id);
+      
+      if (error) throw error;
+      
+      toast.success("Appointment deleted successfully");
+      setIsDeleteModalOpen(false);
+      closePanel();
+      fetchAppointments();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete appointment");
     }
   };
 
@@ -201,8 +350,19 @@ export default function CalendarPage() {
     timeSlots.push(`${h}:30`);
   }
 
+  const getStatusColor = (status) => {
+    switch(status?.toUpperCase()) {
+      case 'COMPLETED': return 'bg-green-100 text-green-700 border-green-200';
+      case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200';
+      case 'SCHEDULED':
+      default: return 'bg-blue-100 text-blue-700 border-blue-200';
+    }
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-120px)] relative">
+      <Toaster position="top-right" />
+      
       <div className="flex items-center justify-between mb-6 shrink-0">
         <div>
           <h1 className="text-3xl font-medium text-brand-text tracking-tight mb-2">Calendar</h1>
@@ -213,7 +373,7 @@ export default function CalendarPage() {
           <select 
             value={selectedAssignee}
             onChange={(e) => setSelectedAssignee(e.target.value)}
-            className="bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-2 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent shadow-sm"
+            className="bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-2 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent shadow-sm cursor-pointer"
           >
             <option value="all">All Team Members</option>
             {teamMembers.map(m => (
@@ -282,9 +442,12 @@ export default function CalendarPage() {
                   return (
                     <div key={day.toISOString() + time} className="flex-1 border-r border-brand-dark/10 last:border-r-0 relative hover:bg-brand-bg/50 transition-colors p-1">
                       {apptInSlot && (
-                        <div className="absolute inset-1 bg-brand-accent/10 border border-brand-accent/30 rounded p-1.5 overflow-hidden z-10 hover:bg-brand-accent/20 cursor-pointer shadow-sm">
+                        <div 
+                          onClick={() => handleAppointmentClick(apptInSlot)}
+                          className="absolute inset-1 bg-brand-accent/10 border border-brand-accent/30 rounded p-1.5 overflow-hidden z-10 hover:bg-brand-accent/20 cursor-pointer shadow-sm transition-colors"
+                        >
                           <div className="text-xs font-semibold text-brand-text truncate leading-tight">
-                            {apptInSlot.leads?.full_name || 'Meeting'}
+                            {apptInSlot.title || apptInSlot.leads?.full_name || 'Meeting'}
                           </div>
                           <div className="text-[10px] text-brand-text/60 truncate mt-0.5">
                             with {apptInSlot.profiles?.full_name || 'Team Member'}
@@ -300,9 +463,293 @@ export default function CalendarPage() {
         </div>
       </div>
 
+      {/* Right Side Slide-in Panel */}
+      {isPanelOpen && (
+        <div className="fixed inset-0 z-40" onClick={closePanel}>
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-brand-dark/20 backdrop-blur-[2px] animate-in fade-in duration-300" />
+        </div>
+      )}
+      
+      <div 
+        className={`fixed top-0 right-0 h-full w-full max-w-md bg-brand-surface shadow-2xl z-50 border-l border-brand-dark/10 transform transition-transform duration-300 ease-in-out flex flex-col ${isPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      >
+        {selectedAppointment && (
+          <>
+            <div className="flex items-center justify-between p-6 border-b border-brand-dark/10 bg-brand-bg/30">
+              <h2 className="text-xl font-medium text-brand-text tracking-tight">Meeting Details</h2>
+              <button onClick={closePanel} className="text-brand-text/50 hover:text-brand-text p-1.5 rounded-full hover:bg-brand-bg transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+              
+              {/* Header Info */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-semibold text-brand-text">{selectedAppointment.title || selectedAppointment.leads?.full_name || 'Untitled Meeting'}</h3>
+                  <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${getStatusColor(selectedAppointment.status)}`}>
+                    {selectedAppointment.status || 'SCHEDULED'}
+                  </span>
+                </div>
+                
+                <div className="flex flex-col gap-3 text-sm text-brand-text/80 bg-brand-bg/50 p-4 rounded-xl border border-brand-dark/5">
+                  <div className="flex items-center gap-3">
+                    <CalendarIcon className="w-4 h-4 text-brand-accent" />
+                    <span>{new Date(selectedAppointment.scheduled_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-4 h-4 text-brand-accent" />
+                    <span>
+                      {new Date(selectedAppointment.scheduled_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <User className="w-4 h-4 text-brand-accent" />
+                    <span>Host: <span className="font-medium text-brand-text">{selectedAppointment.profiles?.full_name || 'Unassigned'}</span></span>
+                  </div>
+                  {selectedAppointment.meeting_link && (
+                    <div className="flex items-center gap-3">
+                      <Video className="w-4 h-4 text-brand-accent" />
+                      <a href={selectedAppointment.meeting_link} target="_blank" rel="noreferrer" className="text-brand-accent hover:underline break-all">
+                        {selectedAppointment.meeting_link}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Lead Info */}
+              {selectedAppointment.leads && (
+                <div className="space-y-4">
+                  <h4 className="text-sm font-semibold text-brand-text/50 uppercase tracking-wider">Prospect Information</h4>
+                  
+                  {/* Basic Contact Info */}
+                  <div className="bg-brand-surface border border-brand-dark/10 rounded-xl overflow-hidden divide-y divide-brand-dark/5 shadow-sm">
+                    <div className="flex items-center gap-3 p-3.5">
+                      <User className="w-4 h-4 text-brand-text/40" />
+                      <span className="text-sm text-brand-text font-medium">{selectedAppointment.leads.full_name}</span>
+                    </div>
+                    {selectedAppointment.leads.agency_name && (
+                      <div className="flex items-center gap-3 p-3.5">
+                        <Briefcase className="w-4 h-4 text-brand-text/40" />
+                        <span className="text-sm text-brand-text">{selectedAppointment.leads.agency_name}</span>
+                      </div>
+                    )}
+                    {selectedAppointment.leads.business_type && (
+                      <div className="flex items-center gap-3 p-3.5">
+                        <FileText className="w-4 h-4 text-brand-text/40" />
+                        <span className="text-sm text-brand-text">Industry: {selectedAppointment.leads.business_type}</span>
+                      </div>
+                    )}
+                    {selectedAppointment.leads.phone && (
+                      <div className="flex items-center gap-3 p-3.5">
+                        <Phone className="w-4 h-4 text-brand-text/40" />
+                        <a href={`tel:${selectedAppointment.leads.phone}`} className="text-sm text-brand-accent hover:underline">{selectedAppointment.leads.phone}</a>
+                      </div>
+                    )}
+                    {selectedAppointment.leads.email && (
+                      <div className="flex items-center gap-3 p-3.5">
+                        <Mail className="w-4 h-4 text-brand-text/40" />
+                        <a href={`mailto:${selectedAppointment.leads.email}`} className="text-sm text-brand-accent hover:underline">{selectedAppointment.leads.email}</a>
+                      </div>
+                    )}
+                    {(selectedAppointment.leads.website || selectedAppointment.leads.instagram) && (
+                      <div className="flex items-center gap-3 p-3.5">
+                        <LinkIcon className="w-4 h-4 text-brand-text/40" />
+                        <a href={selectedAppointment.leads.website || selectedAppointment.leads.instagram} target="_blank" rel="noreferrer" className="text-sm text-brand-accent hover:underline truncate">
+                          {selectedAppointment.leads.website || selectedAppointment.leads.instagram}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Consultation Questionnaire Responses */}
+                  {(selectedAppointment.leads.main_problem || selectedAppointment.leads.current_booking_method || selectedAppointment.leads.desired_outcome || selectedAppointment.leads.buying_timeline) && (
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold text-brand-text/50 uppercase tracking-wider">Questionnaire Responses</h4>
+                      <div className="bg-brand-surface border border-brand-dark/10 rounded-xl overflow-hidden divide-y divide-brand-dark/5 shadow-sm">
+                        
+                        {selectedAppointment.leads.main_problem && (
+                          <div className="p-3.5 space-y-1">
+                            <span className="text-[11px] font-semibold text-brand-text/50 uppercase">Main Problem</span>
+                            <p className="text-sm text-brand-text leading-relaxed">{selectedAppointment.leads.main_problem}</p>
+                          </div>
+                        )}
+                        
+                        {selectedAppointment.leads.current_booking_method && (
+                          <div className="p-3.5 space-y-1">
+                            <span className="text-[11px] font-semibold text-brand-text/50 uppercase">Current Processes/Tools</span>
+                            <p className="text-sm text-brand-text leading-relaxed">{selectedAppointment.leads.current_booking_method}</p>
+                          </div>
+                        )}
+                        
+                        {selectedAppointment.leads.desired_outcome && (
+                          <div className="p-3.5 space-y-1">
+                            <span className="text-[11px] font-semibold text-brand-text/50 uppercase">Ideal Outcome</span>
+                            <p className="text-sm text-brand-text leading-relaxed">{selectedAppointment.leads.desired_outcome}</p>
+                          </div>
+                        )}
+                        
+                        {selectedAppointment.leads.buying_timeline && (
+                          <div className="p-3.5 space-y-1">
+                            <span className="text-[11px] font-semibold text-brand-text/50 uppercase">Budget Range</span>
+                            <p className="text-sm text-brand-text leading-relaxed">
+                              {selectedAppointment.leads.buying_timeline.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </p>
+                          </div>
+                        )}
+                        
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Notes */}
+              {selectedAppointment.notes && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-brand-text/50 uppercase tracking-wider">Notes</h4>
+                  <div className="bg-brand-bg/50 p-4 rounded-xl border border-brand-dark/5 text-sm text-brand-text/80 whitespace-pre-wrap">
+                    {selectedAppointment.notes}
+                  </div>
+                </div>
+              )}
+
+            </div>
+            
+            <div className="p-6 border-t border-brand-dark/10 bg-brand-surface grid grid-cols-2 gap-3 shrink-0">
+              <button 
+                onClick={openEditModal}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-bg hover:bg-brand-dark/5 border border-brand-dark/10 text-brand-text rounded-lg text-sm font-medium transition-colors"
+              >
+                <Edit2 className="w-4 h-4" /> Edit
+              </button>
+              <button 
+                onClick={confirmDelete}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-sm font-medium transition-colors"
+              >
+                <Trash2 className="w-4 h-4" /> Delete
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Edit Appointment Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-brand-surface w-full max-w-lg rounded-2xl shadow-xl overflow-hidden border border-brand-dark/10 flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-brand-dark/5 shrink-0">
+              <h2 className="text-xl font-medium text-brand-text">Edit Appointment</h2>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-brand-text/50 hover:text-brand-text p-1 rounded-full hover:bg-brand-bg transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+              <form id="edit-form" onSubmit={handleEditSubmit} className="space-y-5">
+                
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-brand-text">Status</label>
+                  <select value={editFormData.status} onChange={e => updateEditForm('status', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
+                    <option value="SCHEDULED">Scheduled</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="CANCELLED">Cancelled</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-brand-text">Meeting Host</label>
+                    <select required value={editFormData.hostId} onChange={e => { updateEditForm('hostId', e.target.value); updateEditForm('time', ''); }} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
+                      <option value="">Select a host</option>
+                      {teamMembers.map(m => (
+                        <option key={m.id} value={m.id}>{m.full_name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-brand-text">Date</label>
+                    <input required type="date" value={editFormData.date} onChange={e => { updateEditForm('date', e.target.value); updateEditForm('time', ''); }} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-brand-text flex items-center justify-between">
+                    Available Times
+                    {loadingSlots && <span className="text-brand-accent text-xs">Loading...</span>}
+                  </label>
+                  
+                  {!editFormData.date || !editFormData.hostId ? (
+                    <div className="text-sm text-brand-text/50 p-4 border border-dashed border-brand-dark/10 rounded-lg text-center bg-brand-bg/50">
+                      Select a host and date to see slots
+                    </div>
+                  ) : availableSlots.length === 0 && !loadingSlots ? (
+                    <div className="text-sm text-red-500 p-4 border border-dashed border-red-200 rounded-lg text-center bg-red-50">
+                      No available slots.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-4 gap-2 max-h-[140px] overflow-y-auto pr-1 custom-scrollbar">
+                      {availableSlots.map(slot => (
+                        <button
+                          key={slot} type="button"
+                          onClick={() => updateEditForm('time', slot)}
+                          className={`py-2 px-1 rounded-md text-xs font-medium transition-all ${
+                            editFormData.time === slot 
+                              ? 'bg-brand-accent text-white shadow-sm' 
+                              : 'bg-brand-bg text-brand-text hover:border-brand-accent border border-brand-dark/10'
+                          }`}
+                        >
+                          {slot}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-1.5 pt-2">
+                  <label className="text-sm font-medium text-brand-text">Meeting Link</label>
+                  <input type="url" placeholder="https://zoom.us/j/..." value={editFormData.meetingLink} onChange={e => updateEditForm('meetingLink', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-brand-text">Notes</label>
+                  <textarea rows={3} value={editFormData.notes} onChange={e => updateEditForm('notes', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent resize-none"></textarea>
+                </div>
+
+              </form>
+            </div>
+
+            <div className="p-6 border-t border-brand-dark/5 bg-brand-surface shrink-0 flex items-center justify-end">
+              <button 
+                form="edit-form" 
+                type="submit" 
+                disabled={submitting}
+                className="bg-brand-accent text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 shadow-sm transition-opacity disabled:opacity-70"
+              >
+                {submitting ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Appointment"
+        message="Are you sure you want to delete this appointment? This action cannot be undone."
+        confirmText="Delete"
+        isDanger={true}
+      />
+
       {/* Schedule Meeting Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-brand-surface w-full max-w-lg rounded-2xl shadow-xl overflow-hidden border border-brand-dark/10 flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between p-6 border-b border-brand-dark/5 shrink-0">
               <h2 className="text-xl font-medium text-brand-text">Schedule a Meeting</h2>
