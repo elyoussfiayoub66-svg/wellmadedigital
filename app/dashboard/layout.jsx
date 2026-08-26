@@ -66,10 +66,10 @@ export default function DashboardLayout({ children }) {
       >
         {/* Logo Header */}
         <div className={`py-5 border-b border-brand-dark/10 flex items-center shrink-0 overflow-hidden transition-all duration-300 ${collapsed ? 'justify-center px-0' : 'px-5 gap-3'}`}>
-          <Link href="/dashboard" className="flex items-center gap-3 group shrink-0">
+          <Link href="/dashboard" className="flex items-center justify-center group">
             <div className="relative w-[52px] h-[52px] shrink-0 group-hover:scale-105 transition-transform flex items-center justify-center">
               <img
-                src="/assets/logo.png"
+                src="/assets/logo1.png"
                 alt="WellMade Digital Logo"
                 className="w-full h-full object-contain"
                 onError={(e) => {
@@ -78,12 +78,6 @@ export default function DashboardLayout({ children }) {
                 }}
               />
               <div className="hidden w-full h-full bg-brand-dark rounded-lg items-center justify-center text-white font-black text-3xl">W</div>
-            </div>
-
-            {/* Brand name — hidden when collapsed */}
-            <div className={`flex flex-col overflow-hidden transition-all duration-300 ${collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
-              <span className="text-[15px] font-black leading-none tracking-wide text-brand-dark whitespace-nowrap">WELLMADE</span>
-              <span className="text-[11px] font-bold tracking-widest text-brand-dark/60 mt-0.5 whitespace-nowrap">DIGITAL</span>
             </div>
           </Link>
         </div>
