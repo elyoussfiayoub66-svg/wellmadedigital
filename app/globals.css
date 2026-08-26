@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand Colors */
+  --color-brand-bg: #F4EFE6;
+  --color-brand-dark: #2F4A3C;
+  --color-brand-accent: #C97B4A;
+  --color-brand-text: #3D3D3A;
+  --color-brand-text-light: #F4EFE6;
+  --color-brand-surface: #FFFFFF;
+
+  /* Border Radii */
+  --radius-brand-button: 8px;
+  --radius-brand-card: 12px;
+
+  /* Fonts */
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  
+  /* Animations */
+  --animate-marquee: marquee 40s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@layer base {
+  body {
+    background-color: var(--color-brand-bg);
+    color: var(--color-brand-text);
+  }
+}
