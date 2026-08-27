@@ -50,11 +50,22 @@ export default function BookingPage() {
       try {
         const res = await fetch(`/api/availability?date=${formData.meetingDate}&assignee_id=${formData.assigneeId}`);
         const data = await res.json();
+        
+        if (!res.ok) {
+          console.error("API returned an error:", data);
+          alert(`API Error: ${data.error || 'Unknown error'}`);
+          setAvailableSlots([]);
+          return;
+        }
+
         if (data.availableSlots) {
           setAvailableSlots(data.availableSlots);
+        } else {
+          console.warn("No availableSlots in response:", data);
         }
       } catch (err) {
-        console.error(err);
+        console.error("Fetch error:", err);
+        alert(`Fetch error: ${err.message}`);
       } finally {
         setLoadingSlots(false);
       }

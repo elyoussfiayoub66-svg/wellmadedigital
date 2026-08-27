@@ -134,11 +134,17 @@ export default function CalendarPage() {
       try {
         const res = await fetch(`/api/availability?date=${formData.date}&assignee_id=${formData.hostId}`);
         const data = await res.json();
+        if (!res.ok) {
+          console.error("API returned an error:", data);
+          alert(`Calendar API Error: ${data.error || 'Unknown error'}`);
+          setAvailableSlots([]);
+          return;
+        }
         if (data.availableSlots) {
           setAvailableSlots(data.availableSlots);
         }
       } catch (err) {
-        console.error(err);
+        console.error("Calendar fetch error:", err);
       } finally {
         setLoadingSlots(false);
       }
