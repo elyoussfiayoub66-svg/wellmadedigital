@@ -53,7 +53,7 @@ export default function BookingPage() {
         
         if (!res.ok) {
           console.error("API returned an error:", data);
-          alert(`API Error: ${data.error || 'Unknown error'}`);
+          alert(`API Error: ${data.error} \nDetails: ${data.details || 'None'}`);
           setAvailableSlots([]);
           return;
         }

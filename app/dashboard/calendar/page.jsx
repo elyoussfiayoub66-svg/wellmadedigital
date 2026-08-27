@@ -136,7 +136,7 @@ export default function CalendarPage() {
         const data = await res.json();
         if (!res.ok) {
           console.error("API returned an error:", data);
-          alert(`Calendar API Error: ${data.error || 'Unknown error'}`);
+          alert(`Calendar API Error: ${data.error} \nDetails: ${data.details || 'None'}`);
           setAvailableSlots([]);
           return;
         }
