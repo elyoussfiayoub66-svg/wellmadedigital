@@ -164,19 +164,19 @@ export default function DashboardOverview() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="bg-brand-surface p-6 rounded-2xl border border-brand-dark/10 h-[140px]">
+              <div key={i} className="bg-brand-surface p-6 rounded-2xl border border-brand-border h-[140px]">
                 <div className="h-4 bg-brand-dark/10 rounded w-32 mb-4"></div>
                 <div className="h-8 bg-brand-dark/10 rounded w-24"></div>
               </div>
             ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 bg-brand-surface rounded-2xl border border-brand-dark/10 h-[400px]"></div>
-            <div className="bg-brand-surface rounded-2xl border border-brand-dark/10 h-[400px]"></div>
+            <div className="lg:col-span-2 bg-brand-surface rounded-2xl border border-brand-border h-[400px]"></div>
+            <div className="bg-brand-surface rounded-2xl border border-brand-border h-[400px]"></div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3].map(i => (
-              <div key={i} className="bg-brand-surface rounded-2xl border border-brand-dark/10 h-[380px]"></div>
+              <div key={i} className="bg-brand-surface rounded-2xl border border-brand-border h-[380px]"></div>
             ))}
           </div>
         </div>
@@ -194,7 +194,7 @@ export default function DashboardOverview() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-dark/10 shadow-sm relative overflow-hidden group hover:border-brand-accent/50 transition-colors">
+        <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-border  relative overflow-hidden group hover:border-brand-accent/50 transition-colors">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <Wallet className="w-16 h-16 text-brand-accent" />
           </div>
@@ -205,7 +205,7 @@ export default function DashboardOverview() {
           <div className="text-xs text-brand-text/50 mt-2 font-medium">All Time Profit</div>
         </div>
 
-        <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-dark/10 shadow-sm relative overflow-hidden group hover:border-blue-500/50 transition-colors">
+        <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-border  relative overflow-hidden group hover:border-blue-500/50 transition-colors">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <TrendingUp className="w-16 h-16 text-blue-500" />
           </div>
@@ -214,7 +214,7 @@ export default function DashboardOverview() {
           <div className="text-xs text-brand-text/50 mt-2 font-medium">From Active Projects</div>
         </div>
 
-        <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-dark/10 shadow-sm relative overflow-hidden group hover:border-green-500/50 transition-colors">
+        <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-border  relative overflow-hidden group hover:border-green-500/50 transition-colors">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <Users className="w-16 h-16 text-green-500" />
           </div>
@@ -223,7 +223,7 @@ export default function DashboardOverview() {
           <div className="text-xs text-brand-text/50 mt-2 font-medium">Leads to Closed Won</div>
         </div>
 
-        <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-dark/10 shadow-sm relative overflow-hidden group hover:border-orange-500/50 transition-colors">
+        <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-border  relative overflow-hidden group hover:border-orange-500/50 transition-colors">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <FolderGit2 className="w-16 h-16 text-orange-500" />
           </div>
@@ -235,7 +235,7 @@ export default function DashboardOverview() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Chart */}
-        <div className="lg:col-span-2 bg-brand-surface rounded-2xl border border-brand-dark/10 shadow-sm p-6 flex flex-col min-h-[400px]">
+        <div className="lg:col-span-2 bg-brand-surface rounded-2xl border border-brand-border  p-6 flex flex-col min-h-[400px]">
           <h2 className="text-lg font-bold text-brand-text mb-6 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-brand-accent" /> Revenue vs Expenses (Past 6 Months)
           </h2>
@@ -269,7 +269,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* Top Performers */}
-        <div className="bg-brand-surface rounded-2xl border border-brand-dark/10 shadow-sm p-6 flex flex-col">
+        <div className="bg-brand-surface rounded-2xl border border-brand-border  p-6 flex flex-col">
           <h2 className="text-lg font-bold text-brand-text mb-6 flex items-center gap-2">
             <Award className="w-5 h-5 text-amber-500" /> Top Performers
           </h2>
@@ -278,8 +278,8 @@ export default function DashboardOverview() {
                 <div className="text-brand-text/50 text-sm h-full flex items-center justify-center">No performance data yet.</div>
             ) : (
                 topPerformers.map((user, idx) => (
-                  <div key={user.id} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-brand-bg/50 to-transparent border border-brand-dark/5 hover:border-brand-dark/10 transition-colors">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-white shadow-sm text-lg ${idx === 0 ? 'bg-amber-500 border-2 border-amber-200' : idx === 1 ? 'bg-slate-400 border-2 border-slate-200' : 'bg-orange-700 border-2 border-orange-300'}`}>
+                  <div key={user.id} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-brand-bg/50 to-transparent border border-brand-border hover:border-brand-border transition-colors">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-white  text-lg ${idx === 0 ? 'bg-amber-500 border-2 border-amber-200' : idx === 1 ? 'bg-slate-400 border-2 border-slate-200' : 'bg-orange-700 border-2 border-orange-300'}`}>
                       {idx + 1}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -296,7 +296,7 @@ export default function DashboardOverview() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         
         {/* Leads Distribution */}
-        <div className="bg-brand-surface rounded-2xl border border-brand-dark/10 shadow-sm p-6 flex flex-col h-[380px]">
+        <div className="bg-brand-surface rounded-2xl border border-brand-border  p-6 flex flex-col h-[380px]">
           <h2 className="text-lg font-bold text-brand-text mb-2">Leads by Status</h2>
           <div className="flex-1 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -317,7 +317,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* Projects Distribution */}
-        <div className="bg-brand-surface rounded-2xl border border-brand-dark/10 shadow-sm p-6 flex flex-col h-[380px]">
+        <div className="bg-brand-surface rounded-2xl border border-brand-border  p-6 flex flex-col h-[380px]">
           <h2 className="text-lg font-bold text-brand-text mb-2">Projects by Status</h2>
           <div className="flex-1 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -338,7 +338,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* Recent Activity Feed */}
-        <div className="bg-brand-surface rounded-2xl border border-brand-dark/10 shadow-sm p-6 overflow-hidden flex flex-col h-[380px]">
+        <div className="bg-brand-surface rounded-2xl border border-brand-border  p-6 overflow-hidden flex flex-col h-[380px]">
           <h2 className="text-lg font-bold text-brand-text mb-6">Recent Activity</h2>
           <div className="space-y-4 overflow-y-auto custom-scrollbar pr-2 flex-1">
             {recentActivity.length === 0 ? (
@@ -346,7 +346,7 @@ export default function DashboardOverview() {
             ) : (
                 recentActivity.map((activity, i) => (
                   <div key={i} className="flex gap-4 p-3 rounded-lg hover:bg-brand-bg/50 transition-colors">
-                    <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white shadow-sm ${
+                    <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white  ${
                         activity.type === 'invoice' ? 'bg-green-500' : 
                         activity.type === 'expense' ? 'bg-red-500' : 'bg-blue-500'
                     }`}>

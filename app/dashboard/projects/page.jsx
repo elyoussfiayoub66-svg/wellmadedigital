@@ -226,16 +226,16 @@ export default function ProjectsPage() {
           <h1 className="text-3xl font-medium text-brand-text tracking-tight mb-2">Projects</h1>
           <p className="text-brand-text/70">Manage and track all your active projects.</p>
         </div>
-        <button onClick={() => openModal('create')} className="flex items-center gap-2 bg-brand-accent text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 shadow-sm transition-opacity">
+        <button onClick={() => openModal('create')} className="flex items-center gap-2 bg-brand-accent text-white px-4 py-2 rounded-lg font-medium hover:opacity-90  transition-opacity">
           <Plus className="w-4 h-4" /> New Project
         </button>
       </div>
 
-      <div className="bg-brand-surface rounded-xl border border-brand-dark/5 shadow-sm overflow-hidden">
+      <div className="bg-brand-surface rounded-xl border border-brand-border  overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
-              <tr className="border-b border-brand-dark/5 bg-brand-bg/50">
+              <tr className="border-b border-brand-border bg-brand-bg/50">
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Project Name</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Client</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Start Date</th>
@@ -249,7 +249,7 @@ export default function ProjectsPage() {
             <tbody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} className="animate-pulse border-b border-brand-dark/5">
+                  <tr key={i} className="animate-pulse border-b border-brand-border">
                     <td className="p-4"><div className="w-32 h-4 bg-brand-dark/10 rounded"></div></td>
                     <td className="p-4"><div className="w-24 h-4 bg-brand-dark/10 rounded"></div></td>
                     <td className="p-4"><div className="w-20 h-4 bg-brand-dark/10 rounded"></div></td>
@@ -266,7 +266,7 @@ export default function ProjectsPage() {
                 </tr>
               ) : (
                 projects.map((project) => (
-                  <tr key={project.id} className="border-b border-brand-dark/5 hover:bg-brand-bg/50 transition-colors">
+                  <tr key={project.id} className="border-b border-brand-border hover:bg-brand-bg/50 transition-colors">
                     <td className="p-4 font-medium text-brand-text">{project.name}</td>
                     <td className="p-4 text-brand-text/80 text-sm">{project.leads?.agency_name || project.leads?.full_name || 'No Client'}</td>
                     <td className="p-4 text-brand-text/70 text-sm">{project.start_date ? new Date(project.start_date).toLocaleDateString() : '-'}</td>
@@ -275,7 +275,7 @@ export default function ProjectsPage() {
                       <div className="flex -space-x-2">
                         {project.project_members?.length > 0 ? (
                           project.project_members.map((pm, idx) => (
-                            <div key={idx} className="w-8 h-8 rounded-full border-2 border-white bg-brand-dark flex items-center justify-center text-xs font-bold text-white shadow-sm relative group" title={`${pm.profiles?.full_name} (${pm.split_percentage || 100}%)`}>
+                            <div key={idx} className="w-8 h-8 rounded-full border-2 border-white bg-brand-dark flex items-center justify-center text-xs font-bold text-white  relative group" title={`${pm.profiles?.full_name} (${pm.split_percentage || 100}%)`}>
                               {pm.profiles?.full_name?.charAt(0) || 'U'}
                             </div>
                           ))
@@ -313,8 +313,8 @@ export default function ProjectsPage() {
       {/* Project Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-brand-surface w-full max-w-lg rounded-2xl shadow-xl overflow-hidden border border-brand-dark/10 flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-brand-dark/5 shrink-0">
+          <div className="bg-brand-surface w-full max-w-lg rounded-2xl  overflow-hidden border border-brand-border flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-brand-border shrink-0">
               <h2 className="text-xl font-medium text-brand-text">
                 {modalMode === 'create' ? 'Create New Project' : 'Edit Project'}
               </h2>
@@ -327,12 +327,12 @@ export default function ProjectsPage() {
               <form id="project-form" onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-brand-text">Project Name *</label>
-                  <input required type="text" value={formData.name} onChange={e => updateForm('name', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                  <input required type="text" value={formData.name} onChange={e => updateForm('name', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                 </div>
                 
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-brand-text">Client (Lead)</label>
-                  <select value={formData.lead_id} onChange={e => updateForm('lead_id', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
+                  <select value={formData.lead_id} onChange={e => updateForm('lead_id', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
                     <option value="">Select a client...</option>
                     {leads.map(l => (
                       <option key={l.id} value={l.id}>{l.agency_name || l.full_name}</option>
@@ -343,18 +343,18 @@ export default function ProjectsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-brand-text">Start Date</label>
-                    <input type="date" value={formData.start_date} onChange={e => updateForm('start_date', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                    <input type="date" value={formData.start_date} onChange={e => updateForm('start_date', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-brand-text">Delivery Date</label>
-                    <input type="date" value={formData.delivery_date} onChange={e => updateForm('delivery_date', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                    <input type="date" value={formData.delivery_date} onChange={e => updateForm('delivery_date', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-brand-text">Status</label>
-                    <select value={formData.status} onChange={e => updateForm('status', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
+                    <select value={formData.status} onChange={e => updateForm('status', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
                       <option value="Planning">Planning</option>
                       <option value="Active">Active</option>
                       <option value="Review">Review</option>
@@ -363,16 +363,16 @@ export default function ProjectsPage() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-brand-text">Project Value (MAD)</label>
-                    <input type="number" step="0.01" value={formData.value} onChange={e => updateForm('value', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                    <input type="number" step="0.01" value={formData.value} onChange={e => updateForm('value', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                   </div>
                 </div>
 
-                <div className="space-y-2 pt-2 border-t border-brand-dark/5">
+                <div className="space-y-2 pt-2 border-t border-brand-border">
                   <label className="text-sm font-medium text-brand-text flex justify-between">
                     <span>Assign Team Members</span>
                     <span className="text-xs text-brand-text/50">Revenue Split %</span>
                   </label>
-                  <div className="bg-brand-bg border border-brand-dark/10 rounded-lg p-3 max-h-40 overflow-y-auto space-y-1 custom-scrollbar">
+                  <div className="bg-brand-bg border border-brand-border rounded-lg p-3 max-h-40 overflow-y-auto space-y-1 custom-scrollbar">
                     {teamMembers.length === 0 ? (
                       <div className="text-xs text-brand-text/50">No team members found.</div>
                     ) : (
@@ -385,7 +385,7 @@ export default function ProjectsPage() {
                                 type="checkbox" 
                                 checked={!!assigned}
                                 onChange={() => toggleUserAssignment(member.id)}
-                                className="w-4 h-4 text-brand-accent rounded border-brand-dark/20 focus:ring-brand-accent"
+                                className="w-4 h-4 text-brand-accent rounded border-brand-border focus:ring-brand-accent"
                               />
                               <span className="text-sm text-brand-text truncate">{member.full_name || 'Unnamed Member'}</span>
                             </label>
@@ -397,7 +397,7 @@ export default function ProjectsPage() {
                                   min="0" max="100" 
                                   value={assigned.percentage} 
                                   onChange={(e) => updatePercentage(member.id, e.target.value)}
-                                  className="w-12 px-1.5 py-1 text-xs font-medium bg-brand-surface border border-brand-dark/20 rounded focus:outline-none focus:border-brand-accent text-right shadow-sm"
+                                  className="w-12 px-1.5 py-1 text-xs font-medium bg-brand-surface border border-brand-border rounded focus:outline-none focus:border-brand-accent text-right "
                                 />
                                 <span className="text-xs font-medium text-brand-text/60">%</span>
                               </div>
@@ -420,7 +420,7 @@ export default function ProjectsPage() {
               </form>
             </div>
 
-            <div className="p-6 border-t border-brand-dark/5 bg-brand-surface shrink-0 flex items-center justify-end gap-3">
+            <div className="p-6 border-t border-brand-border bg-brand-surface shrink-0 flex items-center justify-end gap-3">
               <button type="button" onClick={closeModal} className="text-brand-text/70 hover:text-brand-text text-sm font-medium px-4 py-2 transition-colors">
                 Cancel
               </button>
@@ -428,7 +428,7 @@ export default function ProjectsPage() {
                 form="project-form" 
                 type="submit" 
                 disabled={submitting}
-                className="bg-brand-accent text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 shadow-sm transition-opacity disabled:opacity-70"
+                className="bg-brand-accent text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90  transition-opacity disabled:opacity-70"
               >
                 {submitting ? 'Saving...' : modalMode === 'create' ? 'Create Project' : 'Save Changes'}
               </button>

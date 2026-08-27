@@ -110,8 +110,8 @@ export default function NotificationsDropdown({ userId }) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-brand-surface rounded-xl shadow-xl border border-brand-dark/10 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="p-4 border-b border-brand-dark/5 flex items-center justify-between">
+        <div className="absolute right-0 mt-2 w-80 bg-brand-surface rounded-xl  border border-brand-border z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="p-4 border-b border-brand-border flex items-center justify-between">
             <h3 className="font-medium text-brand-text">Notifications</h3>
             {totalAlerts > 0 && (
               <button onClick={markAllAsRead} className="text-xs text-brand-text/50 hover:text-brand-accent transition-colors flex items-center gap-1">
@@ -129,7 +129,7 @@ export default function NotificationsDropdown({ userId }) {
               <div className="flex flex-col">
                 {/* Overdue Tasks */}
                 {overdueTasks.map(task => (
-                  <Link key={`task-${task.id}`} href="/dashboard/tasks" onClick={() => setIsOpen(false)} className="p-4 border-b border-brand-dark/5 hover:bg-brand-bg/50 transition-colors flex gap-3">
+                  <Link key={`task-${task.id}`} href="/dashboard/tasks" onClick={() => setIsOpen(false)} className="p-4 border-b border-brand-border hover:bg-brand-bg/50 transition-colors flex gap-3">
                     <div className="shrink-0 mt-0.5">
                       <AlertTriangle className="w-5 h-5 text-red-500" />
                     </div>
@@ -142,7 +142,7 @@ export default function NotificationsDropdown({ userId }) {
 
                 {/* Notifications */}
                 {notifications.map(notif => (
-                  <div key={notif.id} className="p-4 border-b border-brand-dark/5 hover:bg-brand-bg/50 transition-colors flex gap-3">
+                  <div key={notif.id} className="p-4 border-b border-brand-border hover:bg-brand-bg/50 transition-colors flex gap-3">
                     <div className="shrink-0 mt-0.5">
                       {getIcon(notif.type)}
                     </div>

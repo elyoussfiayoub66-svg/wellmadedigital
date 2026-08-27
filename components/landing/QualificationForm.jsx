@@ -108,7 +108,7 @@ export default function QualificationForm({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="bg-white w-full max-w-2xl rounded-3xl shadow-xl overflow-hidden flex flex-col min-h-[60vh] border border-slate-100">
+    <div className="bg-brand-surface w-full max-w-2xl rounded-3xl  overflow-hidden flex flex-col min-h-[60vh] border border-slate-100">
       
       {/* Progress Bar Header */}
       <div className="bg-slate-50 p-6 border-b border-slate-100">
@@ -138,7 +138,7 @@ export default function QualificationForm({ isOpen, onClose }) {
                   type="text" 
                   value={formData.agency}
                   onChange={e => setFormData({...formData, agency: e.target.value})}
-                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 border focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" 
+                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 border focus:bg-brand-surface focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" 
                   placeholder="e.g. Atlas Rent a Car"
                 />
               </div>
@@ -147,7 +147,7 @@ export default function QualificationForm({ isOpen, onClose }) {
                 <select 
                   value={formData.city}
                   onChange={e => setFormData({...formData, city: e.target.value})}
-                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 border focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg"
+                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 border focus:bg-brand-surface focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg"
                 >
                   <option value="">Select a city...</option>
                   {CITIES.map(city => <option key={city} value={city}>{city}</option>)}
@@ -169,7 +169,7 @@ export default function QualificationForm({ isOpen, onClose }) {
                     nextStep();
                   }}
                   className={`w-full text-left p-5 rounded-2xl border-2 transition-all ${
-                    formData.fleet === size ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-md' : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                    formData.fleet === size ? 'border-blue-600 bg-[#0D1520] text-[#60A5FA] border border-[#15203D] ' : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
                   }`}
                 >
                   <span className="font-bold text-xl">{size}</span> <span className="text-lg">Vehicles</span>
@@ -191,7 +191,7 @@ export default function QualificationForm({ isOpen, onClose }) {
                     nextStep();
                   }}
                   className={`w-full text-left p-5 rounded-2xl border-2 transition-all h-full ${
-                    formData.booking_method === method ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-md' : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                    formData.booking_method === method ? 'border-blue-600 bg-[#0D1520] text-[#60A5FA] border border-[#15203D] ' : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
                   }`}
                 >
                   <span className="font-semibold text-lg">{method}</span>
@@ -213,7 +213,7 @@ export default function QualificationForm({ isOpen, onClose }) {
                     if (problem !== 'Other') nextStep();
                   }}
                   className={`w-full text-left p-5 rounded-2xl border-2 transition-all ${
-                    formData.problem === problem ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-md' : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                    formData.problem === problem ? 'border-blue-600 bg-[#0D1520] text-[#60A5FA] border border-[#15203D] ' : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
                   }`}
                 >
                   <span className="font-semibold text-lg">{problem}</span>
@@ -227,7 +227,7 @@ export default function QualificationForm({ isOpen, onClose }) {
                     value={otherProblem}
                     onChange={e => setOtherProblem(e.target.value)}
                     placeholder="Please specify..."
-                    className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 border focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" 
+                    className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 border focus:bg-brand-surface focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" 
                   />
                 </div>
               )}
@@ -247,7 +247,7 @@ export default function QualificationForm({ isOpen, onClose }) {
                     nextStep();
                   }}
                   className={`w-full text-left p-5 rounded-2xl border-2 transition-all ${
-                    formData.timeline === timeline ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-md' : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                    formData.timeline === timeline ? 'border-blue-600 bg-[#0D1520] text-[#60A5FA] border border-[#15203D] ' : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
                   }`}
                 >
                   <span className="font-semibold text-lg">{timeline}</span>
@@ -268,7 +268,7 @@ export default function QualificationForm({ isOpen, onClose }) {
                   type="text" 
                   value={formData.name}
                   onChange={e => setFormData({...formData, name: e.target.value})}
-                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 border focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" 
+                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 border focus:bg-brand-surface focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" 
                 />
               </div>
               <div>
@@ -277,7 +277,7 @@ export default function QualificationForm({ isOpen, onClose }) {
                   type="tel" 
                   value={formData.phone}
                   onChange={e => setFormData({...formData, phone: e.target.value})}
-                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 border focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" 
+                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 border focus:bg-brand-surface focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" 
                 />
               </div>
               <div>
@@ -286,7 +286,7 @@ export default function QualificationForm({ isOpen, onClose }) {
                   type="email" 
                   value={formData.email}
                   onChange={e => setFormData({...formData, email: e.target.value})}
-                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 border focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" 
+                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 border focus:bg-brand-surface focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-lg" 
                 />
               </div>
             </div>
@@ -307,7 +307,7 @@ export default function QualificationForm({ isOpen, onClose }) {
         <button 
           onClick={nextStep}
           disabled={isSubmitting}
-          className="flex items-center px-8 py-4 font-bold rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 text-lg"
+          className="flex items-center px-8 py-4 font-bold rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all  hover: hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 text-lg"
         >
           {isSubmitting ? (
             <><Loader2 className="w-6 h-6 mr-3 animate-spin" /> Submitting...</>

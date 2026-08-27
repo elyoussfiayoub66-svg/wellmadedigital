@@ -172,11 +172,11 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-8rem)] bg-brand-surface border border-brand-dark/10 rounded-2xl overflow-hidden flex shadow-sm">
+    <div className="h-[calc(100vh-8rem)] bg-brand-surface border border-brand-border rounded-2xl overflow-hidden flex ">
       
       {/* Projects Sidebar */}
-      <div className="w-1/3 max-w-[320px] bg-brand-bg/50 border-r border-brand-dark/10 flex flex-col">
-        <div className="p-5 border-b border-brand-dark/10 bg-brand-surface shrink-0">
+      <div className="w-1/3 max-w-[320px] bg-brand-bg/50 border-r border-brand-border flex flex-col">
+        <div className="p-5 border-b border-brand-border bg-brand-surface shrink-0">
           <h2 className="font-semibold text-brand-text flex items-center gap-2">
             <MessageSquare className="w-5 h-5 text-brand-accent" /> Project Chats
           </h2>
@@ -198,12 +198,12 @@ export default function ChatPage() {
                 onClick={() => setSelectedProject(project)}
                 className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left ${
                   selectedProject?.id === project.id 
-                    ? 'bg-brand-dark text-white shadow-md' 
-                    : 'text-brand-text hover:bg-brand-surface border border-transparent hover:border-brand-dark/5'
+                    ? 'bg-brand-accent text-white ' 
+                    : 'text-brand-text hover:bg-brand-surface border border-transparent hover:border-brand-border'
                 }`}
               >
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-                  selectedProject?.id === project.id ? 'bg-white/20' : 'bg-brand-dark/5'
+                  selectedProject?.id === project.id ? 'bg-brand-surface/20' : 'bg-brand-dark/5'
                 }`}>
                   <Hash className={`w-5 h-5 ${selectedProject?.id === project.id ? 'text-white' : 'text-brand-accent'}`} />
                 </div>
@@ -224,7 +224,7 @@ export default function ChatPage() {
         {selectedProject ? (
           <>
             {/* Chat Header */}
-            <div className="p-5 border-b border-brand-dark/10 bg-brand-surface/95 backdrop-blur z-10 shrink-0">
+            <div className="p-5 border-b border-brand-border bg-brand-surface/95 backdrop-blur z-10 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-brand-dark/5 rounded-lg flex items-center justify-center">
                   <Hash className="w-5 h-5 text-brand-accent" />
@@ -257,7 +257,7 @@ export default function ChatPage() {
                       {!isMe && (
                         <div className="w-8 shrink-0 mr-3">
                           {showAvatar && (
-                            <div className="w-8 h-8 rounded-full bg-brand-dark flex items-center justify-center text-xs font-bold text-white shadow-sm" title={msg.profiles?.full_name}>
+                            <div className="w-8 h-8 rounded-full bg-brand-dark flex items-center justify-center text-xs font-bold text-white " title={msg.profiles?.full_name}>
                               {msg.profiles?.full_name?.charAt(0) || 'U'}
                             </div>
                           )}
@@ -269,10 +269,10 @@ export default function ChatPage() {
                           <span className="text-xs font-medium text-brand-text/50 mb-1 ml-1">{msg.profiles?.full_name}</span>
                         )}
                         <div 
-                          className={`px-4 py-2.5 rounded-2xl text-sm shadow-sm relative ${
+                          className={`px-4 py-2.5 rounded-2xl text-sm  relative ${
                             isMe 
                               ? 'bg-brand-accent text-white rounded-br-sm' 
-                              : 'bg-white border border-brand-dark/5 text-brand-text rounded-bl-sm'
+                              : 'bg-brand-surface border border-brand-border text-brand-text rounded-bl-sm'
                           }`}
                         >
                           {msg.content}
@@ -289,19 +289,19 @@ export default function ChatPage() {
             </div>
 
             {/* Message Input */}
-            <div className="p-4 bg-brand-surface border-t border-brand-dark/10 shrink-0">
+            <div className="p-4 bg-brand-surface border-t border-brand-border shrink-0">
               <form onSubmit={handleSendMessage} className="flex items-center gap-3">
                 <input
                   type="text"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Type a message..."
-                  className="flex-1 bg-brand-bg border border-brand-dark/10 rounded-full px-5 py-3 text-sm focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all"
+                  className="flex-1 bg-brand-bg border border-brand-border rounded-full px-5 py-3 text-sm focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent transition-all"
                 />
                 <button
                   type="submit"
                   disabled={!newMessage.trim() || sending}
-                  className="w-12 h-12 bg-brand-accent text-white rounded-full flex items-center justify-center hover:opacity-90 disabled:opacity-50 transition-all shrink-0 shadow-sm"
+                  className="w-12 h-12 bg-brand-accent text-white rounded-full flex items-center justify-center hover:opacity-90 disabled:opacity-50 transition-all shrink-0 "
                 >
                   <Send className="w-5 h-5 ml-1" />
                 </button>

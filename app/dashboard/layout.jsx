@@ -40,8 +40,8 @@ function NavTooltip({ label, children }) {
         >
           <div className="flex items-center gap-0">
             {/* Arrow */}
-            <div className="w-0 h-0 border-t-[6px] border-b-[6px] border-r-[8px] border-t-transparent border-b-transparent border-r-brand-dark/90" />
-            <div className="bg-brand-dark/90 backdrop-blur-sm text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-xl whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-150">
+            <div className="w-0 h-0 border-t-[6px] border-b-[6px] border-r-[8px] border-t-transparent border-b-transparent border-r-brand-surface" />
+            <div className="bg-brand-surface border border-brand-border text-brand-text text-xs font-medium px-3 py-2 rounded-lg  whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-150">
               {label}
             </div>
           </div>
@@ -144,38 +144,47 @@ export default function DashboardLayout({ children }) {
     { name: 'Settings',     href: '/dashboard/settings',     icon: Settings },
   ];
 
-  if (!user) return <div className="h-screen flex items-center justify-center bg-brand-bg">Loading...</div>;
+  if (!user) return (
+    <div className="h-screen flex items-center justify-center bg-brand-bg">
+      <div className="w-5 h-5 rounded-full border-2 border-brand-border border-t-brand-accent animate-spin" />
+    </div>
+  );
 
   return (
     <div className="flex h-screen bg-brand-bg overflow-hidden">
 
       {/* ── Sidebar ─────────────────────────────────────────────────────────── */}
       <aside
-        className={`relative bg-[#F4EFE6] text-brand-dark flex flex-col shrink-0 border-r border-brand-dark/5 shadow-lg z-20 transition-all duration-300 ease-in-out ${
+        className={`relative bg-brand-surface text-brand-text flex flex-col shrink-0 border-r border-brand-border z-20 transition-all duration-300 ease-in-out ${
           collapsed ? 'w-[68px]' : 'w-64'
         }`}
       >
         {/* Logo */}
-        <div className={`border-b border-brand-dark/10 flex items-center shrink-0 transition-all duration-300 ${
+        <div className={`border-b border-brand-border flex items-center shrink-0 transition-all duration-300 ${
           collapsed ? 'justify-center py-4 px-0' : 'justify-center py-4 px-5'
         }`}>
           <Link href="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="relative w-[65px] h-[65px] shrink-0 group-hover:scale-105 transition-transform flex items-center justify-center">
+            <div className="relative w-[52px] h-[52px] shrink-0 group-hover:scale-105 transition-transform flex items-center justify-center">
               <img
                 src="/assets/logo.png"
-                alt="WellMade Digital Logo"
+                alt="Studio Noir Logo"
                 className="w-full h-full object-contain"
                 onError={(e) => {
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'flex';
                 }}
               />
-              <div className="hidden w-full h-full bg-brand-dark rounded-lg items-center justify-center text-white font-black text-2xl">W</div>
+              {/* Fallback: angular SVG mark */}
+              <div className="hidden w-full h-full bg-brand-surface rounded-[10px] border border-brand-border items-center justify-center">
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                  <polygon points="11,2 20,19 2,19" fill="#C2496B" />
+                </svg>
+              </div>
             </div>
-            <span className={`text-[13px] font-black tracking-wider text-brand-dark whitespace-nowrap transition-all duration-300 ${
+            <span className={`text-[13px] font-semibold tracking-wide text-brand-text whitespace-nowrap transition-all duration-300 ${
               collapsed ? 'w-0 opacity-0 overflow-hidden' : 'opacity-100'
             }`}>
-              wellmadedigital
+              Studio Noir
             </span>
           </Link>
         </div>
@@ -192,21 +201,21 @@ export default function DashboardLayout({ children }) {
                 <NavTooltip key={item.name} label={item.name}>
                   <Link
                     href={item.href}
-                    className={`relative flex items-center justify-center w-full py-3 rounded-xl transition-all duration-200 group ${
+                    className={`relative flex items-center justify-center w-full py-3 rounded-lg transition-all duration-200 group ${
                       isActive
-                        ? 'bg-brand-dark shadow-lg shadow-brand-dark/25'
-                        : 'hover:bg-brand-dark/8'
+                        ? 'bg-brand-accent/10'
+                        : 'hover:bg-brand-border/40'
                     }`}
                   >
-                    {/* Active glow bar */}
+                    {/* Active left bar */}
                     {isActive && (
                       <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-brand-accent rounded-r-full" />
                     )}
                     <item.icon
                       className={`w-[18px] h-[18px] transition-all duration-200 ${
                         isActive
-                          ? 'text-white scale-110'
-                          : 'text-brand-dark/40 group-hover:text-brand-dark group-hover:scale-110'
+                          ? 'text-brand-accent'
+                          : 'text-brand-muted group-hover:text-brand-secondary group-hover:scale-110'
                       }`}
                     />
                     {item.name === 'Chat' && unreadCount > 0 && (
@@ -221,10 +230,10 @@ export default function DashboardLayout({ children }) {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`relative flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group ${
+                className={`relative flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group ${
                   isActive
-                    ? 'bg-brand-dark text-white font-semibold shadow-md shadow-brand-dark/20'
-                    : 'text-brand-dark/70 hover:text-brand-dark hover:bg-brand-dark/5 font-medium'
+                    ? 'bg-brand-accent/10 text-brand-accent font-medium'
+                    : 'text-brand-muted hover:text-brand-text hover:bg-brand-border/40 font-normal'
                 }`}
               >
                 {isActive && (
@@ -232,7 +241,7 @@ export default function DashboardLayout({ children }) {
                 )}
                 <item.icon
                   className={`w-[18px] h-[18px] shrink-0 transition-all duration-200 ${
-                    isActive ? 'text-white' : 'text-brand-dark/40 group-hover:text-brand-dark group-hover:scale-110'
+                    isActive ? 'text-brand-accent' : 'text-brand-muted group-hover:text-brand-text group-hover:scale-110'
                   }`}
                 />
                 <span className="text-sm">{item.name}</span>
@@ -247,12 +256,12 @@ export default function DashboardLayout({ children }) {
         </nav>
 
         {/* Sign Out */}
-        <div className={`border-t border-brand-dark/10 shrink-0 transition-all duration-300 ${collapsed ? 'p-2' : 'p-3'}`}>
+        <div className={`border-t border-brand-border shrink-0 transition-all duration-300 ${collapsed ? 'p-2' : 'p-3'}`}>
           {collapsed ? (
             <NavTooltip label="Sign Out">
               <button
                 onClick={handleLogout}
-                className="flex items-center justify-center w-full py-3 rounded-xl text-brand-dark/40 hover:text-red-500 hover:bg-red-50 transition-all duration-200 group"
+                className="flex items-center justify-center w-full py-3 rounded-lg text-brand-muted hover:text-[#F87171] hover:bg-[#1F0D0D] transition-all duration-200 group"
               >
                 <LogOut className="w-[18px] h-[18px] group-hover:scale-110 transition-transform" />
               </button>
@@ -260,9 +269,9 @@ export default function DashboardLayout({ children }) {
           ) : (
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-2.5 w-full rounded-xl text-brand-dark/70 font-medium hover:text-red-600 hover:bg-red-50 transition-colors group"
+              className="flex items-center gap-3 px-4 py-2.5 w-full rounded-lg text-brand-muted font-normal hover:text-[#F87171] hover:bg-[#1F0D0D] transition-colors group"
             >
-              <LogOut className="w-[18px] h-[18px] text-brand-dark/40 group-hover:text-red-500 group-hover:scale-110 transition-all" />
+              <LogOut className="w-[18px] h-[18px] group-hover:scale-110 transition-all" />
               <span className="text-sm">Sign Out</span>
             </button>
           )}
@@ -271,7 +280,7 @@ export default function DashboardLayout({ children }) {
         {/* Toggle button — floating on edge */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-3 top-[88px] z-30 w-6 h-6 bg-brand-dark text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-200"
+          className="absolute -right-3 top-[88px] z-30 w-6 h-6 bg-brand-surface border border-brand-border text-brand-muted rounded-full flex items-center justify-center  hover:border-brand-accent hover:text-brand-accent transition-all duration-200"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed
@@ -284,34 +293,34 @@ export default function DashboardLayout({ children }) {
       {/* ── Main Area ───────────────────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
         {/* Header */}
-        <header className="h-20 bg-brand-surface border-b border-brand-dark/5 flex items-center justify-between px-8 shrink-0">
+        <header className="h-16 bg-brand-surface border-b border-brand-border flex items-center justify-between px-6 shrink-0">
           <div className="flex items-center gap-4 flex-1">
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="p-2 rounded-lg text-brand-text/50 hover:text-brand-text hover:bg-brand-bg transition-colors md:hidden"
+              className="p-2 rounded-lg text-brand-muted hover:text-brand-text hover:bg-brand-border/40 transition-colors md:hidden"
             >
               <Menu className="w-5 h-5" />
             </button>
             <div className="flex-1 max-w-xl">
               <div className="relative">
-                <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-brand-text/40" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted" />
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-2 bg-brand-bg rounded-lg border-none focus:ring-1 focus:ring-brand-accent text-sm"
+                  className="w-full pl-9 pr-4 py-2 bg-brand-bg rounded-lg border border-brand-border focus:ring-1 focus:ring-brand-accent focus:border-brand-accent focus:outline-none text-sm text-brand-text placeholder:text-brand-muted transition-all"
                 />
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-4 ml-4">
+          <div className="flex items-center gap-3 ml-4">
             {user && <NotificationsDropdown userId={user.id} />}
-            <Link href="/dashboard/profile" className="flex items-center gap-3 pl-4 border-l border-brand-dark/10 hover:opacity-80 transition-opacity">
-              <div className="w-9 h-9 rounded-full bg-brand-dark text-brand-text-light flex items-center justify-center font-bold text-sm shrink-0">
+            <Link href="/dashboard/profile" className="flex items-center gap-3 pl-4 border-l border-brand-border hover:opacity-80 transition-opacity">
+              <div className="w-8 h-8 rounded-full bg-brand-accent/15 text-brand-accent flex items-center justify-center font-semibold text-sm shrink-0 border border-brand-accent/20">
                 {user.email?.charAt(0).toUpperCase()}
               </div>
               <div className="hidden md:block">
                 <p className="text-sm font-medium text-brand-text leading-tight">{user.user_metadata?.full_name || 'User'}</p>
-                <p className="text-xs text-brand-text/70">{user.email}</p>
+                <p className="text-xs text-brand-muted">{user.email}</p>
               </div>
             </Link>
           </div>

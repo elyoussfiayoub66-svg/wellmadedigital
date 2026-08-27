@@ -182,16 +182,16 @@ export default function ClientsPage() {
           <input 
             type="text" 
             placeholder="Search clients..." 
-            className="w-full pl-10 pr-4 py-2 bg-brand-surface border border-brand-dark/10 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-accent text-sm text-brand-text"
+            className="w-full pl-10 pr-4 py-2 bg-brand-surface border border-brand-border rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-accent text-sm text-brand-text"
           />
         </div>
       </div>
 
-      <div className="bg-brand-surface rounded-xl border border-brand-dark/5 shadow-sm overflow-hidden">
+      <div className="bg-brand-surface rounded-xl border border-brand-border  overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
-              <tr className="border-b border-brand-dark/5 bg-brand-bg/50">
+              <tr className="border-b border-brand-border bg-brand-bg/50">
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Client Info</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Contact</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Meeting Status</th>
@@ -211,7 +211,7 @@ export default function ClientsPage() {
                 </tr>
               ) : (
                 clients.map((client) => (
-                  <tr key={client.id} className="border-b border-brand-dark/5 hover:bg-brand-bg/50 transition-colors">
+                  <tr key={client.id} className="border-b border-brand-border hover:bg-brand-bg/50 transition-colors">
                     <td className="p-4">
                       <div className="font-medium text-brand-text">{client.agency_name || client.full_name}</div>
                       <div className="text-xs text-brand-text/60 mt-0.5">{client.agency_name ? client.full_name : 'No Agency'}</div>
@@ -267,8 +267,8 @@ export default function ClientsPage() {
       {/* Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-brand-surface w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-brand-dark/10 flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-brand-dark/5 shrink-0">
+          <div className="bg-brand-surface w-full max-w-md rounded-2xl  overflow-hidden border border-brand-border flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-brand-border shrink-0">
               <h2 className="text-xl font-medium text-brand-text">Edit Client</h2>
               <button onClick={closeModal} className="text-brand-text/50 hover:text-brand-text p-1 rounded-full hover:bg-brand-bg transition-colors">
                 <X className="w-5 h-5" />
@@ -282,7 +282,7 @@ export default function ClientsPage() {
                   <select 
                     value={formData.status} 
                     onChange={e => updateForm('status', e.target.value)} 
-                    className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent"
+                    className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent"
                   >
                     {leadStatuses.length === 0 && <option value={formData.status}>{formData.status || 'NEW'}</option>}
                     {leadStatuses.map((status, idx) => (
@@ -293,33 +293,33 @@ export default function ClientsPage() {
 
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-brand-text">Full Name</label>
-                  <input required type="text" value={formData.full_name} onChange={e => updateForm('full_name', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                  <input required type="text" value={formData.full_name} onChange={e => updateForm('full_name', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                 </div>
                 
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-brand-text">Business/Agency Name</label>
-                  <input type="text" value={formData.agency_name} onChange={e => updateForm('agency_name', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                  <input type="text" value={formData.agency_name} onChange={e => updateForm('agency_name', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-brand-text">Email</label>
-                    <input type="email" value={formData.email} onChange={e => updateForm('email', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                    <input type="email" value={formData.email} onChange={e => updateForm('email', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-brand-text">Phone</label>
-                    <input type="tel" value={formData.phone} onChange={e => updateForm('phone', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                    <input type="tel" value={formData.phone} onChange={e => updateForm('phone', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                   </div>
                 </div>
 
-                <div className="border-t border-brand-dark/5 pt-4 mt-2">
+                <div className="border-t border-brand-border pt-4 mt-2">
                   <h3 className="text-sm font-semibold text-brand-text mb-4">Meeting Status</h3>
                   
                   {formData.appointment_id ? (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-sm font-medium text-brand-text">Status</label>
-                        <select value={formData.meeting_status} onChange={e => updateForm('meeting_status', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
+                        <select value={formData.meeting_status} onChange={e => updateForm('meeting_status', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
                           <option value="SCHEDULED">Scheduled</option>
                           <option value="COMPLETED">Completed</option>
                           <option value="CANCELLED">Cancelled</option>
@@ -328,7 +328,7 @@ export default function ClientsPage() {
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-sm font-medium text-brand-text">Meeting Result</label>
-                        <select value={formData.meeting_result} onChange={e => updateForm('meeting_result', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
+                        <select value={formData.meeting_result} onChange={e => updateForm('meeting_result', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
                           <option value="Pending">Pending</option>
                           <option value="Closed Won">Closed Won</option>
                           <option value="Closed Lost">Closed Lost</option>
@@ -344,7 +344,7 @@ export default function ClientsPage() {
               </form>
             </div>
 
-            <div className="p-6 border-t border-brand-dark/5 bg-brand-surface shrink-0 flex items-center justify-end gap-3">
+            <div className="p-6 border-t border-brand-border bg-brand-surface shrink-0 flex items-center justify-end gap-3">
               <button type="button" onClick={closeModal} className="text-brand-text/70 hover:text-brand-text text-sm font-medium px-4 py-2 transition-colors">
                 Cancel
               </button>
@@ -352,7 +352,7 @@ export default function ClientsPage() {
                 form="edit-form" 
                 type="submit" 
                 disabled={submitting}
-                className="bg-brand-accent text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 shadow-sm transition-opacity disabled:opacity-70"
+                className="bg-brand-accent text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90  transition-opacity disabled:opacity-70"
               >
                 {submitting ? 'Saving...' : 'Save Changes'}
               </button>

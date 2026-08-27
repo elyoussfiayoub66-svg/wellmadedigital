@@ -115,11 +115,11 @@ export default function InvoicesPage() {
         </div>
       </div>
 
-      <div className="bg-brand-surface rounded-xl border border-brand-dark/5 shadow-sm overflow-hidden">
+      <div className="bg-brand-surface rounded-xl border border-brand-border  overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
-              <tr className="border-b border-brand-dark/5 bg-brand-bg/50">
+              <tr className="border-b border-brand-border bg-brand-bg/50">
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Invoice Number</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Client Name</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Project Name</th>
@@ -132,7 +132,7 @@ export default function InvoicesPage() {
             <tbody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} className="animate-pulse border-b border-brand-dark/5">
+                  <tr key={i} className="animate-pulse border-b border-brand-border">
                     <td className="p-4"><div className="w-24 h-4 bg-brand-dark/10 rounded"></div></td>
                     <td className="p-4"><div className="w-32 h-4 bg-brand-dark/10 rounded"></div></td>
                     <td className="p-4"><div className="w-32 h-4 bg-brand-dark/10 rounded"></div></td>
@@ -150,7 +150,7 @@ export default function InvoicesPage() {
                 </tr>
               ) : (
                 invoices.map((inv) => (
-                  <tr key={inv.id} className="border-b border-brand-dark/5 hover:bg-brand-bg/50 transition-colors">
+                  <tr key={inv.id} className="border-b border-brand-border hover:bg-brand-bg/50 transition-colors">
                     <td className="p-4 font-medium text-brand-text">{inv.invoice_number}</td>
                     <td className="p-4 text-brand-text/80 text-sm">{inv.leads?.agency_name || inv.leads?.full_name || 'No Client'}</td>
                     <td className="p-4 text-brand-text/80 text-sm">{inv.projects?.name || 'No Project'}</td>
@@ -184,8 +184,8 @@ export default function InvoicesPage() {
       {/* Edit Invoice Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-brand-surface w-full max-w-sm rounded-2xl shadow-xl overflow-hidden border border-brand-dark/10 flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-brand-dark/5 shrink-0">
+          <div className="bg-brand-surface w-full max-w-sm rounded-2xl  overflow-hidden border border-brand-border flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-brand-border shrink-0">
               <h2 className="text-xl font-medium text-brand-text">Edit Invoice</h2>
               <button onClick={closeModal} className="text-brand-text/50 hover:text-brand-text p-1 rounded-full hover:bg-brand-bg transition-colors">
                 <X className="w-5 h-5" />
@@ -196,12 +196,12 @@ export default function InvoicesPage() {
               <form id="edit-invoice-form" onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-brand-text">Amount (MAD)</label>
-                  <input required type="number" step="0.01" value={formData.amount} onChange={e => updateForm('amount', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                  <input required type="number" step="0.01" value={formData.amount} onChange={e => updateForm('amount', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                 </div>
                 
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-brand-text">Status</label>
-                  <select required value={formData.status} onChange={e => updateForm('status', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
+                  <select required value={formData.status} onChange={e => updateForm('status', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
                     <option value="Pending">Pending</option>
                     <option value="Paid">Paid</option>
                     <option value="Overdue">Overdue</option>
@@ -211,7 +211,7 @@ export default function InvoicesPage() {
               </form>
             </div>
 
-            <div className="p-6 border-t border-brand-dark/5 bg-brand-surface shrink-0 flex items-center justify-end gap-3">
+            <div className="p-6 border-t border-brand-border bg-brand-surface shrink-0 flex items-center justify-end gap-3">
               <button type="button" onClick={closeModal} className="text-brand-text/70 hover:text-brand-text text-sm font-medium px-4 py-2 transition-colors">
                 Cancel
               </button>
@@ -219,7 +219,7 @@ export default function InvoicesPage() {
                 form="edit-invoice-form" 
                 type="submit" 
                 disabled={submitting}
-                className="bg-brand-accent text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 shadow-sm transition-opacity disabled:opacity-70"
+                className="bg-brand-accent text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90  transition-opacity disabled:opacity-70"
               >
                 {submitting ? 'Saving...' : 'Save Changes'}
               </button>

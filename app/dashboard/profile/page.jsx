@@ -102,7 +102,7 @@ export default function ProfilePage() {
       
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-black tracking-tight text-brand-dark mb-2">My Profile</h1>
+        <h1 className="text-3xl font-black tracking-tight text-brand-text mb-2">My Profile</h1>
         <p className="text-brand-text/60 max-w-lg leading-relaxed">
           Manage your personal account details and security settings.
         </p>
@@ -121,7 +121,7 @@ export default function ProfilePage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`relative flex w-full items-center gap-4 rounded-2xl p-4 text-left transition-all duration-300 group ${
                   isActive
-                    ? "bg-brand-surface shadow-sm border border-brand-dark/5"
+                    ? "bg-brand-surface  border border-brand-border"
                     : "hover:bg-brand-surface/50 border border-transparent"
                 }`}
               >
@@ -130,12 +130,12 @@ export default function ProfilePage() {
                 )}
                 
                 <div className={`p-2.5 rounded-xl transition-colors duration-300 ${
-                  isActive ? "bg-brand-accent text-white shadow-md shadow-brand-accent/20" : "bg-brand-dark/5 text-brand-text/50 group-hover:bg-brand-dark/10 group-hover:text-brand-text"
+                  isActive ? "bg-brand-accent text-white  shadow-brand-accent/20" : "bg-brand-dark/5 text-brand-text/50 group-hover:bg-brand-dark/10 group-hover:text-brand-text"
                 }`}>
                   <Icon className="h-4 w-4" />
                 </div>
                 
-                <div className={`text-sm font-bold transition-colors flex-1 ${isActive ? "text-brand-dark" : "text-brand-text/70 group-hover:text-brand-dark"}`}>
+                <div className={`text-sm font-bold transition-colors flex-1 ${isActive ? "text-brand-text" : "text-brand-text/70 group-hover:text-brand-text"}`}>
                   {tab.label}
                 </div>
               </button>
@@ -145,17 +145,17 @@ export default function ProfilePage() {
 
         {/* Content Area */}
         <div className="md:col-span-8">
-          <div className="rounded-3xl bg-brand-surface p-8 shadow-sm border border-brand-dark/5 min-h-[400px] transition-all duration-500">
+          <div className="rounded-3xl bg-brand-surface p-8  border border-brand-border min-h-[400px] transition-all duration-500">
             
             {/* Personal Info Tab */}
             {activeTab === 'personal' && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex items-center gap-6 pb-6 border-b border-brand-dark/5">
-                  <div className="w-20 h-20 bg-brand-dark rounded-full flex-shrink-0 flex items-center justify-center text-2xl text-white font-bold border-4 border-brand-bg shadow-sm">
+                <div className="flex items-center gap-6 pb-6 border-b border-brand-border">
+                  <div className="w-20 h-20 bg-brand-dark rounded-full flex-shrink-0 flex items-center justify-center text-2xl text-white font-bold border-4 border-brand-bg ">
                     {fullName.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-brand-dark">{fullName || 'User'}</h3>
+                    <h3 className="text-lg font-bold text-brand-text">{fullName || 'User'}</h3>
                     <p className="text-sm text-brand-text/50">{user.email}</p>
                   </div>
                 </div>
@@ -167,7 +167,7 @@ export default function ProfilePage() {
                       type="text" 
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full rounded-xl border border-brand-dark/10 bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-accent/10" 
+                      className="w-full rounded-xl border border-brand-border bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-brand-surface focus:outline-none focus:ring-4 focus:ring-brand-accent/10" 
                     />
                   </div>
                   <div className="space-y-2">
@@ -176,7 +176,7 @@ export default function ProfilePage() {
                       type="email" 
                       value={user.email || ''}
                       disabled
-                      className="w-full rounded-xl border border-brand-dark/5 bg-brand-bg/30 px-4 py-3.5 text-brand-text/50 font-medium cursor-not-allowed" 
+                      className="w-full rounded-xl border border-brand-border bg-brand-bg/30 px-4 py-3.5 text-brand-text/50 font-medium cursor-not-allowed" 
                     />
                   </div>
                   
@@ -184,7 +184,7 @@ export default function ProfilePage() {
                     <button 
                       type="submit"
                       disabled={isSaving}
-                      className="flex items-center gap-2 rounded-xl bg-brand-dark px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-brand-dark/90 hover:shadow-lg disabled:opacity-70"
+                      className="flex items-center gap-2 rounded-xl bg-brand-dark px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-brand-dark/90 hover: disabled:opacity-70"
                     >
                       {isSaving ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Save className="h-4 w-4" />}
                       Save Profile
@@ -198,7 +198,7 @@ export default function ProfilePage() {
             {activeTab === 'security' && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div>
-                  <h2 className="text-2xl font-bold text-brand-dark">Change Password</h2>
+                  <h2 className="text-2xl font-bold text-brand-text">Change Password</h2>
                   <p className="text-sm text-brand-text/50 mt-1">Ensure your account is using a long, random password to stay secure.</p>
                 </div>
 
@@ -211,7 +211,7 @@ export default function ProfilePage() {
                       minLength={6}
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm(prev => ({...prev, newPassword: e.target.value}))}
-                      className="w-full rounded-xl border border-brand-dark/10 bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-accent/10" 
+                      className="w-full rounded-xl border border-brand-border bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-brand-surface focus:outline-none focus:ring-4 focus:ring-brand-accent/10" 
                     />
                   </div>
                   <div className="space-y-2">
@@ -222,7 +222,7 @@ export default function ProfilePage() {
                       minLength={6}
                       value={passwordForm.confirmPassword}
                       onChange={(e) => setPasswordForm(prev => ({...prev, confirmPassword: e.target.value}))}
-                      className="w-full rounded-xl border border-brand-dark/10 bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-accent/10" 
+                      className="w-full rounded-xl border border-brand-border bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-brand-surface focus:outline-none focus:ring-4 focus:ring-brand-accent/10" 
                     />
                   </div>
                   
@@ -230,7 +230,7 @@ export default function ProfilePage() {
                     <button 
                       type="submit"
                       disabled={isSaving}
-                      className="flex items-center gap-2 rounded-xl bg-brand-dark px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-brand-dark/90 hover:shadow-lg disabled:opacity-70"
+                      className="flex items-center gap-2 rounded-xl bg-brand-dark px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-brand-dark/90 hover: disabled:opacity-70"
                     >
                       {isSaving ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Lock className="h-4 w-4" />}
                       Update Password

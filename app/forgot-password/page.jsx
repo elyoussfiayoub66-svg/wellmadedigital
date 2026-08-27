@@ -33,29 +33,29 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-brand-bg absolute inset-0 z-50">
-      <div className="max-w-md w-full bg-brand-surface p-8 rounded-xl shadow-xl border border-brand-dark/5">
+      <div className="max-w-md w-full bg-brand-surface p-8 rounded-[10px] border border-brand-border  border border-brand-border">
         
-        <Link href="/login" className="inline-flex items-center gap-2 text-sm text-brand-text/50 hover:text-brand-dark mb-6 transition-colors">
+        <Link href="/login" className="inline-flex items-center gap-2 text-sm text-brand-text/50 hover:text-brand-text mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to login
         </Link>
 
         {success ? (
           <div className="text-center space-y-4 animate-in fade-in duration-500">
-            <div className="mx-auto w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+            <div className="mx-auto w-16 h-16 bg-[#0D1F0D] text-[#4ADE80] border border-[#1A3D1A] rounded-full flex items-center justify-center">
               <CheckCircle2 className="w-8 h-8" />
             </div>
-            <h1 className="text-2xl font-bold text-brand-dark">Check your email</h1>
+            <h1 className="text-2xl font-bold text-brand-text">Check your email</h1>
             <p className="text-brand-text/70 leading-relaxed">
-              We've sent a password reset link to <span className="font-semibold text-brand-dark">{email}</span>. 
+              We've sent a password reset link to <span className="font-semibold text-brand-text">{email}</span>. 
               Click the link to securely reset your password.
             </p>
           </div>
         ) : (
           <>
-            <h1 className="text-2xl font-bold mb-2 text-brand-dark">Reset Password</h1>
+            <h1 className="text-2xl font-bold mb-2 text-brand-text">Reset Password</h1>
             <p className="text-brand-text/60 mb-6">Enter your email address and we'll send you a link to reset your password.</p>
             
-            {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm border border-red-100">{error}</div>}
+            {error && <div className="bg-[#1F0D0D] text-[#F87171] border border-[#3D1515] p-3 rounded-lg mb-4 text-sm border border-red-100">{error}</div>}
             
             <form onSubmit={handleReset} className="space-y-5">
               <div>
@@ -64,7 +64,7 @@ export default function ForgotPasswordPage() {
                   type="email" 
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="w-full border-brand-dark/10 rounded-lg p-3.5 border focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent transition-all bg-brand-bg/50 outline-none" 
+                  className="w-full border-brand-border rounded-lg p-3.5 border focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent transition-all bg-brand-bg/50 outline-none" 
                   placeholder="name@agency.com"
                   required 
                 />
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
               <button 
                 type="submit" 
                 disabled={loading}
-                className="w-full bg-brand-dark text-white font-bold py-3.5 rounded-xl hover:bg-brand-dark/90 transition-all disabled:opacity-70 shadow-md flex items-center justify-center gap-2"
+                className="w-full bg-brand-accent text-white font-bold py-3.5 rounded-xl hover:bg-brand-dark/90 transition-all disabled:opacity-70  flex items-center justify-center gap-2"
               >
                 {loading && <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />}
                 {loading ? 'Sending link...' : 'Send Reset Link'}

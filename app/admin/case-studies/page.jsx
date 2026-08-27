@@ -21,7 +21,7 @@ export default async function CaseStudiesPage() {
         </Link>
       </div>
 
-      <div className="bg-brand-surface rounded-xl shadow-sm border border-brand-dark/10 overflow-hidden">
+      <div className="bg-brand-surface rounded-xl  border border-brand-border overflow-hidden">
         <table className="w-full text-left">
           <thead className="bg-brand-bg/50 text-brand-text/70 text-sm">
             <tr>

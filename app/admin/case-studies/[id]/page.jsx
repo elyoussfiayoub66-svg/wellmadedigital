@@ -121,7 +121,7 @@ export default function EditCaseStudyPage() {
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8 bg-brand-surface p-8 rounded-xl border border-brand-dark/10 shadow-sm">
+      <form onSubmit={handleSubmit} className="space-y-8 bg-brand-surface p-8 rounded-[10px] border border-brand-border border border-brand-border ">
         
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-2">
@@ -129,7 +129,7 @@ export default function EditCaseStudyPage() {
             <input 
               required 
               type="text" 
-              className="w-full p-3 bg-brand-bg rounded-lg border border-brand-dark/10 focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+              className="w-full p-3 bg-brand-bg rounded-lg border border-brand-border focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
               value={formData.title}
               onChange={e => setFormData({...formData, title: e.target.value})}
             />
@@ -139,7 +139,7 @@ export default function EditCaseStudyPage() {
             <input 
               required 
               type="text" 
-              className="w-full p-3 bg-brand-bg rounded-lg border border-brand-dark/10 focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+              className="w-full p-3 bg-brand-bg rounded-lg border border-brand-border focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
               value={formData.client_name}
               onChange={e => setFormData({...formData, client_name: e.target.value})}
             />
@@ -151,7 +151,7 @@ export default function EditCaseStudyPage() {
             <label className="text-sm font-medium">Industry</label>
             <input 
               type="text" 
-              className="w-full p-3 bg-brand-bg rounded-lg border border-brand-dark/10 focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+              className="w-full p-3 bg-brand-bg rounded-lg border border-brand-border focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
               value={formData.industry}
               onChange={e => setFormData({...formData, industry: e.target.value})}
             />
@@ -159,7 +159,7 @@ export default function EditCaseStudyPage() {
           <div className="space-y-2">
             <label className="text-sm font-medium">Status</label>
             <select 
-              className="w-full p-3 bg-brand-bg rounded-lg border border-brand-dark/10 focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+              className="w-full p-3 bg-brand-bg rounded-lg border border-brand-border focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
               value={formData.status}
               onChange={e => setFormData({...formData, status: e.target.value})}
             >
@@ -173,7 +173,7 @@ export default function EditCaseStudyPage() {
           <label className="text-sm font-medium">Short Description</label>
           <textarea 
             rows={2}
-            className="w-full p-3 bg-brand-bg rounded-lg border border-brand-dark/10 focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+            className="w-full p-3 bg-brand-bg rounded-lg border border-brand-border focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
             value={formData.short_description}
             onChange={e => setFormData({...formData, short_description: e.target.value})}
           />
@@ -183,7 +183,7 @@ export default function EditCaseStudyPage() {
           <label className="text-sm font-medium">The Problem</label>
           <textarea 
             rows={4}
-            className="w-full p-3 bg-brand-bg rounded-lg border border-brand-dark/10 focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+            className="w-full p-3 bg-brand-bg rounded-lg border border-brand-border focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
             value={formData.problem}
             onChange={e => setFormData({...formData, problem: e.target.value})}
           />
@@ -193,13 +193,13 @@ export default function EditCaseStudyPage() {
           <label className="text-sm font-medium">The Solution</label>
           <textarea 
             rows={4}
-            className="w-full p-3 bg-brand-bg rounded-lg border border-brand-dark/10 focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+            className="w-full p-3 bg-brand-bg rounded-lg border border-brand-border focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
             value={formData.solution}
             onChange={e => setFormData({...formData, solution: e.target.value})}
           />
         </div>
 
-        <div className="space-y-4 pt-4 border-t border-brand-dark/10">
+        <div className="space-y-4 pt-4 border-t border-brand-border">
           <div className="flex justify-between items-center">
             <label className="text-sm font-medium">Key Results (Metrics)</label>
             <button type="button" onClick={addResult} className="text-brand-accent text-sm font-medium flex items-center gap-1 hover:opacity-80">
@@ -213,7 +213,7 @@ export default function EditCaseStudyPage() {
                 <input 
                   type="text" 
                   placeholder="e.g. +45%"
-                  className="w-full p-3 bg-brand-bg rounded-lg border border-brand-dark/10 focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+                  className="w-full p-3 bg-brand-bg rounded-lg border border-brand-border focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
                   value={result.metric}
                   onChange={e => handleResultChange(idx, 'metric', e.target.value)}
                 />
@@ -222,7 +222,7 @@ export default function EditCaseStudyPage() {
                 <input 
                   type="text" 
                   placeholder="e.g. Increase in lead conversion"
-                  className="w-full p-3 bg-brand-bg rounded-lg border border-brand-dark/10 focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+                  className="w-full p-3 bg-brand-bg rounded-lg border border-brand-border focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
                   value={result.description}
                   onChange={e => handleResultChange(idx, 'description', e.target.value)}
                 />
@@ -236,7 +236,7 @@ export default function EditCaseStudyPage() {
           ))}
         </div>
 
-        <div className="pt-6 border-t border-brand-dark/10 flex justify-end">
+        <div className="pt-6 border-t border-brand-border flex justify-end">
           <button 
             type="submit" 
             disabled={isSubmitting}

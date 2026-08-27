@@ -63,13 +63,13 @@ function ImageUploader({ value, onChange }) {
 
   if (value) {
     return (
-      <div className="relative group rounded-xl overflow-hidden border border-brand-dark/10 bg-brand-bg">
+      <div className="relative group rounded-xl overflow-hidden border border-brand-border bg-brand-bg">
         <img src={value} alt="Cover" className="w-full h-36 object-cover" />
         <div className="absolute inset-0 bg-brand-dark/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="px-3 py-1.5 bg-white text-brand-dark text-xs font-semibold rounded-lg hover:bg-brand-bg transition-colors"
+            className="px-3 py-1.5 bg-brand-surface text-brand-text text-xs font-semibold rounded-lg hover:bg-brand-bg transition-colors"
           >
             Replace
           </button>
@@ -134,12 +134,12 @@ function StatusBadge({ status }) {
 function EmptyState({ onAdd }) {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
-      <div className="w-20 h-20 bg-brand-surface rounded-2xl border border-brand-dark/10 flex items-center justify-center mb-6 shadow-sm">
+      <div className="w-20 h-20 bg-brand-surface rounded-2xl border border-brand-border flex items-center justify-center mb-6 ">
         <TrendingUp className="w-9 h-9 text-brand-accent opacity-60" />
       </div>
       <h3 className="text-xl font-semibold text-brand-text mb-2">No case studies yet</h3>
       <p className="text-brand-text/60 max-w-xs mb-8">Create your first case study. Published ones will appear automatically on your homepage.</p>
-      <button onClick={onAdd} className="flex items-center gap-2 bg-brand-accent text-white px-5 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity shadow-sm">
+      <button onClick={onAdd} className="flex items-center gap-2 bg-brand-accent text-white px-5 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity ">
         <Plus className="w-4 h-4" /> Create Case Study
       </button>
     </div>
@@ -164,14 +164,14 @@ function ResultsBuilder({ results, onChange }) {
             placeholder="Metric (e.g. +45%)"
             value={r.metric}
             onChange={e => updateResult(i, 'metric', e.target.value)}
-            className="w-28 bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent"
+            className="w-28 bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent"
           />
           <input
             type="text"
             placeholder="Description (e.g. conversion rate)"
             value={r.description}
             onChange={e => updateResult(i, 'description', e.target.value)}
-            className="flex-1 bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent"
+            className="flex-1 bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent"
           />
           <button type="button" onClick={() => removeResult(i)} className="text-brand-text/40 hover:text-red-500 transition-colors p-1">
             <X className="w-4 h-4" />
@@ -228,12 +228,12 @@ function CaseStudyModal({ study, onClose, onSaved }) {
     setSaving(false);
   };
 
-  const inputClass = "w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent placeholder:text-brand-text/30";
+  const inputClass = "w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent placeholder:text-brand-text/30";
   const labelClass = "text-sm font-medium text-brand-text";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-brand-surface w-full max-w-2xl rounded-2xl shadow-xl border border-brand-dark/10 flex flex-col max-h-[92vh] overflow-hidden">
+      <div className="bg-brand-surface w-full max-w-2xl rounded-2xl  border border-brand-border flex flex-col max-h-[92vh] overflow-hidden">
         
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-brand-dark/8 shrink-0">
@@ -262,7 +262,7 @@ function CaseStudyModal({ study, onClose, onSaved }) {
                 form.status === 'PUBLISHED' ? 'bg-green-500' : 'bg-brand-dark/20'
               }`}
             >
-              <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-300 ${
+              <span className={`inline-block h-5 w-5 transform rounded-full bg-brand-surface  transition-transform duration-300 ${
                 form.status === 'PUBLISHED' ? 'translate-x-6' : 'translate-x-1'
               }`} />
             </button>
@@ -327,7 +327,7 @@ function CaseStudyModal({ study, onClose, onSaved }) {
             <span className="text-xs text-brand-text/40">— will be {form.status === 'PUBLISHED' ? 'visible on homepage' : 'saved as draft'}</span>
           </div>
           <div className="flex gap-3">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-brand-text hover:bg-brand-bg rounded-lg transition-colors border border-brand-dark/10">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-brand-text hover:bg-brand-bg rounded-lg transition-colors border border-brand-border">
               Cancel
             </button>
             <button
@@ -335,7 +335,7 @@ function CaseStudyModal({ study, onClose, onSaved }) {
               type="button"
               onClick={handleSubmit}
               disabled={saving}
-              className="px-5 py-2 bg-brand-accent text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity shadow-sm disabled:opacity-60"
+              className="px-5 py-2 bg-brand-accent text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity  disabled:opacity-60"
             >
               {saving ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Study'}
             </button>
@@ -414,7 +414,7 @@ export default function CaseStudiesPage() {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 bg-brand-accent text-white px-5 py-2.5 rounded-xl font-semibold hover:opacity-90 shadow-sm transition-all hover:scale-[1.02]"
+          className="flex items-center gap-2 bg-brand-accent text-white px-5 py-2.5 rounded-xl font-semibold hover:opacity-90  transition-all hover:scale-[1.02]"
         >
           <Plus className="w-4 h-4" /> New Case Study
         </button>
@@ -427,7 +427,7 @@ export default function CaseStudiesPage() {
           { label: 'Published', value: publishedCount, color: 'text-green-600' },
           { label: 'Drafts', value: draftCount, color: 'text-amber-600' },
         ].map(stat => (
-          <div key={stat.label} className="bg-brand-surface border border-brand-dark/8 rounded-xl p-5 shadow-sm">
+          <div key={stat.label} className="bg-brand-surface border border-brand-dark/8 rounded-xl p-5 ">
             <div className={`text-3xl font-bold ${stat.color} mb-1`}>{stat.value}</div>
             <div className="text-sm text-brand-text/60 font-medium">{stat.label}</div>
           </div>
@@ -461,7 +461,7 @@ export default function CaseStudiesPage() {
           {studies.map(study => (
             <div
               key={study.id}
-              className="group bg-brand-surface border border-brand-dark/8 rounded-2xl p-6 shadow-sm hover:border-brand-accent/30 hover:shadow-md transition-all duration-200 flex flex-col"
+              className="group bg-brand-surface border border-brand-dark/8 rounded-2xl p-6  hover:border-brand-accent/30 hover: transition-all duration-200 flex flex-col"
             >
               {/* Card Header */}
               <div className="flex items-start justify-between mb-3">
@@ -503,8 +503,8 @@ export default function CaseStudiesPage() {
                   onClick={() => handleTogglePublish(study)}
                   className={`flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-lg transition-colors border ${
                     study.status === 'PUBLISHED'
-                      ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
-                      : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                      ? 'bg-[#1F1A0D] text-[#FCD34D] border border-[#3D3315] border-amber-200 hover:bg-amber-100'
+                      : 'bg-[#0D1F0D] text-[#4ADE80] border border-[#1A3D1A] border-green-200 hover:bg-green-100'
                   }`}
                 >
                   {study.status === 'PUBLISHED' ? (

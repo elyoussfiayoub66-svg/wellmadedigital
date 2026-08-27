@@ -1,33 +1,128 @@
 @import "tailwindcss";
 
 @theme {
-  /* Brand Colors */
-  --color-brand-bg: #F4EFE6;
-  --color-brand-dark: #2F4A3C;
-  --color-brand-accent: #C97B4A;
-  --color-brand-text: #3D3D3A;
-  --color-brand-text-light: #F4EFE6;
-  --color-brand-surface: #FFFFFF;
+  /* ── Studio Noir — Core palette ─────────────────────────────── */
+  --color-brand-bg:        #0E0E0F;   /* Primary dark background      */
+  --color-brand-dark:      #0E0E0F;   /* Dark (sections, overlays)    */
+  --color-brand-surface:   #1A1A1B;   /* Cards / panel surfaces        */
+  --color-brand-border:    #2A2A2B;   /* 1px hairline borders          */
 
-  /* Border Radii */
-  --radius-brand-button: 8px;
-  --radius-brand-card: 12px;
+  /* ── Accents ────────────────────────────────────────────────── */
+  --color-brand-accent:    #C2496B;   /* Rose — CTAs, active states    */
+  --color-brand-gold:      #C8A464;   /* Gold — trust badges only      */
 
-  /* Fonts */
-  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
-  
-  /* Animations */
+  /* ── Text (on dark background) ─────────────────────────────── */
+  --color-brand-text:      #F7F5F0;   /* Primary text                  */
+  --color-brand-text-light:#F7F5F0;   /* Text on dark buttons          */
+  --color-brand-secondary: #C9C7C2;   /* Secondary / body text         */
+  --color-brand-muted:     #6B6A67;   /* Muted labels / metadata       */
+
+  /* ── Light surface (for rare light sections) ────────────────── */
+  --color-brand-light:     #F7F5F0;   /* Warm off-white                */
+
+  /* ── Border Radii ───────────────────────────────────────────── */
+  --radius-brand-button:   8px;
+  --radius-brand-card:     10px;
+
+  /* ── Typography ─────────────────────────────────────────────── */
+  --font-sans:  'Inter', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: Georgia, 'Times New Roman', serif;
+
+  /* ── Animations ─────────────────────────────────────────────── */
   --animate-marquee: marquee 40s linear infinite;
+  --animate-float:   float 6s ease-in-out infinite;
 }
 
+/* ── Keyframes ───────────────────────────────────────────────── */
 @keyframes marquee {
-  0% { transform: translateX(0); }
+  0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
 
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-12px) rotate(1deg); }
+  66%       { transform: translateY(-6px) rotate(-0.5deg); }
+}
+
+@keyframes floatDelayed {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-8px) rotate(-1deg); }
+  66%       { transform: translateY(-16px) rotate(0.5deg); }
+}
+
+@keyframes revealClip {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0); }
+}
+
+@keyframes drawSVG {
+  from { stroke-dashoffset: 600; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes assembleIn {
+  0%   { opacity: 0; transform: translate(var(--tx, 0px), var(--ty, 0px)) rotate(var(--rot, 0deg)) scale(0.6); }
+  100% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
+}
+
+/* ── Base ────────────────────────────────────────────────────── */
 @layer base {
   body {
     background-color: var(--color-brand-bg);
     color: var(--color-brand-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-accent);
+    color: var(--color-brand-text-light);
+  }
+}
+
+/* ── Utilities ───────────────────────────────────────────────── */
+@layer utilities {
+  .font-serif {
+    font-family: var(--font-serif);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-float-delayed {
+    animation: floatDelayed 8s ease-in-out infinite 1.5s;
+  }
+
+  .animate-float-slow {
+    animation: float 10s ease-in-out infinite 3s;
+  }
+
+  /* Dark-theme scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(194, 73, 107, 0.25);
+    border-radius: 2px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(194, 73, 107, 0.45);
+  }
+
+  /* Line clamp utility */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }

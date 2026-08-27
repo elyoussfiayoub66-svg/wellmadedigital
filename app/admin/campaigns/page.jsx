@@ -20,12 +20,12 @@ export default async function CampaignsPage() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-brand-text">Campaigns</h1>
-        <button className="bg-brand-dark text-brand-text-light px-4 py-2 rounded-lg text-sm font-medium hover:bg-black transition-colors">
+        <button className="bg-brand-accent text-brand-text-light px-4 py-2 rounded-lg text-sm font-medium hover:bg-black transition-colors">
           + New Campaign
         </button>
       </div>
 
-      <div className="bg-brand-surface rounded-xl shadow-sm border border-brand-dark/5 overflow-hidden">
+      <div className="bg-brand-surface rounded-xl  border border-brand-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left whitespace-nowrap">
             <thead className="bg-brand-bg text-brand-text/60 text-xs uppercase font-semibold">

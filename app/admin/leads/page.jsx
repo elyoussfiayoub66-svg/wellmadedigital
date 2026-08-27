@@ -19,14 +19,14 @@ export default async function LeadsPage() {
   return (
     <div>
       <h1 className="text-3xl font-bold text-brand-text mb-8">Leads CRM</h1>
-      <div className="bg-brand-surface rounded-xl shadow-sm border border-brand-dark/5 overflow-hidden">
-        <div className="p-4 border-b border-brand-dark/5 bg-brand-bg flex justify-between items-center flex-wrap gap-4">
+      <div className="bg-brand-surface rounded-xl  border border-brand-border overflow-hidden">
+        <div className="p-4 border-b border-brand-border bg-brand-bg flex justify-between items-center flex-wrap gap-4">
           <input 
             type="text" 
             placeholder="Search leads..." 
-            className="border-brand-dark/10 rounded-lg p-2 border text-sm w-full md:w-64"
+            className="border-brand-border rounded-lg p-2 border text-sm w-full md:w-64"
           />
-          <select className="border-brand-dark/10 rounded-lg p-2 border text-sm w-full md:w-auto">
+          <select className="border-brand-border rounded-lg p-2 border text-sm w-full md:w-auto">
             <option>All Statuses</option>
             <option>NEW</option>
             <option>QUALIFIED</option>

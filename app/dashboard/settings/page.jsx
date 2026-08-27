@@ -177,7 +177,7 @@ export default function SettingsPage() {
       <div className="flex h-[calc(100vh-100px)] items-center justify-center">
         <div className="relative flex items-center justify-center">
           <div className="absolute h-16 w-16 animate-ping rounded-full bg-brand-accent/20"></div>
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-dark/10 border-t-brand-accent"></div>
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-border border-t-brand-accent"></div>
         </div>
       </div>
     );
@@ -186,13 +186,13 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-8 animate-in fade-in duration-500 pb-12">
       {/* Premium Header */}
-      <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-4 rounded-3xl bg-gradient-to-br from-brand-surface to-brand-bg p-8 shadow-sm border border-brand-dark/5 overflow-hidden">
+      <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-4 rounded-3xl bg-gradient-to-br from-brand-surface to-brand-bg p-8  border border-brand-border overflow-hidden">
         <div className="absolute -right-20 -top-20 w-64 h-64 bg-brand-accent/5 rounded-full blur-3xl pointer-events-none"></div>
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-bold mb-4">
             <Sparkles className="w-3.5 h-3.5" /> System Configuration
           </div>
-          <h1 className="text-4xl font-black tracking-tight text-brand-dark mb-2">Workspace Settings</h1>
+          <h1 className="text-4xl font-black tracking-tight text-brand-text mb-2">Workspace Settings</h1>
           <p className="text-brand-text/60 max-w-lg leading-relaxed">
             Configure your agency's core parameters, from pipeline stages to global commission rates. Changes made here affect the entire CRM.
           </p>
@@ -201,7 +201,7 @@ export default function SettingsPage() {
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="relative z-10 group flex items-center gap-2 rounded-xl bg-brand-dark px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-brand-dark/90 hover:shadow-lg hover:shadow-brand-dark/20 hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+          className="relative z-10 group flex items-center gap-2 rounded-xl bg-brand-dark px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-brand-dark/90 hover: hover:shadow-brand-dark/20 hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none"
         >
           {isSaving ? (
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
@@ -225,7 +225,7 @@ export default function SettingsPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`relative flex w-full items-center gap-4 rounded-2xl p-4 text-left transition-all duration-300 group ${
                   isActive
-                    ? "bg-brand-surface shadow-sm border border-brand-dark/5"
+                    ? "bg-brand-surface  border border-brand-border"
                     : "hover:bg-brand-surface/50 border border-transparent"
                 }`}
               >
@@ -234,19 +234,19 @@ export default function SettingsPage() {
                 )}
                 
                 <div className={`p-2.5 rounded-xl transition-colors duration-300 ${
-                  isActive ? "bg-brand-accent text-white shadow-md shadow-brand-accent/20" : "bg-brand-dark/5 text-brand-text/50 group-hover:bg-brand-dark/10 group-hover:text-brand-text"
+                  isActive ? "bg-brand-accent text-white  shadow-brand-accent/20" : "bg-brand-dark/5 text-brand-text/50 group-hover:bg-brand-dark/10 group-hover:text-brand-text"
                 }`}>
                   <Icon className="h-4 w-4" />
                 </div>
                 
                 <div className="flex-1">
-                  <div className={`text-sm font-bold transition-colors ${isActive ? "text-brand-dark" : "text-brand-text/70 group-hover:text-brand-dark"}`}>
+                  <div className={`text-sm font-bold transition-colors ${isActive ? "text-brand-text" : "text-brand-text/70 group-hover:text-brand-text"}`}>
                     {tab.label}
                   </div>
                   <div className="text-xs text-brand-text/40 font-medium mt-0.5">{tab.desc}</div>
                 </div>
                 
-                <ChevronRight className={`w-4 h-4 transition-all ${isActive ? "text-brand-dark/20 translate-x-0" : "text-transparent -translate-x-2 group-hover:text-brand-dark/10 group-hover:translate-x-0"}`} />
+                <ChevronRight className={`w-4 h-4 transition-all ${isActive ? "text-brand-text/20 translate-x-0" : "text-transparent -translate-x-2 group-hover:text-brand-text/10 group-hover:translate-x-0"}`} />
               </button>
             );
           })}
@@ -254,13 +254,13 @@ export default function SettingsPage() {
 
         {/* Content Area */}
         <div className="md:col-span-9">
-          <div className="rounded-3xl bg-brand-surface p-8 shadow-sm border border-brand-dark/5 min-h-[500px] transition-all duration-500">
+          <div className="rounded-3xl bg-brand-surface p-8  border border-brand-border min-h-[500px] transition-all duration-500">
             
             {/* General Tab */}
             {activeTab === "general" && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div>
-                  <h2 className="text-2xl font-bold text-brand-dark">Agency Profile</h2>
+                  <h2 className="text-2xl font-bold text-brand-text">Agency Profile</h2>
                   <p className="text-sm text-brand-text/50 mt-1">This information may appear on client-facing documents like invoices.</p>
                 </div>
                 
@@ -272,7 +272,7 @@ export default function SettingsPage() {
                       name="agency_name"
                       value={settings.agency_name}
                       onChange={handleGeneralChange}
-                      className="w-full rounded-xl border border-brand-dark/10 bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-accent/10"
+                      className="w-full rounded-xl border border-brand-border bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-brand-surface focus:outline-none focus:ring-4 focus:ring-brand-accent/10"
                       placeholder="e.g. WellMade Digital"
                     />
                   </div>
@@ -284,7 +284,7 @@ export default function SettingsPage() {
                       name="agency_email"
                       value={settings.agency_email}
                       onChange={handleGeneralChange}
-                      className="w-full rounded-xl border border-brand-dark/10 bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-accent/10"
+                      className="w-full rounded-xl border border-brand-border bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-brand-surface focus:outline-none focus:ring-4 focus:ring-brand-accent/10"
                       placeholder="hello@agency.com"
                     />
                   </div>
@@ -296,7 +296,7 @@ export default function SettingsPage() {
                       name="agency_phone"
                       value={settings.agency_phone}
                       onChange={handleGeneralChange}
-                      className="w-full rounded-xl border border-brand-dark/10 bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-accent/10"
+                      className="w-full rounded-xl border border-brand-border bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-brand-surface focus:outline-none focus:ring-4 focus:ring-brand-accent/10"
                       placeholder="+212 600 000 000"
                     />
                   </div>
@@ -308,7 +308,7 @@ export default function SettingsPage() {
                       value={settings.agency_address}
                       onChange={handleGeneralChange}
                       rows={3}
-                      className="w-full rounded-xl border border-brand-dark/10 bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-accent/10 resize-none"
+                      className="w-full rounded-xl border border-brand-border bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-brand-surface focus:outline-none focus:ring-4 focus:ring-brand-accent/10 resize-none"
                       placeholder="Casablanca, Morocco"
                     />
                   </div>
@@ -320,11 +320,11 @@ export default function SettingsPage() {
             {activeTab === "commissions" && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div>
-                  <h2 className="text-2xl font-bold text-brand-dark">Payouts & Cuts</h2>
+                  <h2 className="text-2xl font-bold text-brand-text">Payouts & Cuts</h2>
                   <p className="text-sm text-brand-text/50 mt-1">Set the default margin the agency takes before splitting with freelancers.</p>
                 </div>
                 
-                <div className="p-6 rounded-2xl bg-brand-bg/50 border border-brand-dark/5 flex gap-6 items-center">
+                <div className="p-6 rounded-2xl bg-brand-bg/50 border border-brand-border flex gap-6 items-center">
                   <div className="w-16 h-16 rounded-full bg-brand-accent/10 flex items-center justify-center shrink-0">
                     <DollarSign className="w-8 h-8 text-brand-accent" />
                   </div>
@@ -339,9 +339,9 @@ export default function SettingsPage() {
                         min="0"
                         max="100"
                         step="0.01"
-                        className="w-full rounded-xl border border-brand-dark/10 bg-white px-4 py-3.5 pl-12 text-2xl font-black text-brand-dark transition-all focus:border-brand-accent focus:outline-none focus:ring-4 focus:ring-brand-accent/10"
+                        className="w-full rounded-xl border border-brand-border bg-brand-surface px-4 py-3.5 pl-12 text-2xl font-black text-brand-text transition-all focus:border-brand-accent focus:outline-none focus:ring-4 focus:ring-brand-accent/10"
                       />
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-black text-brand-dark/30">%</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-black text-brand-text/30">%</span>
                     </div>
                   </div>
                 </div>
@@ -352,35 +352,35 @@ export default function SettingsPage() {
             {activeTab === "pipeline" && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div>
-                  <h2 className="text-2xl font-bold text-brand-dark">Pipeline Stages</h2>
+                  <h2 className="text-2xl font-bold text-brand-text">Pipeline Stages</h2>
                   <p className="text-sm text-brand-text/50 mt-1">Customize the exact flow a lead goes through before closing.</p>
                 </div>
                 
                 <div className="space-y-3">
                   {settings.lead_statuses.map((status, index) => (
-                    <div key={index} className="group flex items-center gap-4 rounded-xl border border-brand-dark/5 bg-brand-bg/30 p-2 pr-4 transition-all hover:bg-white hover:shadow-sm">
+                    <div key={index} className="group flex items-center gap-4 rounded-xl border border-brand-border bg-brand-bg/30 p-2 pr-4 transition-all hover:bg-brand-surface hover:">
                       <div className="flex flex-col gap-1 p-2 bg-brand-dark/5 rounded-lg">
                         <button
                           onClick={() => moveStatus(index, "up")}
                           disabled={index === 0}
-                          className="text-brand-text/30 hover:text-brand-dark disabled:opacity-20 transition-colors"
+                          className="text-brand-text/30 hover:text-brand-text disabled:opacity-20 transition-colors"
                         >
                           <ArrowUp className="h-3 w-3" />
                         </button>
                         <button
                           onClick={() => moveStatus(index, "down")}
                           disabled={index === settings.lead_statuses.length - 1}
-                          className="text-brand-text/30 hover:text-brand-dark disabled:opacity-20 transition-colors"
+                          className="text-brand-text/30 hover:text-brand-text disabled:opacity-20 transition-colors"
                         >
                           <ArrowDown className="h-3 w-3" />
                         </button>
                       </div>
                       
                       <div className="flex-1 flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-brand-dark text-white text-xs font-bold flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-brand-accent text-white text-xs font-bold flex items-center justify-center">
                           {index + 1}
                         </div>
-                        <span className="font-bold text-brand-dark text-lg">{status}</span>
+                        <span className="font-bold text-brand-text text-lg">{status}</span>
                       </div>
 
                       <button
@@ -394,7 +394,7 @@ export default function SettingsPage() {
                   ))}
                 </div>
 
-                <div className="flex items-center gap-3 pt-6 border-t border-brand-dark/5">
+                <div className="flex items-center gap-3 pt-6 border-t border-brand-border">
                   <div className="relative flex-1">
                     <Plus className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-text/30" />
                     <input
@@ -403,13 +403,13 @@ export default function SettingsPage() {
                       onChange={(e) => setNewStatus(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && addStatus()}
                       placeholder="Type a new stage name and press enter..."
-                      className="w-full rounded-xl border border-brand-dark/10 bg-brand-bg/50 px-4 py-3.5 pl-12 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-accent/10"
+                      className="w-full rounded-xl border border-brand-border bg-brand-bg/50 px-4 py-3.5 pl-12 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-brand-surface focus:outline-none focus:ring-4 focus:ring-brand-accent/10"
                     />
                   </div>
                   <button
                     onClick={addStatus}
                     disabled={!newStatus.trim()}
-                    className="flex items-center gap-2 rounded-xl bg-brand-dark px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-brand-dark/90 disabled:opacity-50 shadow-sm"
+                    className="flex items-center gap-2 rounded-xl bg-brand-dark px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-brand-dark/90 disabled:opacity-50 "
                   >
                     Add Stage
                   </button>
@@ -421,7 +421,7 @@ export default function SettingsPage() {
             {activeTab === "notifications" && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div>
-                  <h2 className="text-2xl font-bold text-brand-dark">Alert Preferences</h2>
+                  <h2 className="text-2xl font-bold text-brand-text">Alert Preferences</h2>
                   <p className="text-sm text-brand-text/50 mt-1">Toggle which events trigger a red badge in your navigation bell.</p>
                 </div>
                 
@@ -432,9 +432,9 @@ export default function SettingsPage() {
                     { key: "payment_received", label: "Payment Received", desc: "When an invoice is paid." },
                     { key: "task_assigned", label: "Task Assigned", desc: "When you are assigned a task." },
                   ].map((alert) => (
-                    <div key={alert.key} className="flex items-start justify-between rounded-2xl border border-brand-dark/5 bg-brand-bg/30 p-5 transition-all hover:bg-white hover:shadow-sm">
+                    <div key={alert.key} className="flex items-start justify-between rounded-2xl border border-brand-border bg-brand-bg/30 p-5 transition-all hover:bg-brand-surface hover:">
                       <div className="pr-4">
-                        <h3 className="font-bold text-brand-dark text-base mb-1">{alert.label}</h3>
+                        <h3 className="font-bold text-brand-text text-base mb-1">{alert.label}</h3>
                         <p className="text-xs font-medium text-brand-text/50 leading-relaxed">{alert.desc}</p>
                       </div>
                       
@@ -446,7 +446,7 @@ export default function SettingsPage() {
                         }`}
                       >
                         <span
-                          className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-300 ease-in-out ${
+                          className={`inline-block h-5 w-5 transform rounded-full bg-brand-surface  transition-transform duration-300 ease-in-out ${
                             settings.alert_preferences[alert.key] ? "translate-x-6" : "translate-x-1"
                           }`}
                         />

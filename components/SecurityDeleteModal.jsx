@@ -35,7 +35,7 @@ export default function SecurityDeleteModal({ isOpen, onClose, onConfirm, userNa
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brand-dark/60 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-brand-surface w-full max-w-md rounded-2xl shadow-2xl border border-red-500/20 overflow-hidden scale-in-center">
+      <div className="bg-brand-surface w-full max-w-md rounded-2xl  border border-red-500/20 overflow-hidden scale-in-center">
         <div className="bg-red-50 border-b border-red-100 p-6 flex flex-col items-center text-center relative">
           <button onClick={onClose} className="absolute top-4 right-4 p-1 text-red-400 hover:text-red-600 hover:bg-red-100 rounded-full transition-colors">
             <X className="w-5 h-5" />
@@ -49,7 +49,7 @@ export default function SecurityDeleteModal({ isOpen, onClose, onConfirm, userNa
         
         <form onSubmit={handleSubmit} className="p-6">
           <div className="space-y-4">
-            <label className="flex items-start gap-3 p-3 bg-brand-bg rounded-lg border border-brand-dark/10 cursor-pointer hover:border-brand-dark/20 transition-colors">
+            <label className="flex items-start gap-3 p-3 bg-brand-bg rounded-lg border border-brand-border cursor-pointer hover:border-brand-border transition-colors">
               <input 
                 type="checkbox" 
                 checked={understood}
@@ -57,7 +57,7 @@ export default function SecurityDeleteModal({ isOpen, onClose, onConfirm, userNa
                   setUnderstood(e.target.checked);
                   setError('');
                 }}
-                className="mt-1 w-4 h-4 text-red-600 rounded border-brand-dark/20 focus:ring-red-600"
+                className="mt-1 w-4 h-4 text-red-600 rounded border-brand-border focus:ring-red-600"
               />
               <span className="text-sm text-brand-text/80">
                 I affirm that this action <strong className="text-red-600 font-semibold">CANNOT BE UNDONE</strong>. All associated data, projects, and history may be affected.
@@ -75,7 +75,7 @@ export default function SecurityDeleteModal({ isOpen, onClose, onConfirm, userNa
                 }}
                 placeholder="Required to complete action"
                 className={`w-full bg-brand-bg border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 transition-all ${
-                  error ? 'border-red-300 focus:ring-red-500/20' : 'border-brand-dark/10 focus:ring-brand-accent/20 focus:border-brand-accent'
+                  error ? 'border-red-300 focus:ring-red-500/20' : 'border-brand-border focus:ring-brand-accent/20 focus:border-brand-accent'
                 }`}
                 disabled={!understood}
               />
@@ -83,7 +83,7 @@ export default function SecurityDeleteModal({ isOpen, onClose, onConfirm, userNa
             </div>
           </div>
           
-          <div className="flex gap-3 justify-end mt-6 pt-6 border-t border-brand-dark/5">
+          <div className="flex gap-3 justify-end mt-6 pt-6 border-t border-brand-border">
             <button 
               type="button"
               onClick={onClose}
@@ -94,7 +94,7 @@ export default function SecurityDeleteModal({ isOpen, onClose, onConfirm, userNa
             <button 
               type="submit"
               disabled={!understood || !password}
-              className="px-5 py-2.5 rounded-lg text-sm font-bold bg-red-600 hover:bg-red-700 text-white shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-5 py-2.5 rounded-lg text-sm font-bold bg-red-600 hover:bg-red-700 text-white  transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <AlertTriangle className="w-4 h-4" /> Delete User
             </button>

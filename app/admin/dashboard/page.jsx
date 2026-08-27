@@ -32,56 +32,56 @@ export default async function DashboardPage() {
       <h1 className="text-3xl font-bold text-brand-text mb-8">Dashboard Overview</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-        <div className="bg-brand-surface p-6 rounded-xl shadow-sm border border-brand-dark/5">
+        <div className="bg-brand-surface p-6 rounded-xl  border border-brand-border">
           <div className="text-sm font-medium text-brand-text/60 mb-1">Total Visitors</div>
           <div className="text-3xl font-bold text-brand-text">{totalVisitors || 0}</div>
         </div>
-        <div className="bg-brand-surface p-6 rounded-xl shadow-sm border border-brand-dark/5">
+        <div className="bg-brand-surface p-6 rounded-xl  border border-brand-border">
           <div className="text-sm font-medium text-brand-text/60 mb-1">Form Starts</div>
           <div className="text-3xl font-bold text-brand-accent">{formStarts || 0}</div>
         </div>
-        <div className="bg-brand-surface p-6 rounded-xl shadow-sm border border-brand-dark/5">
+        <div className="bg-brand-surface p-6 rounded-xl  border border-brand-border">
           <div className="text-sm font-medium text-brand-text/60 mb-1">Completed</div>
           <div className="text-3xl font-bold text-indigo-600">{completedForms || 0}</div>
         </div>
-        <div className="bg-brand-surface p-6 rounded-xl shadow-sm border border-brand-dark/5">
+        <div className="bg-brand-surface p-6 rounded-xl  border border-brand-border">
           <div className="text-sm font-medium text-brand-text/60 mb-1">Qualified Leads</div>
           <div className="text-3xl font-bold text-green-600">{qualifiedLeads || 0}</div>
         </div>
-        <div className="bg-brand-surface p-6 rounded-xl shadow-sm border border-brand-dark/5">
+        <div className="bg-brand-surface p-6 rounded-xl  border border-brand-border">
           <div className="text-sm font-medium text-brand-text/60 mb-1">Demos Booked</div>
           <div className="text-3xl font-bold text-purple-600">{demosBooked || 0}</div>
         </div>
       </div>
       
       <h2 className="text-xl font-bold text-brand-text mb-4">Conversion Funnel</h2>
-      <div className="bg-brand-surface p-8 rounded-xl shadow-sm border border-brand-dark/5">
+      <div className="bg-brand-surface p-8 rounded-[10px] border border-brand-border  border border-brand-border">
         <div className="flex justify-between items-center relative flex-wrap gap-y-12">
           {/* Connecting line */}
           <div className="absolute top-1/2 left-0 w-full h-1 bg-brand-bg -z-10 -translate-y-1/2 hidden md:block"></div>
           
           <div className="flex flex-col items-center bg-brand-surface px-2 z-10 w-full md:w-auto">
-            <div className="w-16 h-16 bg-brand-bg rounded-xl flex items-center justify-center text-xl font-bold text-brand-text/80 mb-2 border-4 border-white shadow-sm">{totalVisitors || 0}</div>
+            <div className="w-16 h-16 bg-brand-bg rounded-xl flex items-center justify-center text-xl font-bold text-brand-text/80 mb-2 border-4 border-white ">{totalVisitors || 0}</div>
             <div className="text-sm font-medium text-brand-text/60">Visitors</div>
           </div>
           
           <div className="flex flex-col items-center bg-brand-surface px-2 z-10 w-full md:w-auto">
-            <div className="w-16 h-16 bg-brand-bg rounded-xl flex items-center justify-center text-xl font-bold text-brand-accent mb-2 border-4 border-white shadow-sm">{formStarts || 0}</div>
+            <div className="w-16 h-16 bg-brand-bg rounded-xl flex items-center justify-center text-xl font-bold text-brand-accent mb-2 border-4 border-white ">{formStarts || 0}</div>
             <div className="text-sm font-medium text-brand-text/60">Started Form</div>
           </div>
           
           <div className="flex flex-col items-center bg-brand-surface px-2 z-10 w-full md:w-auto">
-            <div className="w-16 h-16 bg-brand-bg rounded-xl flex items-center justify-center text-xl font-bold text-brand-text mb-2 border-4 border-white shadow-sm">{completedForms || 0}</div>
+            <div className="w-16 h-16 bg-brand-bg rounded-xl flex items-center justify-center text-xl font-bold text-brand-text mb-2 border-4 border-white ">{completedForms || 0}</div>
             <div className="text-sm font-medium text-brand-text/60">Completed</div>
           </div>
           
           <div className="flex flex-col items-center bg-brand-surface px-2 z-10 w-full md:w-auto">
-            <div className="w-16 h-16 bg-brand-accent/10 rounded-xl flex items-center justify-center text-xl font-bold text-brand-accent mb-2 border-4 border-white shadow-sm">{qualifiedLeads || 0}</div>
+            <div className="w-16 h-16 bg-brand-accent/10 rounded-xl flex items-center justify-center text-xl font-bold text-brand-accent mb-2 border-4 border-white ">{qualifiedLeads || 0}</div>
             <div className="text-sm font-medium text-brand-text/60">Qualified</div>
           </div>
           
           <div className="flex flex-col items-center bg-brand-surface px-2 z-10 w-full md:w-auto">
-            <div className="w-16 h-16 bg-brand-bg rounded-xl flex items-center justify-center text-xl font-bold text-brand-text mb-2 border-4 border-white shadow-sm">{demosBooked || 0}</div>
+            <div className="w-16 h-16 bg-brand-bg rounded-xl flex items-center justify-center text-xl font-bold text-brand-text mb-2 border-4 border-white ">{demosBooked || 0}</div>
             <div className="text-sm font-medium text-brand-text/60">Demos</div>
           </div>
         </div>

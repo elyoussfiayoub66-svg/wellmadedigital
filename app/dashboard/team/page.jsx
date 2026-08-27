@@ -160,11 +160,11 @@ export default function TeamPage() {
         </div>
       </div>
 
-      <div className="bg-brand-surface rounded-xl border border-brand-dark/5 shadow-sm overflow-hidden">
+      <div className="bg-brand-surface rounded-xl border border-brand-border  overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
-              <tr className="border-b border-brand-dark/5 bg-brand-bg/50">
+              <tr className="border-b border-brand-border bg-brand-bg/50">
                 <th className="p-4 font-medium text-brand-text/70 text-sm w-16 text-center">Rank</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Team Member</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Status / Badge</th>
@@ -177,7 +177,7 @@ export default function TeamPage() {
             <tbody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} className="animate-pulse border-b border-brand-dark/5">
+                  <tr key={i} className="animate-pulse border-b border-brand-border">
                     <td className="p-4"><div className="w-8 h-8 mx-auto bg-brand-dark/10 rounded-full"></div></td>
                     <td className="p-4"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-brand-dark/10"></div><div className="flex flex-col gap-2"><div className="w-24 h-4 bg-brand-dark/10 rounded"></div><div className="w-16 h-3 bg-brand-dark/5 rounded"></div></div></div></td>
                     <td className="p-4"><div className="w-24 h-6 bg-brand-dark/10 rounded-full"></div></td>
@@ -193,7 +193,7 @@ export default function TeamPage() {
                 </tr>
               ) : (
                 teamStats.map((user) => (
-                  <tr key={user.id} className={`border-b border-brand-dark/5 transition-colors ${user.rank === 1 ? 'bg-gradient-to-r from-amber-50/50 to-transparent hover:bg-amber-50' : 'hover:bg-brand-bg/50'}`}>
+                  <tr key={user.id} className={`border-b border-brand-border transition-colors ${user.rank === 1 ? 'bg-gradient-to-r from-amber-50/50 to-transparent hover:bg-amber-50' : 'hover:bg-brand-bg/50'}`}>
                     <td className="p-4 text-center">
                       {user.rank === 1 ? (
                         <Award className="w-5 h-5 text-amber-500 mx-auto" />
@@ -206,7 +206,7 @@ export default function TeamPage() {
                       )}
                     </td>
                     <td className="p-4 font-medium text-brand-text flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm ${user.rank === 1 ? 'bg-amber-500' : 'bg-brand-dark'}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white  ${user.rank === 1 ? 'bg-amber-500' : 'bg-brand-dark'}`}>
                         {user.full_name?.charAt(0) || 'U'}
                       </div>
                       <div className="flex flex-col">
@@ -234,7 +234,7 @@ export default function TeamPage() {
                         {user.account_status === 'pending' ? (
                           <button 
                             onClick={() => handleApprove(user.id)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors shadow-sm"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-md transition-colors "
                           >
                             <CheckCircle2 className="w-4 h-4" /> Approve
                           </button>

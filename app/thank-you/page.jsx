@@ -173,10 +173,10 @@ function TyStyles() {
         background:rgba(52,199,89,.08);
         display:flex;align-items:center;justify-content:center;
         margin:0 auto 20px;
-        box-shadow:0 0 40px rgba(52,199,89,.15);
+        box-:0 0 40px rgba(52,199,89,.15);
         animation:ringPulse 2.5s ease-out;
       }
-      @keyframes ringPulse{0%{box-shadow:0 0 0 0 rgba(52,199,89,.4);}70%{box-shadow:0 0 0 20px rgba(52,199,89,0);}100%{box-shadow:0 0 40px rgba(52,199,89,.15);}}
+      @keyframes ringPulse{0%{box-:0 0 0 0 rgba(52,199,89,.4);}70%{box-:0 0 0 20px rgba(52,199,89,0);}100%{box-:0 0 40px rgba(52,199,89,.15);}}
       .ty-check-icon{font-size:32px;color:var(--green);font-weight:900;}
       .ty-badge{
         display:inline-block;border:1px solid rgba(52,199,89,.4);color:var(--green);

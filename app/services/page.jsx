@@ -53,11 +53,10 @@ export default function ServicesPage() {
   return (
     <div className="min-h-screen bg-brand-bg text-brand-text font-sans">
       {/* Navigation */}
-      <header className="sticky top-0 z-50 bg-brand-bg/90 backdrop-blur-md border-b border-brand-dark/5">
+      <header className="sticky top-0 z-50 bg-brand-bg/90 backdrop-blur-md border-b border-brand-border">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="text-xl font-medium text-brand-text flex items-center gap-2">
             <img src="/assets/logo.png" alt="Wellmade Digital Logo" className="w-[120px] h-auto object-contain" />
-            Wellmade Digital
           </Link>
           <nav className="hidden md:flex gap-8 text-sm font-medium text-brand-text/70">
             <Link href="/services" className="text-brand-text">Solutions</Link>
@@ -70,7 +69,7 @@ export default function ServicesPage() {
       </header>
 
       {/* Header */}
-      <section className="py-24 px-6 bg-brand-bg border-b border-brand-dark/5">
+      <section className="py-24 px-6 bg-brand-bg border-b border-brand-border">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-medium text-brand-text mb-6">
             Solutions for Modern Operations
@@ -87,18 +86,18 @@ export default function ServicesPage() {
           {solutions.map((solution) => (
             <div key={solution.id} className="grid md:grid-cols-12 gap-8 md:gap-16 items-start">
               <div className="md:col-span-4 sticky top-32">
-                <div className="w-12 h-12 bg-brand-surface rounded-lg flex items-center justify-center text-brand-accent mb-6 shadow-sm border border-brand-dark/5">
+                <div className="w-12 h-12 bg-brand-surface rounded-lg flex items-center justify-center text-brand-accent mb-6  border border-brand-border">
                   {solution.icon}
                 </div>
                 <h2 className="text-2xl font-medium text-brand-text mb-4">{solution.title}</h2>
-                <div className="text-brand-text/70 pb-6 border-b border-brand-dark/5">
+                <div className="text-brand-text/70 pb-6 border-b border-brand-border">
                   Best for: <span className="text-brand-text font-medium">{solution.who}</span>
                 </div>
               </div>
               <div className="md:col-span-8 space-y-10">
                 <div>
                   <h4 className="text-sm font-medium text-brand-accent mb-3">The Problem</h4>
-                  <p className="text-lg text-brand-text/80 leading-relaxed bg-brand-surface p-6 border border-brand-dark/5 rounded-xl">
+                  <p className="text-lg text-brand-text/80 leading-relaxed bg-brand-surface p-6 border border-brand-border rounded-xl">
                     {solution.problem}
                   </p>
                 </div>
@@ -110,7 +109,7 @@ export default function ServicesPage() {
                 </div>
                 <div>
                   <h4 className="text-sm font-medium text-brand-accent mb-3">Business Outcome</h4>
-                  <div className="flex gap-4 items-start bg-brand-dark text-brand-text-light p-6 rounded-xl">
+                  <div className="flex gap-4 items-start bg-brand-accent text-brand-text-light p-6 rounded-xl">
                     <ShieldCheck className="w-6 h-6 text-brand-accent shrink-0 mt-0.5" />
                     <p className="text-lg leading-relaxed">
                       {solution.outcome}
@@ -138,11 +137,10 @@ export default function ServicesPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-brand-bg py-12 px-6 border-t border-brand-dark/5">
+      <footer className="bg-brand-bg py-12 px-6 border-t border-brand-border">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="font-medium text-brand-text flex items-center gap-2">
             <img src="/assets/logo.png" alt="Wellmade Digital Logo" className="w-[100px] h-auto object-contain" />
-            Wellmade Digital
           </div>
           <p className="text-sm text-brand-text/60">&copy; {new Date().getFullYear()} Wellmade Digital.</p>
         </div>

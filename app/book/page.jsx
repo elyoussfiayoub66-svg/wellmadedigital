@@ -133,7 +133,7 @@ export default function BookingPage() {
   if (status === 'success') {
     return (
       <div className="min-h-screen bg-brand-bg flex flex-col items-center justify-center p-6 font-sans">
-        <div className="max-w-md w-full bg-brand-surface p-10 rounded-xl border border-brand-dark/5 text-center shadow-sm">
+        <div className="max-w-md w-full bg-brand-surface p-10 rounded-xl border border-brand-border text-center ">
           <div className="w-16 h-16 bg-brand-bg text-brand-accent rounded-xl flex items-center justify-center mx-auto mb-6">
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -153,11 +153,10 @@ export default function BookingPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-brand-bg font-sans selection:bg-brand-accent selection:text-brand-text-light">
-      <header className="bg-brand-surface border-b border-brand-dark/5">
+      <header className="bg-brand-surface border-b border-brand-border">
         <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="text-xl font-medium text-brand-text flex items-center gap-2">
             <img src="/assets/logo.png" alt="Wellmade Digital Logo" className="w-[120px] h-auto object-contain" />
-            Wellmade Digital
           </Link>
           <div className="text-sm font-medium text-brand-text/50">
             Step {step} of 3
@@ -181,7 +180,7 @@ export default function BookingPage() {
             </p>
           </div>
 
-          <div className="bg-brand-surface border border-brand-dark/5 rounded-xl p-8 md:p-10 shadow-sm">
+          <div className="bg-brand-surface border border-brand-border rounded-xl p-8 md:p-10 ">
             <form onSubmit={step === 3 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }} className="space-y-8">
               
               {/* STEP 1 */}
@@ -190,31 +189,31 @@ export default function BookingPage() {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-brand-text">Name</label>
-                      <input required type="text" value={formData.name} onChange={e => updateForm('name', e.target.value)} className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all" />
+                      <input required type="text" value={formData.name} onChange={e => updateForm('name', e.target.value)} className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-brand-text">Email</label>
-                      <input required type="email" value={formData.email} onChange={e => updateForm('email', e.target.value)} className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all" />
+                      <input required type="email" value={formData.email} onChange={e => updateForm('email', e.target.value)} className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all" />
                     </div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-brand-text">Phone</label>
-                      <input required type="tel" value={formData.phone} onChange={e => updateForm('phone', e.target.value)} className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all" />
+                      <input required type="tel" value={formData.phone} onChange={e => updateForm('phone', e.target.value)} className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-brand-text">Business Name</label>
-                      <input required type="text" value={formData.businessName} onChange={e => updateForm('businessName', e.target.value)} className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all" />
+                      <input required type="text" value={formData.businessName} onChange={e => updateForm('businessName', e.target.value)} className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all" />
                     </div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-brand-text">Business Type / Industry</label>
-                      <input required type="text" value={formData.businessType} onChange={e => updateForm('businessType', e.target.value)} className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all" />
+                      <input required type="text" value={formData.businessType} onChange={e => updateForm('businessType', e.target.value)} className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-brand-text">Website or Social Profile</label>
-                      <input type="url" value={formData.website} onChange={e => updateForm('website', e.target.value)} className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all" />
+                      <input type="url" value={formData.website} onChange={e => updateForm('website', e.target.value)} className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all" />
                     </div>
                   </div>
                 </div>
@@ -225,19 +224,19 @@ export default function BookingPage() {
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-brand-text">What is the main problem you are trying to solve?</label>
-                    <textarea required rows={3} value={formData.problem} onChange={e => updateForm('problem', e.target.value)} className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all resize-none"></textarea>
+                    <textarea required rows={3} value={formData.problem} onChange={e => updateForm('problem', e.target.value)} className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all resize-none"></textarea>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-brand-text">What processes or tools are you currently using?</label>
-                    <textarea required rows={2} value={formData.currentProcess} onChange={e => updateForm('currentProcess', e.target.value)} placeholder="e.g. Spreadsheets, WhatsApp, Generic CRM" className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all resize-none"></textarea>
+                    <textarea required rows={2} value={formData.currentProcess} onChange={e => updateForm('currentProcess', e.target.value)} placeholder="e.g. Spreadsheets, WhatsApp, Generic CRM" className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all resize-none"></textarea>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-brand-text">What does the ideal outcome look like for you?</label>
-                    <textarea required rows={2} value={formData.desiredOutcome} onChange={e => updateForm('desiredOutcome', e.target.value)} className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all resize-none"></textarea>
+                    <textarea required rows={2} value={formData.desiredOutcome} onChange={e => updateForm('desiredOutcome', e.target.value)} className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all resize-none"></textarea>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-brand-text">Budget Range <span className="text-brand-text/50 font-normal">(Optional)</span></label>
-                    <select value={formData.budget} onChange={e => updateForm('budget', e.target.value)} className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all">
+                    <select value={formData.budget} onChange={e => updateForm('budget', e.target.value)} className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all">
                       <option value="">Select range</option>
                       <option value="under_5k">Under MAD 5,000</option>
                       <option value="5k_to_15k">MAD 5,000 - MAD 15,000</option>
@@ -257,7 +256,7 @@ export default function BookingPage() {
                       required 
                       value={formData.assigneeId} 
                       onChange={e => { updateForm('assigneeId', e.target.value); updateForm('meetingTime', ''); }} 
-                      className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all"
+                      className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all"
                     >
                       <option value="">Select a team member</option>
                       {teamMembers.map(member => (
@@ -275,7 +274,7 @@ export default function BookingPage() {
                         min={new Date().toISOString().split('T')[0]}
                         value={formData.meetingDate} 
                         onChange={e => { updateForm('meetingDate', e.target.value); updateForm('meetingTime', ''); }} 
-                        className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all" 
+                        className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all" 
                       />
                     </div>
                   )}
@@ -296,7 +295,7 @@ export default function BookingPage() {
                               onClick={() => updateForm('meetingTime', slot)}
                               className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
                                 formData.meetingTime === slot 
-                                  ? 'bg-brand-accent text-white border-brand-accent shadow-sm' 
+                                  ? 'bg-brand-accent text-white border-brand-accent ' 
                                   : 'bg-brand-bg text-brand-text hover:border-brand-accent hover:text-brand-accent border border-transparent'
                               }`}
                             >
@@ -310,13 +309,13 @@ export default function BookingPage() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-brand-text">Additional Notes <span className="text-brand-text/50 font-normal">(Optional)</span></label>
-                    <textarea rows={3} value={formData.notes} onChange={e => updateForm('notes', e.target.value)} className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all resize-none"></textarea>
+                    <textarea rows={3} value={formData.notes} onChange={e => updateForm('notes', e.target.value)} className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all resize-none"></textarea>
                   </div>
                 </div>
               )}
 
               {/* Actions */}
-              <div className="flex items-center justify-between pt-6 border-t border-brand-dark/5">
+              <div className="flex items-center justify-between pt-6 border-t border-brand-border">
                 {step > 1 ? (
                   <button type="button" onClick={handleBack} disabled={status === 'submitting'} className="text-brand-text/70 font-medium hover:text-brand-text transition-colors px-4 py-2">
                     Back

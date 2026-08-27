@@ -138,7 +138,7 @@ export default function PaymentsPage() {
           <p className="text-brand-text/70">Track team revenue and performance.</p>
         </div>
         
-        <div className="flex items-center gap-2 bg-brand-surface border border-brand-dark/10 rounded-lg p-1 shadow-sm">
+        <div className="flex items-center gap-2 bg-brand-surface border border-brand-border rounded-lg p-1 ">
           <Calendar className="w-4 h-4 text-brand-text/50 ml-2" />
           <select 
             value={timeFilter} 
@@ -156,7 +156,7 @@ export default function PaymentsPage() {
 
       {loading ? (
         <div className="space-y-8 animate-pulse">
-          <div className="mb-8 bg-brand-surface border border-brand-dark/5 rounded-2xl p-6 h-48 flex items-center justify-between">
+          <div className="mb-8 bg-brand-surface border border-brand-border rounded-2xl p-6 h-48 flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="w-20 h-20 bg-brand-dark/10 rounded-full"></div>
               <div>
@@ -166,8 +166,8 @@ export default function PaymentsPage() {
             </div>
             <div className="h-16 bg-brand-dark/10 rounded w-40"></div>
           </div>
-          <div className="bg-brand-surface rounded-xl border border-brand-dark/5 shadow-sm overflow-hidden h-96">
-            <div className="p-5 border-b border-brand-dark/5 bg-brand-bg/30">
+          <div className="bg-brand-surface rounded-xl border border-brand-border  overflow-hidden h-96">
+            <div className="p-5 border-b border-brand-border bg-brand-bg/30">
               <div className="h-5 bg-brand-dark/10 rounded w-40"></div>
             </div>
             <div className="p-4 space-y-4">
@@ -181,13 +181,13 @@ export default function PaymentsPage() {
         <>
           {/* Top Earner Spotlight */}
           {topEarner && (
-            <div className="mb-8 bg-gradient-to-r from-yellow-50 to-amber-100 border border-amber-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+            <div className="mb-8 bg-gradient-to-r from-yellow-50 to-amber-100 border border-amber-200 rounded-2xl p-6  flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
               <div className="absolute -right-10 -top-10 text-amber-500/10">
                 <Trophy className="w-64 h-64" />
               </div>
               
               <div className="flex items-center gap-6 relative z-10">
-                <div className="w-20 h-20 bg-amber-500 rounded-full flex items-center justify-center border-4 border-white shadow-md text-3xl text-white font-bold">
+                <div className="w-20 h-20 bg-amber-500 rounded-full flex items-center justify-center border-4 border-white  text-3xl text-white font-bold">
                   {topEarner.full_name?.charAt(0) || 'U'}
                 </div>
                 <div>
@@ -199,7 +199,7 @@ export default function PaymentsPage() {
                 </div>
               </div>
               
-              <div className="relative z-10 text-center md:text-right bg-white/60 backdrop-blur-sm px-8 py-4 rounded-xl border border-white">
+              <div className="relative z-10 text-center md:text-right bg-brand-surface/60 backdrop-blur-sm px-8 py-4 rounded-xl border border-white">
                 <p className="text-sm font-medium text-brand-text/60 mb-1">Revenue Generated</p>
                 <p className="text-4xl font-black text-brand-text">MAD {topEarner.currentRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
@@ -207,14 +207,14 @@ export default function PaymentsPage() {
           )}
 
           {/* Leaderboard Table */}
-          <div className="bg-brand-surface rounded-xl border border-brand-dark/5 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-brand-dark/5 bg-brand-bg/30">
+          <div className="bg-brand-surface rounded-xl border border-brand-border  overflow-hidden">
+            <div className="p-5 border-b border-brand-border bg-brand-bg/30">
               <h3 className="font-medium text-brand-text">Team Performance</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
-                  <tr className="border-b border-brand-dark/5 bg-brand-bg/50">
+                  <tr className="border-b border-brand-border bg-brand-bg/50">
                     <th className="p-4 font-medium text-brand-text/70 text-sm">Rank</th>
                     <th className="p-4 font-medium text-brand-text/70 text-sm">Team Member</th>
                     <th className="p-4 font-medium text-brand-text/70 text-sm">Selected Period Revenue</th>
@@ -233,12 +233,12 @@ export default function PaymentsPage() {
                     </tr>
                   ) : (
                     leaderboard.map((user, index) => (
-                      <tr key={user.id} className="border-b border-brand-dark/5 hover:bg-brand-bg/50 transition-colors">
+                      <tr key={user.id} className="border-b border-brand-border hover:bg-brand-bg/50 transition-colors">
                         <td className="p-4 font-medium text-brand-text/50 w-16 text-center">
                           {index + 1}
                         </td>
                         <td className="p-4 font-medium text-brand-text flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-brand-dark flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                          <div className="w-8 h-8 rounded-full bg-brand-dark flex items-center justify-center text-xs font-bold text-white ">
                             {user.full_name?.charAt(0) || 'U'}
                           </div>
                           {user.full_name || 'Unnamed Member'}

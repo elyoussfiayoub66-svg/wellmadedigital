@@ -34,7 +34,7 @@ export default async function AbandonedPage() {
       <h1 className="text-3xl font-bold text-brand-text mb-8">Abandoned Sessions</h1>
       <p className="text-brand-text/60 mb-6">Users who started the form but did not complete it.</p>
       
-      <div className="bg-brand-surface rounded-xl shadow-sm border border-brand-dark/5 overflow-hidden">
+      <div className="bg-brand-surface rounded-xl  border border-brand-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left whitespace-nowrap">
             <thead className="bg-brand-bg text-brand-text/60 text-xs uppercase font-semibold">

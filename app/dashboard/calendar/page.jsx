@@ -379,7 +379,7 @@ export default function CalendarPage() {
           <select 
             value={selectedAssignee}
             onChange={(e) => setSelectedAssignee(e.target.value)}
-            className="bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-2 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent shadow-sm cursor-pointer"
+            className="bg-brand-surface border border-brand-border rounded-lg px-4 py-2 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent  cursor-pointer"
           >
             <option value="all">All Team Members</option>
             {teamMembers.map(m => (
@@ -387,7 +387,7 @@ export default function CalendarPage() {
             ))}
           </select>
           
-          <div className="flex items-center gap-2 bg-brand-surface border border-brand-dark/10 rounded-lg p-1 shadow-sm">
+          <div className="flex items-center gap-2 bg-brand-surface border border-brand-border rounded-lg p-1 ">
             <button onClick={prevWeek} className="p-1 hover:bg-brand-bg rounded"><ChevronLeft className="w-4 h-4" /></button>
             <span className="text-sm font-medium px-2">
               {currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - 
@@ -396,19 +396,19 @@ export default function CalendarPage() {
             <button onClick={nextWeek} className="p-1 hover:bg-brand-bg rounded"><ChevronRight className="w-4 h-4" /></button>
           </div>
 
-          <button onClick={openModal} className="flex items-center gap-2 bg-brand-accent text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 shadow-sm transition-opacity">
+          <button onClick={openModal} className="flex items-center gap-2 bg-brand-accent text-white px-4 py-2 rounded-lg font-medium hover:opacity-90  transition-opacity">
             <Plus className="w-4 h-4" /> Schedule
           </button>
         </div>
       </div>
 
       {/* Calendar Grid Container */}
-      <div className="bg-brand-surface rounded-xl border border-brand-dark/5 shadow-sm flex-1 flex flex-col overflow-hidden">
+      <div className="bg-brand-surface rounded-xl border border-brand-border  flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex border-b border-brand-dark/10 shrink-0">
-          <div className="w-20 border-r border-brand-dark/10 shrink-0"></div>
+        <div className="flex border-b border-brand-border shrink-0">
+          <div className="w-20 border-r border-brand-border shrink-0"></div>
           {weekDays.map(day => (
-            <div key={day.toISOString()} className="flex-1 text-center py-3 border-r border-brand-dark/10 last:border-r-0">
+            <div key={day.toISOString()} className="flex-1 text-center py-3 border-r border-brand-border last:border-r-0">
               <div className="text-xs font-medium text-brand-text/50 uppercase">{day.toLocaleDateString('en-US', { weekday: 'short' })}</div>
               <div className="text-lg font-medium text-brand-text mt-1">{day.getDate()}</div>
             </div>
@@ -428,8 +428,8 @@ export default function CalendarPage() {
             const displayTime = `${hour > 12 ? hour - 12 : hour}:${minute} ${hour >= 12 ? 'PM' : 'AM'}`;
             
             return (
-              <div key={time} className="flex border-b border-brand-dark/5 h-16 group">
-                <div className="w-20 border-r border-brand-dark/10 shrink-0 text-xs text-brand-text/50 text-right pr-2 pt-2 relative">
+              <div key={time} className="flex border-b border-brand-border h-16 group">
+                <div className="w-20 border-r border-brand-border shrink-0 text-xs text-brand-text/50 text-right pr-2 pt-2 relative">
                   <span className="-top-3 relative">{displayTime}</span>
                 </div>
                 
@@ -446,11 +446,11 @@ export default function CalendarPage() {
                   });
 
                   return (
-                    <div key={day.toISOString() + time} className="flex-1 border-r border-brand-dark/10 last:border-r-0 relative hover:bg-brand-bg/50 transition-colors p-1">
+                    <div key={day.toISOString() + time} className="flex-1 border-r border-brand-border last:border-r-0 relative hover:bg-brand-bg/50 transition-colors p-1">
                       {apptInSlot && (
                         <div 
                           onClick={() => handleAppointmentClick(apptInSlot)}
-                          className="absolute inset-1 bg-brand-accent/10 border border-brand-accent/30 rounded p-1.5 overflow-hidden z-10 hover:bg-brand-accent/20 cursor-pointer shadow-sm transition-colors"
+                          className="absolute inset-1 bg-brand-accent/10 border border-brand-accent/30 rounded p-1.5 overflow-hidden z-10 hover:bg-brand-accent/20 cursor-pointer  transition-colors"
                         >
                           <div className="text-xs font-semibold text-brand-text truncate leading-tight">
                             {apptInSlot.title || apptInSlot.leads?.full_name || 'Meeting'}
@@ -478,11 +478,11 @@ export default function CalendarPage() {
       )}
       
       <div 
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-brand-surface shadow-2xl z-50 border-l border-brand-dark/10 transform transition-transform duration-300 ease-in-out flex flex-col ${isPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed top-0 right-0 h-full w-full max-w-md bg-brand-surface  z-50 border-l border-brand-border transform transition-transform duration-300 ease-in-out flex flex-col ${isPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         {selectedAppointment && (
           <>
-            <div className="flex items-center justify-between p-6 border-b border-brand-dark/10 bg-brand-bg/30">
+            <div className="flex items-center justify-between p-6 border-b border-brand-border bg-brand-bg/30">
               <h2 className="text-xl font-medium text-brand-text tracking-tight">Meeting Details</h2>
               <button onClick={closePanel} className="text-brand-text/50 hover:text-brand-text p-1.5 rounded-full hover:bg-brand-bg transition-colors">
                 <X className="w-5 h-5" />
@@ -500,7 +500,7 @@ export default function CalendarPage() {
                   </span>
                 </div>
                 
-                <div className="flex flex-col gap-3 text-sm text-brand-text/80 bg-brand-bg/50 p-4 rounded-xl border border-brand-dark/5">
+                <div className="flex flex-col gap-3 text-sm text-brand-text/80 bg-brand-bg/50 p-4 rounded-xl border border-brand-border">
                   <div className="flex items-center gap-3">
                     <CalendarIcon className="w-4 h-4 text-brand-accent" />
                     <span>{new Date(selectedAppointment.scheduled_at).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
@@ -532,7 +532,7 @@ export default function CalendarPage() {
                   <h4 className="text-sm font-semibold text-brand-text/50 uppercase tracking-wider">Prospect Information</h4>
                   
                   {/* Basic Contact Info */}
-                  <div className="bg-brand-surface border border-brand-dark/10 rounded-xl overflow-hidden divide-y divide-brand-dark/5 shadow-sm">
+                  <div className="bg-brand-surface border border-brand-border rounded-xl overflow-hidden divide-y divide-brand-dark/5 ">
                     <div className="flex items-center gap-3 p-3.5">
                       <User className="w-4 h-4 text-brand-text/40" />
                       <span className="text-sm text-brand-text font-medium">{selectedAppointment.leads.full_name}</span>
@@ -575,7 +575,7 @@ export default function CalendarPage() {
                   {(selectedAppointment.leads.main_problem || selectedAppointment.leads.current_booking_method || selectedAppointment.leads.desired_outcome || selectedAppointment.leads.buying_timeline) && (
                     <div className="space-y-3">
                       <h4 className="text-sm font-semibold text-brand-text/50 uppercase tracking-wider">Questionnaire Responses</h4>
-                      <div className="bg-brand-surface border border-brand-dark/10 rounded-xl overflow-hidden divide-y divide-brand-dark/5 shadow-sm">
+                      <div className="bg-brand-surface border border-brand-border rounded-xl overflow-hidden divide-y divide-brand-dark/5 ">
                         
                         {selectedAppointment.leads.main_problem && (
                           <div className="p-3.5 space-y-1">
@@ -617,7 +617,7 @@ export default function CalendarPage() {
               {selectedAppointment.notes && (
                 <div className="space-y-3">
                   <h4 className="text-sm font-semibold text-brand-text/50 uppercase tracking-wider">Notes</h4>
-                  <div className="bg-brand-bg/50 p-4 rounded-xl border border-brand-dark/5 text-sm text-brand-text/80 whitespace-pre-wrap">
+                  <div className="bg-brand-bg/50 p-4 rounded-xl border border-brand-border text-sm text-brand-text/80 whitespace-pre-wrap">
                     {selectedAppointment.notes}
                   </div>
                 </div>
@@ -625,16 +625,16 @@ export default function CalendarPage() {
 
             </div>
             
-            <div className="p-6 border-t border-brand-dark/10 bg-brand-surface grid grid-cols-2 gap-3 shrink-0">
+            <div className="p-6 border-t border-brand-border bg-brand-surface grid grid-cols-2 gap-3 shrink-0">
               <button 
                 onClick={openEditModal}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-bg hover:bg-brand-dark/5 border border-brand-dark/10 text-brand-text rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-bg hover:bg-brand-dark/5 border border-brand-border text-brand-text rounded-lg text-sm font-medium transition-colors"
               >
                 <Edit2 className="w-4 h-4" /> Edit
               </button>
               <button 
                 onClick={confirmDelete}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-[#1F0D0D] text-[#F87171] border border-[#3D1515] border border-red-200 rounded-lg text-sm font-medium transition-colors"
               >
                 <Trash2 className="w-4 h-4" /> Delete
               </button>
@@ -646,8 +646,8 @@ export default function CalendarPage() {
       {/* Edit Appointment Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-brand-surface w-full max-w-lg rounded-2xl shadow-xl overflow-hidden border border-brand-dark/10 flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-brand-dark/5 shrink-0">
+          <div className="bg-brand-surface w-full max-w-lg rounded-2xl  overflow-hidden border border-brand-border flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-brand-border shrink-0">
               <h2 className="text-xl font-medium text-brand-text">Edit Appointment</h2>
               <button onClick={() => setIsEditModalOpen(false)} className="text-brand-text/50 hover:text-brand-text p-1 rounded-full hover:bg-brand-bg transition-colors">
                 <X className="w-5 h-5" />
@@ -659,7 +659,7 @@ export default function CalendarPage() {
                 
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-brand-text">Status</label>
-                  <select value={editFormData.status} onChange={e => updateEditForm('status', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
+                  <select value={editFormData.status} onChange={e => updateEditForm('status', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
                     <option value="SCHEDULED">Scheduled</option>
                     <option value="COMPLETED">Completed</option>
                     <option value="CANCELLED">Cancelled</option>
@@ -669,7 +669,7 @@ export default function CalendarPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-brand-text">Meeting Host</label>
-                    <select required value={editFormData.hostId} onChange={e => { updateEditForm('hostId', e.target.value); updateEditForm('time', ''); }} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
+                    <select required value={editFormData.hostId} onChange={e => { updateEditForm('hostId', e.target.value); updateEditForm('time', ''); }} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
                       <option value="">Select a host</option>
                       {teamMembers.map(m => (
                         <option key={m.id} value={m.id}>{m.full_name}</option>
@@ -678,7 +678,7 @@ export default function CalendarPage() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-brand-text">Date</label>
-                    <input required type="date" value={editFormData.date} onChange={e => { updateEditForm('date', e.target.value); updateEditForm('time', ''); }} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                    <input required type="date" value={editFormData.date} onChange={e => { updateEditForm('date', e.target.value); updateEditForm('time', ''); }} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                   </div>
                 </div>
 
@@ -689,7 +689,7 @@ export default function CalendarPage() {
                   </label>
                   
                   {!editFormData.date || !editFormData.hostId ? (
-                    <div className="text-sm text-brand-text/50 p-4 border border-dashed border-brand-dark/10 rounded-lg text-center bg-brand-bg/50">
+                    <div className="text-sm text-brand-text/50 p-4 border border-dashed border-brand-border rounded-lg text-center bg-brand-bg/50">
                       Select a host and date to see slots
                     </div>
                   ) : availableSlots.length === 0 && !loadingSlots ? (
@@ -704,8 +704,8 @@ export default function CalendarPage() {
                           onClick={() => updateEditForm('time', slot)}
                           className={`py-2 px-1 rounded-md text-xs font-medium transition-all ${
                             editFormData.time === slot 
-                              ? 'bg-brand-accent text-white shadow-sm' 
-                              : 'bg-brand-bg text-brand-text hover:border-brand-accent border border-brand-dark/10'
+                              ? 'bg-brand-accent text-white ' 
+                              : 'bg-brand-bg text-brand-text hover:border-brand-accent border border-brand-border'
                           }`}
                         >
                           {slot}
@@ -717,23 +717,23 @@ export default function CalendarPage() {
 
                 <div className="space-y-1.5 pt-2">
                   <label className="text-sm font-medium text-brand-text">Meeting Link</label>
-                  <input type="url" placeholder="https://zoom.us/j/..." value={editFormData.meetingLink} onChange={e => updateEditForm('meetingLink', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                  <input type="url" placeholder="https://zoom.us/j/..." value={editFormData.meetingLink} onChange={e => updateEditForm('meetingLink', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                 </div>
                 
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-brand-text">Notes</label>
-                  <textarea rows={3} value={editFormData.notes} onChange={e => updateEditForm('notes', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent resize-none"></textarea>
+                  <textarea rows={3} value={editFormData.notes} onChange={e => updateEditForm('notes', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent resize-none"></textarea>
                 </div>
 
               </form>
             </div>
 
-            <div className="p-6 border-t border-brand-dark/5 bg-brand-surface shrink-0 flex items-center justify-end">
+            <div className="p-6 border-t border-brand-border bg-brand-surface shrink-0 flex items-center justify-end">
               <button 
                 form="edit-form" 
                 type="submit" 
                 disabled={submitting}
-                className="bg-brand-accent text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 shadow-sm transition-opacity disabled:opacity-70"
+                className="bg-brand-accent text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90  transition-opacity disabled:opacity-70"
               >
                 {submitting ? 'Saving...' : 'Save Changes'}
               </button>
@@ -756,15 +756,15 @@ export default function CalendarPage() {
       {/* Schedule Meeting Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-brand-surface w-full max-w-lg rounded-2xl shadow-xl overflow-hidden border border-brand-dark/10 flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-brand-dark/5 shrink-0">
+          <div className="bg-brand-surface w-full max-w-lg rounded-2xl  overflow-hidden border border-brand-border flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-brand-border shrink-0">
               <h2 className="text-xl font-medium text-brand-text">Schedule a Meeting</h2>
               <button onClick={closeModal} className="text-brand-text/50 hover:text-brand-text p-1 rounded-full hover:bg-brand-bg transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
-            <div className="px-6 py-3 bg-brand-bg/50 border-b border-brand-dark/5 flex items-center gap-2 text-sm shrink-0">
+            <div className="px-6 py-3 bg-brand-bg/50 border-b border-brand-border flex items-center gap-2 text-sm shrink-0">
               <span className={`font-medium ${modalStep === 1 ? 'text-brand-accent' : 'text-brand-text/50'}`}>1. Prospect Info</span>
               <ChevronRight className="w-4 h-4 text-brand-text/30" />
               <span className={`font-medium ${modalStep === 2 ? 'text-brand-accent' : 'text-brand-text/50'}`}>2. Meeting Details</span>
@@ -777,27 +777,27 @@ export default function CalendarPage() {
                   <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-brand-text">Full Name *</label>
-                      <input required type="text" value={formData.fullName} onChange={e => updateForm('fullName', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                      <input required type="text" value={formData.fullName} onChange={e => updateForm('fullName', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-brand-text">Phone Number *</label>
-                      <input required type="tel" value={formData.phone} onChange={e => updateForm('phone', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                      <input required type="tel" value={formData.phone} onChange={e => updateForm('phone', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-brand-text">Business Name *</label>
-                      <input required type="text" value={formData.businessName} onChange={e => updateForm('businessName', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                      <input required type="text" value={formData.businessName} onChange={e => updateForm('businessName', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-brand-text">Email Address</label>
-                      <input type="email" value={formData.email} onChange={e => updateForm('email', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                      <input type="email" value={formData.email} onChange={e => updateForm('email', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-brand-text">Instagram Handle</label>
-                      <input type="text" placeholder="@username" value={formData.instagram} onChange={e => updateForm('instagram', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                      <input type="text" placeholder="@username" value={formData.instagram} onChange={e => updateForm('instagram', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-brand-text">Notes</label>
-                      <textarea rows={2} value={formData.note} onChange={e => updateForm('note', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent resize-none"></textarea>
+                      <textarea rows={2} value={formData.note} onChange={e => updateForm('note', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent resize-none"></textarea>
                     </div>
                   </div>
                 )}
@@ -807,7 +807,7 @@ export default function CalendarPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-sm font-medium text-brand-text">Meeting Host *</label>
-                        <select required value={formData.hostId} onChange={e => { updateForm('hostId', e.target.value); updateForm('time', ''); }} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
+                        <select required value={formData.hostId} onChange={e => { updateForm('hostId', e.target.value); updateForm('time', ''); }} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
                           <option value="">Select a host</option>
                           {teamMembers.map(m => (
                             <option key={m.id} value={m.id}>{m.full_name}</option>
@@ -816,7 +816,7 @@ export default function CalendarPage() {
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-sm font-medium text-brand-text">Date *</label>
-                        <input required type="date" value={formData.date} onChange={e => { updateForm('date', e.target.value); updateForm('time', ''); }} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                        <input required type="date" value={formData.date} onChange={e => { updateForm('date', e.target.value); updateForm('time', ''); }} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                       </div>
                     </div>
 
@@ -827,7 +827,7 @@ export default function CalendarPage() {
                       </label>
                       
                       {!formData.date || !formData.hostId ? (
-                        <div className="text-sm text-brand-text/50 p-4 border border-dashed border-brand-dark/10 rounded-lg text-center bg-brand-bg/50">
+                        <div className="text-sm text-brand-text/50 p-4 border border-dashed border-brand-border rounded-lg text-center bg-brand-bg/50">
                           Select a host and date to see slots
                         </div>
                       ) : availableSlots.length === 0 && !loadingSlots ? (
@@ -842,8 +842,8 @@ export default function CalendarPage() {
                               onClick={() => updateForm('time', slot)}
                               className={`py-2 px-1 rounded-md text-xs font-medium transition-all ${
                                 formData.time === slot 
-                                  ? 'bg-brand-accent text-white shadow-sm' 
-                                  : 'bg-brand-bg text-brand-text hover:border-brand-accent border border-brand-dark/10'
+                                  ? 'bg-brand-accent text-white ' 
+                                  : 'bg-brand-bg text-brand-text hover:border-brand-accent border border-brand-border'
                               }`}
                             >
                               {slot}
@@ -855,14 +855,14 @@ export default function CalendarPage() {
 
                     <div className="space-y-1.5 pt-2">
                       <label className="text-sm font-medium text-brand-text">Meeting Link</label>
-                      <input type="url" placeholder="https://zoom.us/j/..." value={formData.meetingLink} onChange={e => updateForm('meetingLink', e.target.value)} className="w-full bg-brand-bg border border-brand-dark/10 rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
+                      <input type="url" placeholder="https://zoom.us/j/..." value={formData.meetingLink} onChange={e => updateForm('meetingLink', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                     </div>
                   </div>
                 )}
               </form>
             </div>
 
-            <div className="p-6 border-t border-brand-dark/5 bg-brand-surface shrink-0 flex items-center justify-between">
+            <div className="p-6 border-t border-brand-border bg-brand-surface shrink-0 flex items-center justify-between">
               {modalStep === 2 ? (
                 <button type="button" onClick={() => setModalStep(1)} className="text-brand-text/70 hover:text-brand-text text-sm font-medium transition-colors">
                   Back
@@ -873,7 +873,7 @@ export default function CalendarPage() {
                 form="schedule-form" 
                 type="submit" 
                 disabled={submitting}
-                className="bg-brand-accent text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 shadow-sm transition-opacity disabled:opacity-70 ml-auto"
+                className="bg-brand-accent text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90  transition-opacity disabled:opacity-70 ml-auto"
               >
                 {submitting ? 'Saving...' : modalStep === 1 ? 'Next Step' : 'Confirm & Schedule'}
               </button>

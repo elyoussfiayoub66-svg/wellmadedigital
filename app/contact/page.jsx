@@ -16,11 +16,10 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-brand-bg text-brand-text font-sans flex flex-col">
       {/* Navigation */}
-      <header className="sticky top-0 z-50 bg-brand-bg/90 backdrop-blur-md border-b border-brand-dark/5">
+      <header className="sticky top-0 z-50 bg-brand-bg/90 backdrop-blur-md border-b border-brand-border">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="text-xl font-medium text-brand-text flex items-center gap-2">
             <img src="/assets/logo.png" alt="Wellmade Digital Logo" className="w-[120px] h-auto object-contain" />
-            Wellmade Digital
           </Link>
           <nav className="hidden md:flex gap-8 text-sm font-medium text-brand-text/70">
             <Link href="/services" className="hover:text-brand-text transition-colors">Solutions</Link>
@@ -43,7 +42,7 @@ export default function ContactPage() {
             </p>
           </div>
           
-          <div className="bg-brand-surface p-8 md:p-10 border border-brand-dark/5 rounded-xl shadow-sm">
+          <div className="bg-brand-surface p-8 md:p-10 border border-brand-border rounded-xl ">
             {status === 'success' ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-brand-bg text-brand-accent rounded-xl flex items-center justify-center mx-auto mb-6">
@@ -59,27 +58,27 @@ export default function ContactPage() {
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-brand-text">First Name</label>
-                    <input required type="text" className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all" />
+                    <input required type="text" className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-brand-text">Last Name</label>
-                    <input required type="text" className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all" />
+                    <input required type="text" className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all" />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-brand-text">Work Email</label>
-                  <input required type="email" className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all" />
+                  <input required type="email" className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all" />
                 </div>
                 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-brand-text">Company</label>
-                  <input required type="text" className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all" />
+                  <input required type="text" className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all" />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-brand-text">Message</label>
-                  <textarea required rows={4} className="w-full bg-brand-surface border border-brand-dark/10 rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-dark focus:ring-1 focus:ring-brand-dark transition-all resize-none"></textarea>
+                  <textarea required rows={4} className="w-full bg-brand-surface border border-brand-border rounded-lg px-4 py-3 text-brand-text focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 transition-all resize-none"></textarea>
                 </div>
 
                 <button 
@@ -96,11 +95,10 @@ export default function ContactPage() {
       </main>
       
       {/* Footer */}
-      <footer className="bg-brand-bg py-12 px-6 border-t border-brand-dark/5 mt-auto">
+      <footer className="bg-brand-bg py-12 px-6 border-t border-brand-border mt-auto">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="font-medium text-brand-text flex items-center gap-2">
             <img src="/assets/logo.png" alt="Wellmade Digital Logo" className="w-[100px] h-auto object-contain" />
-            Wellmade Digital
           </div>
           <p className="text-sm text-brand-text/60">&copy; {new Date().getFullYear()} Wellmade Digital.</p>
         </div>

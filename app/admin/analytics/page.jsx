@@ -22,8 +22,8 @@ export default async function AnalyticsPage() {
     <div>
       <h1 className="text-3xl font-bold text-brand-text mb-8">Traffic Analytics</h1>
       
-      <div className="bg-brand-surface rounded-xl shadow-sm border border-brand-dark/5 overflow-hidden">
-        <div className="p-4 border-b border-brand-dark/5 bg-brand-bg font-bold text-brand-text/80">
+      <div className="bg-brand-surface rounded-xl  border border-brand-border overflow-hidden">
+        <div className="p-4 border-b border-brand-border bg-brand-bg font-bold text-brand-text/80">
           Recent Traffic Sources
         </div>
         <div className="overflow-x-auto">

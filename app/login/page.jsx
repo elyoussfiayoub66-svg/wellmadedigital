@@ -48,10 +48,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-brand-bg absolute inset-0 z-50">
-      <div className="max-w-md w-full bg-brand-surface p-8 rounded-xl shadow-xl">
+      <div className="max-w-md w-full bg-brand-surface p-8 rounded-[10px] border border-brand-border ">
         <h1 className="text-2xl font-bold text-center mb-6">Welcome Back</h1>
         
-        {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">{error}</div>}
+        {error && <div className="bg-[#1F0D0D] text-[#F87171] border border-[#3D1515] p-3 rounded-lg mb-4 text-sm">{error}</div>}
         
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
@@ -60,7 +60,7 @@ export default function LoginPage() {
               type="email" 
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full border-brand-dark/10 rounded-lg p-3 border focus:ring-brand-dark focus:border-brand-dark" 
+              className="w-full bg-brand-bg text-brand-text border-brand-border rounded-lg p-3 border focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-brand-muted" 
               required 
             />
           </div>
@@ -75,14 +75,14 @@ export default function LoginPage() {
               type="password" 
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full border-brand-dark/10 rounded-lg p-3 border focus:ring-brand-dark focus:border-brand-dark" 
+              className="w-full bg-brand-bg text-brand-text border-brand-border rounded-lg p-3 border focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-brand-muted" 
               required 
             />
           </div>
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-brand-dark text-brand-text-light font-medium py-3 rounded-xl hover:bg-brand-accent transition-colors disabled:opacity-70"
+            className="w-full bg-brand-accent text-brand-text-light font-medium py-3 rounded-lg hover:opacity-90 transition-all disabled:opacity-70"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
