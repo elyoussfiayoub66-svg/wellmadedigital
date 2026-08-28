@@ -21,10 +21,10 @@ export default function Work({ projects = [] }) {
             {displayProjects.map((p, i) => {
               const isLarge = i % 2 === 0;
               return (
-                <div key={p.id} className={`flex flex-col ${isLarge ? 'md:flex-row' : 'md:flex-row-reverse'} gap-12 md:gap-24 group cursor-pointer`}>
-                  <div className={`w-full ${isLarge ? 'md:w-2/3' : 'md:w-1/2'} overflow-hidden bg-[#1A1A1B]`}>
-                    <div className="relative w-full aspect-[4/3] transform transition-transform duration-700 group-hover:scale-105 origin-center">
-                      <Image src={p.image} alt={p.name} fill className="object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+                <div key={p.id} className={`flex flex-col ${isLarge ? 'md:flex-row' : 'md:flex-row-reverse'} gap-12 md:gap-24 group cursor-pointer items-center`}>
+                  <div className={`w-full ${isLarge ? 'md:w-2/3' : 'md:w-1/2'}`}>
+                    <div className="relative w-full rounded-2xl overflow-hidden border border-[#F7F5F0]/10 bg-[#1A1A1B] shadow-2xl transition-all duration-700 group-hover:scale-[1.02] group-hover:border-[#F7F5F0]/20 group-hover:shadow-[#C2496B]/10">
+                      <img src={p.image} alt={p.name} className="w-full h-auto block opacity-90 group-hover:opacity-100 transition-opacity" loading="lazy" />
                     </div>
                   </div>
                   

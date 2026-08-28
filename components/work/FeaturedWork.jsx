@@ -34,16 +34,16 @@ export default function FeaturedWork({ project }) {
           </motion.div>
 
           {/* Connection Line */}
-          <div className="hidden md:block absolute left-1/3 top-1/2 -translate-y-1/2 w-32 h-[1px] z-20">
+          <div className="hidden md:block absolute left-1/3 top-1/2 -translate-y-1/2 w-24 h-[1px] z-20">
             <motion.div style={{ width: lineWidth }} className="h-full bg-[#C2496B]" />
           </div>
 
-          {/* Massive Image */}
-          <div className="md:w-2/3 relative h-[60vh] md:h-[80vh] overflow-hidden bg-[#1A1A1B]">
-            <motion.div style={{ y: yImage, scale: 1.05 }} className="absolute inset-[-10%] w-[120%] h-[120%]">
-              <Image src={project.image} alt={project.name} fill className="object-cover opacity-90 hover:opacity-100 transition-opacity duration-700" />
-            </motion.div>
-          </div>
+          {/* Natural Size Image */}
+          <motion.div style={{ y: yImage }} className="md:w-2/3 relative z-30 flex flex-col justify-center">
+            <div className="relative w-full rounded-2xl overflow-hidden border border-[#F7F5F0]/10 bg-[#1A1A1B] shadow-[0_20px_50px_rgba(0,0,0,0.5)] group-hover:border-[#F7F5F0]/20 transition-colors duration-700">
+              <img src={project.image} alt={project.name} className="w-full h-auto block opacity-90 hover:opacity-100 transition-all duration-700 hover:scale-[1.02]" />
+            </div>
+          </motion.div>
           
         </div>
       </div>

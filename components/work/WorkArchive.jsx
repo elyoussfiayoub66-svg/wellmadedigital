@@ -22,9 +22,9 @@ export default function WorkArchive({ projects }) {
         <motion.div
           animate={{ x: mousePos.x + 20, y: mousePos.y + 20 }}
           transition={{ type: 'spring', stiffness: 100, damping: 25, mass: 0.5 }}
-          className="fixed top-0 left-0 w-64 aspect-[4/3] pointer-events-none z-50 rounded-lg overflow-hidden shadow-2xl hidden md:block"
+          className="fixed top-0 left-0 w-72 pointer-events-none z-50 rounded-xl overflow-hidden shadow-2xl shadow-[#C2496B]/20 border border-[#0E0E0F]/10 hidden md:block"
         >
-          <img src={hoveredProject.image} alt="Preview" className="w-full h-full object-cover" />
+          <img src={hoveredProject.image} alt="Preview" className="w-full h-auto block" />
         </motion.div>
       )}
 

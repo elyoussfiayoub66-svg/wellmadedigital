@@ -50,8 +50,8 @@ export default function SelectedProjects({ projects }) {
                 >
                   
                   {/* Image Block */}
-                  <div className={`w-full ${isLarge ? 'h-[70vh]' : 'md:w-3/5 h-[50vh]'} relative overflow-hidden bg-[#EAE8E3] group cursor-pointer`}>
-                    <Image src={p.image} alt={p.name} fill className="object-cover transition-transform duration-1000 group-hover:scale-105" />
+                  <div className={`w-full ${isLarge ? 'md:w-full' : 'md:w-3/5'} relative overflow-hidden group cursor-pointer rounded-2xl border border-[#0E0E0F]/5 shadow-[0_15px_40px_rgba(0,0,0,0.08)] transition-all duration-700 hover:shadow-[0_25px_50px_rgba(0,0,0,0.12)] hover:border-[#0E0E0F]/10`}>
+                    <img src={p.image} alt={p.name} className="w-full h-auto block transition-transform duration-1000 group-hover:scale-[1.03]" loading="lazy" />
                     {/* Hover Overlay */}
                     <div className="absolute inset-0 bg-[#0E0E0F]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-center items-center text-center p-8">
                        <div className="text-[#C8A464] text-[10px] font-bold tracking-[0.2em] mb-4">CASE STUDY</div>

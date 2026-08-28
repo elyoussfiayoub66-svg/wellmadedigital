@@ -2,13 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Edit2, Trash2, X, Search, CalendarPlus, Plus, ChevronLeft, ChevronRight, MapPin, AlignLeft, Users, AtSign, Megaphone, AlertCircle, Send } from 'lucide-react';
+import { Edit2, Trash2, X, Search, CalendarPlus, Plus, ChevronLeft, ChevronRight, MessageSquare, MapPin, AlignLeft, Send, Users, AtSign } from 'lucide-react';
 import ConfirmModal from '@/components/ConfirmModal';
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function ProspectsPage() {
   const [prospects, setProspects] = useState([]);
-  const [globalAnnouncements, setGlobalAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,18 +37,13 @@ export default function ProspectsPage() {
   const [selectedProspect, setSelectedProspect] = useState(null);
   const [drawerCity, setDrawerCity] = useState('');
   const [drawerNotes, setDrawerNotes] = useState('');
+  const [newAnnouncement, setNewAnnouncement] = useState('');
   const [drawerSaving, setDrawerSaving] = useState(false);
 
-  // Global Announcement Modal State
-  const [isAnnounceModalOpen, setIsAnnounceModalOpen] = useState(false);
-  const [newAnnouncement, setNewAnnouncement] = useState('');
-  const [announcing, setAnnouncing] = useState(false);
+  // Mention State
   const [showMentionMenu, setShowMentionMenu] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   const textareaRef = useRef(null);
-  
-  // Phone Check State
-  const [phoneError, setPhoneError] = useState('');
 
   const [scheduleData, setScheduleData] = useState({
     hostId: '',
@@ -72,7 +66,7 @@ export default function ProspectsPage() {
     followup_status: ''
   });
 
-  const fetchProspectsAndAnnouncements = async () => {
+  const fetchProspects = async () => {
     setLoading(true);
     const supabase = createClient();
     
@@ -82,47 +76,20 @@ export default function ProspectsPage() {
       if (profile) setCurrentUser(profile);
     }
     
-    // Fetch Prospects
-    const { data: pData } = await supabase.from('prospects').select('*').order('created_at', { ascending: false });
-    if (pData) setProspects(pData);
-    
-    // Fetch Global Announcements
-    const { data: aData } = await supabase.from('crm_announcements').select('*').order('created_at', { ascending: false }).limit(20);
-    if (aData) setGlobalAnnouncements(aData);
-    
+    const { data, error } = await supabase
+      .from('prospects')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setProspects(data);
+    }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchProspectsAndAnnouncements();
+    fetchProspects();
   }, []);
-
-  useEffect(() => {
-    async function loadTeam() {
-      const supabase = createClient();
-      const { data } = await supabase.from('profiles').select('id, full_name').eq('account_status', 'active');
-      if (data) {
-        const withTags = data.map(m => ({ ...m, tag: m.full_name.replace(/\s+/g, '') }));
-        setTeamMembers(withTags);
-      }
-    }
-    loadTeam();
-  }, []);
-
-  // Phone duplicate checker
-  useEffect(() => {
-    if (formData.phone && formData.phone.trim().length > 4) {
-      // Check if another prospect has this exact phone
-      const isDuplicate = prospects.some(p => p.phone === formData.phone && p.id !== formData.id);
-      if (isDuplicate) {
-        setPhoneError('This phone number already exists in the CRM.');
-      } else {
-        setPhoneError('');
-      }
-    } else {
-      setPhoneError('');
-    }
-  }, [formData.phone, formData.id, prospects]);
 
   const openAddModal = () => {
     setFormData({
@@ -137,117 +104,30 @@ export default function ProspectsPage() {
       outreach_status: 'not called',
       followup_status: ''
     });
-    setPhoneError('');
     setIsModalOpen(true);
   };
 
   const openEditModal = (prospect, e) => {
     if (e) e.stopPropagation();
     setFormData({ ...prospect });
-    setPhoneError('');
     setIsModalOpen(true);
   };
 
   const closeModal = () => setIsModalOpen(false);
 
-  // MENTION LOGIC (Global Announcement)
-  const handleAnnouncementChange = (e) => {
-    const val = e.target.value;
-    setNewAnnouncement(val);
-    
-    const words = val.split(/[\s\n]/);
-    const lastWord = words[words.length - 1];
-    
-    if (lastWord.startsWith('@')) {
-      setMentionQuery(lastWord.slice(1).toLowerCase());
-      setShowMentionMenu(true);
-    } else {
-      setShowMentionMenu(false);
-    }
-  };
-
-  const insertMention = (tag) => {
-    const words = newAnnouncement.split(/[\s\n]/);
-    words.pop();
-    const newVal = words.join(' ') + (words.length > 0 ? ' ' : '') + `@${tag} `;
-    setNewAnnouncement(newVal);
-    setShowMentionMenu(false);
-    if (textareaRef.current) textareaRef.current.focus();
-  };
-
-  const addGlobalAnnouncement = async (e) => {
-    e.preventDefault();
-    if (!newAnnouncement.trim()) return;
-    setAnnouncing(true);
-    try {
+  useEffect(() => {
+    async function loadTeam() {
       const supabase = createClient();
-      
-      const { data: newAnn, error: annError } = await supabase.from('crm_announcements').insert([{
-        author_id: currentUser?.id,
-        author_name: currentUser?.full_name || 'Team Member',
-        content: newAnnouncement
-      }]).select().single();
-      
-      if (annError) {
-        if (annError.message.includes('does not exist')) {
-          toast.error("Database table missing. Please run crm_announcements.sql");
-        } else {
-          throw annError;
-        }
-        return;
+      const { data } = await supabase.from('profiles').select('id, full_name').eq('account_status', 'active');
+      if (data) {
+        // Create a 'tag' property stripped of spaces for mentioning
+        const withTags = data.map(m => ({ ...m, tag: m.full_name.replace(/\s+/g, '') }));
+        setTeamMembers(withTags);
       }
-
-      // Notify Tagged Users
-      const taggedAll = newAnnouncement.includes('@All');
-      const notifyPromises = [];
-      for (const member of teamMembers) {
-        if (member.id === currentUser?.id) continue;
-        const isTagged = taggedAll || newAnnouncement.includes(`@${member.tag}`);
-        if (isTagged) {
-          notifyPromises.push(
-            supabase.from('notifications').insert({
-              user_id: member.id,
-              type: 'info',
-              title: 'New Announcement Mention',
-              message: `${currentUser?.full_name || 'Someone'} tagged you in a global announcement.`
-            })
-          );
-        }
-      }
-      if (notifyPromises.length > 0) await Promise.all(notifyPromises);
-
-      toast.success('Announcement posted');
-      setNewAnnouncement('');
-      setIsAnnounceModalOpen(false);
-      setGlobalAnnouncements(prev => [newAnn, ...prev]);
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to post announcement');
-    } finally {
-      setAnnouncing(false);
     }
-  };
+    loadTeam();
+  }, []);
 
-  const deleteGlobalAnnouncement = async (id) => {
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.from('crm_announcements').delete().eq('id', id);
-      if (error) throw error;
-      toast.success('Announcement deleted');
-      setGlobalAnnouncements(prev => prev.filter(a => a.id !== id));
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to delete announcement');
-    }
-  };
-
-  const filteredMentions = [
-    { tag: 'All', full_name: 'Everyone' },
-    ...teamMembers.filter(m => m.id !== currentUser?.id)
-  ].filter(m => m.tag.toLowerCase().includes(mentionQuery) || m.full_name.toLowerCase().includes(mentionQuery));
-
-
-  // Schedule Modal
   useEffect(() => {
     async function fetchSlots() {
       if (!scheduleData.hostId || !scheduleData.date) {
@@ -290,15 +170,21 @@ export default function ProspectsPage() {
     setScheduleTarget(null);
   };
 
-  const updateSchedule = (key, value) => setScheduleData(prev => ({ ...prev, [key]: value }));
+  const updateSchedule = (key, value) => {
+    setScheduleData(prev => ({ ...prev, [key]: value }));
+  };
 
   const handleScheduleSubmit = async (e) => {
     e.preventDefault();
-    if (!scheduleData.time) return toast.error("Please select a meeting time.");
-    
+    if (!scheduleData.time) {
+      toast.error("Please select a meeting time.");
+      return;
+    }
+
     setScheduleSubmitting(true);
     try {
       const supabase = createClient();
+      
       const { data: leadData, error: leadError } = await supabase.from('leads').insert([{
         full_name: scheduleTarget.owner_name || scheduleTarget.business_name || 'Unknown',
         phone: scheduleTarget.phone,
@@ -321,11 +207,12 @@ export default function ProspectsPage() {
       }]);
 
       if (apptError) throw apptError;
+
       await supabase.from('prospects').update({ pipeline_status: 'meeting scheduled' }).eq('id', scheduleTarget.id);
 
       toast.success("Meeting scheduled successfully");
       closeScheduleModal();
-      fetchProspectsAndAnnouncements();
+      fetchProspects();
     } catch (err) {
       console.error(err);
       toast.error("Failed to schedule meeting.");
@@ -338,13 +225,14 @@ export default function ProspectsPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (phoneError) return; // Prevent submission if duplicate
-    
     setSubmitting(true);
     const supabase = createClient();
+
     try {
       if (formData.id) {
-        const { error } = await supabase.from('prospects').update({
+        const { error } = await supabase
+          .from('prospects')
+          .update({
             business_name: formData.business_name,
             owner_name: formData.owner_name,
             niche: formData.niche,
@@ -354,13 +242,19 @@ export default function ProspectsPage() {
             pipeline_status: formData.pipeline_status,
             outreach_status: formData.outreach_status,
             followup_status: formData.followup_status
-          }).eq('id', formData.id);
+          })
+          .eq('id', formData.id);
 
         if (error) throw error;
         toast.success('Prospect updated!');
-        if (selectedProspect?.id === formData.id) setSelectedProspect(prev => ({ ...prev, ...formData }));
+        
+        if (selectedProspect && selectedProspect.id === formData.id) {
+          setSelectedProspect(prev => ({ ...prev, ...formData }));
+        }
       } else {
-        const { error } = await supabase.from('prospects').insert([{
+        const { error } = await supabase
+          .from('prospects')
+          .insert([{
             business_name: formData.business_name,
             owner_name: formData.owner_name,
             niche: formData.niche,
@@ -369,23 +263,15 @@ export default function ProspectsPage() {
             email: formData.email,
             pipeline_status: formData.pipeline_status,
             outreach_status: formData.outreach_status,
-            followup_status: formData.followup_status,
-            created_by: currentUser?.id
+            followup_status: formData.followup_status
           }]);
 
-          if (error) {
-            if (error.message.includes('created_by')) {
-              toast.error("Database missing 'created_by' column. Run prospects_created_by.sql");
-            } else {
-              throw error;
-            }
-          } else {
-            toast.success('Prospect added!');
-          }
+        if (error) throw error;
+        toast.success('Prospect added!');
       }
 
       closeModal();
-      fetchProspectsAndAnnouncements(); // Refresh
+      fetchProspects();
     } catch (err) {
       console.error(err);
       toast.error("Failed to save prospect.");
@@ -401,14 +287,13 @@ export default function ProspectsPage() {
 
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
+    
     const supabase = createClient();
     try {
       await supabase.from('prospects').delete().eq('id', deleteTarget.id);
       toast.success('Prospect deleted');
       if (selectedProspect?.id === deleteTarget.id) setSelectedProspect(null);
-      
-      // Update local state to immediately remove it
-      setProspects(prev => prev.filter(p => p.id !== deleteTarget.id));
+      fetchProspects();
     } catch (err) {
       console.error(err);
       toast.error("Failed to delete prospect.");
@@ -422,6 +307,8 @@ export default function ProspectsPage() {
     setSelectedProspect(prospect);
     setDrawerCity(prospect.city || '');
     setDrawerNotes(prospect.notes || '');
+    setNewAnnouncement('');
+    setShowMentionMenu(false);
   };
 
   const saveProspectDetails = async () => {
@@ -435,10 +322,13 @@ export default function ProspectsPage() {
       }).eq('id', selectedProspect.id);
       
       if (error) {
-        if (error.message.includes('does not exist')) toast.error("Run prospects_db_update.sql first.");
-        else throw error;
+        if (error.message.includes('column') && error.message.includes('does not exist')) {
+          toast.error("Database missing columns. Please run the provided SQL.");
+        } else {
+          throw error;
+        }
       } else {
-        toast.success('Details saved');
+        toast.success('Prospect details saved');
         setProspects(prev => prev.map(p => p.id === selectedProspect.id ? { ...p, city: drawerCity, notes: drawerNotes } : p));
       }
     } catch (err) {
@@ -448,6 +338,109 @@ export default function ProspectsPage() {
       setDrawerSaving(false);
     }
   };
+
+  // MENTION LOGIC
+  const handleAnnouncementChange = (e) => {
+    const val = e.target.value;
+    setNewAnnouncement(val);
+    
+    // Check if user is typing a mention
+    const words = val.split(/[\s\n]/);
+    const lastWord = words[words.length - 1];
+    
+    if (lastWord.startsWith('@')) {
+      setMentionQuery(lastWord.slice(1).toLowerCase());
+      setShowMentionMenu(true);
+    } else {
+      setShowMentionMenu(false);
+    }
+  };
+
+  const insertMention = (tag) => {
+    const words = newAnnouncement.split(/[\s\n]/);
+    words.pop(); // remove partial tag
+    const newVal = words.join(' ') + (words.length > 0 ? ' ' : '') + `@${tag} `;
+    setNewAnnouncement(newVal);
+    setShowMentionMenu(false);
+    
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  };
+
+  const addAnnouncement = async () => {
+    if (!newAnnouncement.trim() || !selectedProspect) return;
+    setDrawerSaving(true);
+    try {
+      const supabase = createClient();
+      
+      const announcement = {
+        text: newAnnouncement,
+        author: currentUser?.full_name || 'Team Member',
+        date: new Date().toISOString()
+      };
+      
+      // Notify Tagged Users
+      const taggedAll = newAnnouncement.includes('@All');
+      const notifyPromises = [];
+      
+      for (const member of teamMembers) {
+        if (member.id === currentUser?.id) continue; // skip self
+        
+        const isTagged = taggedAll || newAnnouncement.includes(`@${member.tag}`);
+        if (isTagged) {
+          notifyPromises.push(
+            supabase.from('notifications').insert({
+              user_id: member.id,
+              type: 'info',
+              title: 'You were mentioned',
+              message: `${currentUser?.full_name || 'Someone'} tagged you in a note for prospect ${selectedProspect.business_name}`
+            })
+          );
+        }
+      }
+      if (notifyPromises.length > 0) await Promise.all(notifyPromises);
+
+      // Parse existing
+      let currentAnns = [];
+      try {
+        if (typeof selectedProspect.announcements === 'string') {
+          currentAnns = JSON.parse(selectedProspect.announcements);
+        } else if (Array.isArray(selectedProspect.announcements)) {
+          currentAnns = selectedProspect.announcements;
+        }
+      } catch (e) {}
+
+      const updatedAnns = [announcement, ...currentAnns];
+
+      const { error } = await supabase.from('prospects').update({
+        announcements: updatedAnns
+      }).eq('id', selectedProspect.id);
+
+      if (error) {
+        if (error.message.includes('column') && error.message.includes('does not exist')) {
+          toast.error("Database missing column. Please run the provided SQL.");
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success('Announcement posted');
+        setNewAnnouncement('');
+        setSelectedProspect(prev => ({ ...prev, announcements: updatedAnns }));
+        setProspects(prev => prev.map(p => p.id === selectedProspect.id ? { ...p, announcements: updatedAnns } : p));
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to post announcement');
+    } finally {
+      setDrawerSaving(false);
+    }
+  };
+
+  const filteredMentions = [
+    { tag: 'All', full_name: 'Everyone' },
+    ...teamMembers.filter(m => m.id !== currentUser?.id)
+  ].filter(m => m.tag.toLowerCase().includes(mentionQuery) || m.full_name.toLowerCase().includes(mentionQuery));
 
 
   const pipelineOptions = ["not contacted", "contacted", "meeting scheduled", "discovery call completed", "negotiation", "closed", "lost"];
@@ -506,13 +499,21 @@ export default function ProspectsPage() {
         
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           {/* Niche Filter */}
-          <select value={filterNiche} onChange={e => setFilterNiche(e.target.value)} className={`${customSelectClass} min-w-[140px]`}>
+          <select 
+            value={filterNiche} 
+            onChange={e => setFilterNiche(e.target.value)}
+            className={`${customSelectClass} min-w-[140px]`}
+          >
             <option value="All">All Niches</option>
             {uniqueNiches.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
           
           {/* Outreach Filter */}
-          <select value={filterOutreach} onChange={e => setFilterOutreach(e.target.value)} className={`${customSelectClass} min-w-[140px]`}>
+          <select 
+            value={filterOutreach} 
+            onChange={e => setFilterOutreach(e.target.value)}
+            className={`${customSelectClass} min-w-[140px]`}
+          >
             <option value="All">All Outreach</option>
             {outreachOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
           </select>
@@ -527,56 +528,12 @@ export default function ProspectsPage() {
               className="w-full pl-10 pr-4 py-2.5 bg-brand-surface border border-brand-border rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-accent text-sm text-brand-text"
             />
           </div>
-          
-          <button onClick={() => setIsAnnounceModalOpen(true)} className="flex items-center gap-2 bg-brand-surface border border-brand-border text-brand-text px-4 py-2.5 rounded-lg hover:border-brand-accent hover:text-brand-accent transition-colors font-medium text-sm whitespace-nowrap">
-            <Megaphone className="w-4 h-4" />
-            Announcement
-          </button>
-          
           <button onClick={openAddModal} className="flex items-center gap-2 bg-brand-accent text-white px-4 py-2.5 rounded-lg hover:opacity-90 transition-opacity font-medium text-sm whitespace-nowrap">
             <Plus className="w-4 h-4" />
             Add Prospect
           </button>
         </div>
       </div>
-
-      {/* Global Announcements Container Above Tabs */}
-      {globalAnnouncements.length > 0 && (
-        <div className="mb-6 bg-brand-surface border border-brand-border rounded-xl p-4 shrink-0 flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-sm font-semibold text-brand-text border-b border-brand-border pb-2">
-            <Megaphone className="w-4 h-4 text-brand-accent" /> Team Announcements
-          </div>
-          <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-2">
-            {globalAnnouncements.map((ann) => (
-              <div key={ann.id} className="group relative min-w-[300px] max-w-[400px] shrink-0 bg-brand-bg/50 border border-brand-border p-3 rounded-xl flex gap-3 pr-8">
-                <div className="w-8 h-8 rounded-full bg-brand-accent/20 text-brand-accent flex items-center justify-center shrink-0 font-bold text-xs uppercase border border-brand-accent/30">
-                  {ann.author_name?.slice(0, 2)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold text-brand-text truncate">{ann.author_name}</span>
-                    <span className="text-[10px] text-brand-text/50 shrink-0">{new Date(ann.created_at).toLocaleDateString()}</span>
-                  </div>
-                  <p className="text-sm text-brand-text/80 mt-1 whitespace-pre-wrap leading-relaxed line-clamp-2">
-                    {ann.content.split(/(@\w+)/g).map((part, index) => 
-                      part.startsWith('@') ? <span key={index} className="text-brand-accent font-semibold">{part}</span> : part
-                    )}
-                  </p>
-                </div>
-                {(ann.author_id === currentUser?.id) && (
-                  <button 
-                    onClick={() => deleteGlobalAnnouncement(ann.id)}
-                    className="absolute top-2 right-2 p-1.5 text-brand-text/30 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all opacity-0 group-hover:opacity-100"
-                    title="Delete Announcement"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="flex border-b border-brand-border mb-6 shrink-0">
         <button
@@ -719,9 +676,10 @@ export default function ProspectsPage() {
           )}
         </div>
 
-        {/* Right Side: IN-PAGE CONTAINER FOR PROSPECT DETAILS */}
+        {/* Right Side: IN-PAGE CONTAINER FOR PROSPECT DETAILS & ANNOUNCEMENTS */}
         {selectedProspect && (
-          <div className="w-full lg:w-[400px] shrink-0 bg-brand-surface border border-brand-border rounded-xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-right-4">
+          <div className="w-full lg:w-[450px] shrink-0 bg-brand-surface border border-brand-border rounded-xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-right-4">
+            {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-brand-border shrink-0 bg-brand-bg/50">
               <div>
                 <h2 className="text-lg font-bold text-brand-text">{selectedProspect.business_name}</h2>
@@ -732,8 +690,10 @@ export default function ProspectsPage() {
               </button>
             </div>
 
+            {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-6">
               
+              {/* Status Tags */}
               <div className="flex flex-wrap gap-2">
                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold border ${getStatusColor(selectedProspect.pipeline_status)}`}>
                   {selectedProspect.pipeline_status}
@@ -743,6 +703,7 @@ export default function ProspectsPage() {
                 </span>
               </div>
 
+              {/* CRM Info Form */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm font-semibold text-brand-text border-b border-brand-border pb-2">
                   <AlignLeft className="w-4 h-4" /> Core Details
@@ -766,7 +727,7 @@ export default function ProspectsPage() {
                     <Edit2 className="w-3.5 h-3.5" /> Notes
                   </label>
                   <textarea 
-                    rows={8}
+                    rows={3}
                     value={drawerNotes} 
                     onChange={e => setDrawerNotes(e.target.value)} 
                     placeholder="Background info, budget, goals..."
@@ -782,12 +743,102 @@ export default function ProspectsPage() {
                   {drawerSaving ? 'Saving...' : 'Save Details'}
                 </button>
               </div>
+
+              {/* Announcements / Mentions */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-brand-text border-b border-brand-border pb-2">
+                  <Users className="w-4 h-4" /> Team Announcements
+                </div>
+
+                {/* Announcement Input Container */}
+                <div className="relative">
+                  <div className="bg-brand-bg rounded-lg p-3 border border-brand-border focus-within:border-brand-accent focus-within:ring-1 focus-within:ring-brand-accent transition-all">
+                    <textarea 
+                      ref={textareaRef}
+                      rows={2}
+                      value={newAnnouncement}
+                      onChange={handleAnnouncementChange}
+                      placeholder="Tag @someone or @All to push an alert..."
+                      className="w-full bg-transparent border-none text-sm text-brand-text focus:outline-none resize-none placeholder:text-brand-text/30"
+                    />
+                    <div className="flex justify-end mt-2">
+                      <button 
+                        onClick={addAnnouncement}
+                        disabled={!newAnnouncement.trim() || drawerSaving}
+                        className="bg-brand-accent text-white p-1.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                      >
+                        <Send className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Mention Dropdown */}
+                  {showMentionMenu && (
+                    <div className="absolute top-full left-0 mt-1 w-full max-h-48 overflow-y-auto bg-brand-surface border border-brand-border rounded-xl shadow-xl z-50 p-1 custom-scrollbar">
+                      {filteredMentions.length === 0 ? (
+                        <div className="p-3 text-xs text-brand-text/50 text-center">No users found</div>
+                      ) : (
+                        filteredMentions.map(user => (
+                          <button
+                            key={user.tag}
+                            onClick={() => insertMention(user.tag)}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-brand-bg rounded-lg transition-colors flex items-center gap-2"
+                          >
+                            <div className="w-6 h-6 rounded-full bg-brand-accent/20 text-brand-accent flex items-center justify-center shrink-0 font-bold text-[10px] uppercase">
+                              {user.tag === 'All' ? <AtSign className="w-3 h-3" /> : user.tag.slice(0,2)}
+                            </div>
+                            <span className="font-medium text-brand-text">{user.full_name}</span>
+                            <span className="text-xs text-brand-text/40">@{user.tag}</span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  {(() => {
+                    let anns = [];
+                    try {
+                      if (typeof selectedProspect.announcements === 'string') {
+                        anns = JSON.parse(selectedProspect.announcements);
+                      } else if (Array.isArray(selectedProspect.announcements)) {
+                        anns = selectedProspect.announcements;
+                      }
+                    } catch (e) {}
+
+                    if (anns.length === 0) {
+                      return <div className="text-xs text-brand-text/40 text-center py-4 bg-brand-bg/50 rounded-lg border border-dashed border-brand-border">No team announcements yet.</div>
+                    }
+
+                    return anns.map((ann, i) => (
+                      <div key={i} className="bg-brand-bg border border-brand-border p-3 rounded-xl flex gap-3 animate-in fade-in slide-in-from-bottom-2">
+                        <div className="w-8 h-8 rounded-full bg-brand-accent/20 text-brand-accent flex items-center justify-center shrink-0 font-bold text-xs uppercase border border-brand-accent/30">
+                          {ann.author?.slice(0, 2)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-semibold text-brand-text truncate">{ann.author}</span>
+                            <span className="text-[10px] text-brand-text/50 shrink-0">{new Date(ann.date).toLocaleDateString()} {new Date(ann.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                          </div>
+                          {/* Parse mentions to style them differently */}
+                          <p className="text-sm text-brand-text/80 mt-1 whitespace-pre-wrap leading-relaxed">
+                            {ann.text.split(/(@\w+)/g).map((part, index) => 
+                              part.startsWith('@') ? <span key={index} className="text-brand-accent font-semibold">{part}</span> : part
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Edit/Add Prospect Modal */}
+      {/* Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-brand-surface w-full max-w-2xl rounded-2xl overflow-hidden border border-brand-border flex flex-col max-h-[90vh]">
@@ -819,8 +870,7 @@ export default function ProspectsPage() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-brand-text">Phone</label>
-                    <input type="tel" value={formData.phone} onChange={e => updateForm('phone', e.target.value)} className={`w-full bg-brand-bg border ${phoneError ? 'border-red-500 focus:ring-red-500' : 'border-brand-border focus:ring-brand-accent'} rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1`} />
-                    {phoneError && <p className="text-xs text-red-500 font-medium flex items-center gap-1 mt-1"><AlertCircle className="w-3 h-3"/> {phoneError}</p>}
+                    <input type="tel" value={formData.phone} onChange={e => updateForm('phone', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-brand-text">IG Handle</label>
@@ -873,7 +923,7 @@ export default function ProspectsPage() {
               <button 
                 form="prospect-form" 
                 type="submit" 
-                disabled={submitting || !!phoneError}
+                disabled={submitting}
                 className="bg-brand-accent text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-70"
               >
                 {submitting ? 'Saving...' : 'Save Prospect'}
@@ -883,81 +933,10 @@ export default function ProspectsPage() {
         </div>
       )}
 
-      {/* Global Announcement Modal */}
-      {isAnnounceModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-brand-surface w-full max-w-lg rounded-2xl overflow-hidden border border-brand-border flex flex-col">
-            <div className="flex items-center justify-between p-5 border-b border-brand-border shrink-0">
-              <h2 className="text-lg font-medium text-brand-text flex items-center gap-2">
-                <Megaphone className="w-5 h-5 text-brand-accent" /> New Announcement
-              </h2>
-              <button onClick={() => setIsAnnounceModalOpen(false)} className="text-brand-text/50 hover:text-brand-text p-1 rounded-full hover:bg-brand-bg transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="p-5">
-              <div className="relative">
-                <div className="bg-brand-bg rounded-xl border border-brand-border p-3 focus-within:border-brand-accent focus-within:ring-1 focus-within:ring-brand-accent transition-all">
-                  <textarea 
-                    ref={textareaRef}
-                    rows={4}
-                    value={newAnnouncement}
-                    onChange={handleAnnouncementChange}
-                    placeholder="Type your announcement... Tag @All or @someone to push an alert to them."
-                    className="w-full bg-transparent border-none text-sm text-brand-text focus:outline-none resize-none placeholder:text-brand-text/40"
-                  />
-                </div>
-
-                {/* Mention Dropdown */}
-                {showMentionMenu && (
-                  <div className="absolute top-full left-0 mt-2 w-full max-h-48 overflow-y-auto bg-brand-surface border border-brand-border rounded-xl shadow-xl z-50 p-1 custom-scrollbar">
-                    {filteredMentions.length === 0 ? (
-                      <div className="p-3 text-xs text-brand-text/50 text-center">No users found</div>
-                    ) : (
-                      filteredMentions.map(user => (
-                        <button
-                          key={user.tag}
-                          type="button"
-                          onClick={() => insertMention(user.tag)}
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-brand-bg rounded-lg transition-colors flex items-center gap-2"
-                        >
-                          <div className="w-6 h-6 rounded-full bg-brand-accent/20 text-brand-accent flex items-center justify-center shrink-0 font-bold text-[10px] uppercase">
-                            {user.tag === 'All' ? <AtSign className="w-3 h-3" /> : user.tag.slice(0,2)}
-                          </div>
-                          <span className="font-medium text-brand-text">{user.full_name}</span>
-                          <span className="text-xs text-brand-text/40">@{user.tag}</span>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="p-5 border-t border-brand-border bg-brand-bg/50 flex justify-end gap-3 shrink-0">
-              <button type="button" onClick={() => setIsAnnounceModalOpen(false)} className="text-brand-text/70 hover:text-brand-text text-sm font-medium px-4 py-2 transition-colors">
-                Cancel
-              </button>
-              <button 
-                onClick={addGlobalAnnouncement} 
-                disabled={announcing || !newAnnouncement.trim()}
-                className="bg-brand-accent text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-70 flex items-center gap-2"
-              >
-                <Send className="w-4 h-4" />
-                {announcing ? 'Posting...' : 'Post Announcement'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Schedule Meeting Modal */}
       {isScheduleModalOpen && scheduleTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
-           {/* Modal omitted for brevity, logic identical to previously */}
-           {/* (Wait, I must include it otherwise it's gone!) */}
-           <div className="bg-brand-surface w-full max-w-lg rounded-2xl overflow-hidden border border-brand-border flex flex-col max-h-[90vh]">
+          <div className="bg-brand-surface w-full max-w-lg rounded-2xl overflow-hidden border border-brand-border flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between p-6 border-b border-brand-border shrink-0">
               <div>
                 <h2 className="text-xl font-medium text-brand-text">Schedule Meeting</h2>
