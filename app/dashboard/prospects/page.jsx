@@ -45,7 +45,7 @@ export default function ProspectsPage() {
     ig_handle: '',
     phone: '',
     email: '',
-    pipeline_status: 'contacted',
+    pipeline_status: 'not contacted',
     outreach_status: 'not called',
     followup_status: ''
   });
@@ -78,7 +78,7 @@ export default function ProspectsPage() {
       ig_handle: '',
       phone: '',
       email: '',
-      pipeline_status: 'contacted',
+      pipeline_status: 'not contacted',
       outreach_status: 'not called',
       followup_status: ''
     });
@@ -274,7 +274,7 @@ export default function ProspectsPage() {
     }
   };
 
-  const pipelineOptions = ["meeting scheduled", "contacted", "discovery call completed", "closed", "lost", "negotiation"];
+  const pipelineOptions = ["not contacted", "contacted", "meeting scheduled", "discovery call completed", "negotiation", "closed", "lost"];
   const outreachOptions = ["email sent", "dm sent", "no answer", "no answer 1", "no answer 2", "no answer 3", "voice mail", "voice mail 1", "voice mail 2", "not called", "meeting booked", "follow up", "not interested", "do not call", "wrong contact"];
   const followupOptions = ["", "meeting booked", "not interested", "do not contact", "no answer", "voice mail"];
 
