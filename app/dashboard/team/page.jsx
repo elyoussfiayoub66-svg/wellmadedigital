@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Award, Medal, CheckCircle2, Clock, Trash2 } from 'lucide-react';
+import { Award, Medal, CheckCircle2, Clock, Trash2, Eye, X, Briefcase, ListTodo, Users, Target } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmModal from '@/components/ConfirmModal';
 import SecurityDeleteModal from '@/components/SecurityDeleteModal';
@@ -12,6 +12,7 @@ export default function TeamPage() {
   const [loading, setLoading] = useState(true);
   const [confirmApprove, setConfirmApprove] = useState({ isOpen: false, id: null });
   const [confirmSecurityDelete, setConfirmSecurityDelete] = useState({ isOpen: false, id: null, name: '' });
+  const [inspectUser, setInspectUser] = useState(null);
 
   const loadTeamData = async () => {
     setLoading(true);
@@ -37,6 +38,13 @@ export default function TeamPage() {
       `)
       .eq('status', 'Paid');
 
+    // 5. Fetch tasks for task completion rate
+    const { data: tasksData } = await supabase.from('tasks').select('assignee_id, status');
+    
+    // 6. Fetch prospects for "prospects listed"
+    // Note: if created_by doesn't exist, this will gracefully fallback to 0
+    const { data: prospectsData } = await supabase.from('prospects').select('*');
+
     if (!profilesData) {
       setLoading(false);
       return;
@@ -47,11 +55,22 @@ export default function TeamPage() {
       // Count projects
       const projectsCount = pmData?.filter(pm => pm.user_id === user.id).length || 0;
       
-      // Calculate Closing Rate
+      // Meetings & Closing Rate
       const userAppts = apptData?.filter(a => a.assignee_id === user.id) || [];
       const conclusiveAppts = userAppts.filter(a => a.meeting_result && a.meeting_result !== 'Pending');
       const wonAppts = conclusiveAppts.filter(a => a.meeting_result === 'Closed Won');
       const closingRate = conclusiveAppts.length > 0 ? (wonAppts.length / conclusiveAppts.length) * 100 : 0;
+
+      const meetingsAssigned = userAppts.length;
+      const meetingsCompleted = conclusiveAppts.length;
+
+      // Tasks Completion Rate
+      const userTasks = tasksData?.filter(t => t.assignee_id === user.id) || [];
+      const completedTasks = userTasks.filter(t => t.status === 'Completed');
+      const taskCompletionRate = userTasks.length > 0 ? (completedTasks.length / userTasks.length) * 100 : 0;
+
+      // Prospects Listed
+      const prospectsListed = prospectsData?.filter(p => p.created_by === user.id).length || 0;
 
       // Calculate Revenue
       let revenue = 0;
@@ -68,8 +87,12 @@ export default function TeamPage() {
         ...user,
         projectsCount,
         closingRate,
+        meetingsAssigned,
+        meetingsCompleted,
+        taskCompletionRate,
+        prospectsListed,
         revenue,
-        account_status: user.account_status || 'active' // Fallback for old records
+        account_status: user.account_status || 'active'
       };
     });
 
@@ -167,6 +190,7 @@ export default function TeamPage() {
               <tr className="border-b border-brand-border bg-brand-bg/50">
                 <th className="p-4 font-medium text-brand-text/70 text-sm w-16 text-center">Rank</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Team Member</th>
+                <th className="p-4 font-medium text-brand-text/70 text-sm">Expertise</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Status / Badge</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Projects</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Win Rate</th>
@@ -180,6 +204,7 @@ export default function TeamPage() {
                   <tr key={i} className="animate-pulse border-b border-brand-border">
                     <td className="p-4"><div className="w-8 h-8 mx-auto bg-brand-dark/10 rounded-full"></div></td>
                     <td className="p-4"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-brand-dark/10"></div><div className="flex flex-col gap-2"><div className="w-24 h-4 bg-brand-dark/10 rounded"></div><div className="w-16 h-3 bg-brand-dark/5 rounded"></div></div></div></td>
+                    <td className="p-4"><div className="w-32 h-6 bg-brand-dark/10 rounded"></div></td>
                     <td className="p-4"><div className="w-24 h-6 bg-brand-dark/10 rounded-full"></div></td>
                     <td className="p-4"><div className="w-8 h-4 bg-brand-dark/10 rounded"></div></td>
                     <td className="p-4"><div className="w-12 h-4 bg-brand-dark/10 rounded"></div></td>
@@ -189,7 +214,7 @@ export default function TeamPage() {
                 ))
               ) : teamStats.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="p-8 text-center text-brand-text/50">No team members found.</td>
+                  <td colSpan="8" className="p-8 text-center text-brand-text/50">No team members found.</td>
                 </tr>
               ) : (
                 teamStats.map((user) => (
@@ -212,6 +237,26 @@ export default function TeamPage() {
                       <div className="flex flex-col">
                         <span>{user.full_name || 'Unnamed Member'}</span>
                         <span className="text-[10px] text-brand-text/40">{user.id.substring(0, 8)}...</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-wrap gap-1.5 max-w-[200px]">
+                        {user.expertise && user.expertise.length > 0 ? (
+                          <>
+                            {user.expertise.slice(0, 3).map(tech => (
+                              <span key={tech} className="px-2 py-0.5 text-[10px] font-medium bg-brand-dark/10 border border-brand-dark/20 rounded text-brand-text/70 whitespace-nowrap">
+                                {tech}
+                              </span>
+                            ))}
+                            {user.expertise.length > 3 && (
+                              <span className="px-2 py-0.5 text-[10px] font-medium bg-brand-accent/10 border border-brand-accent/20 rounded text-brand-accent whitespace-nowrap">
+                                +{user.expertise.length - 3} more
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-xs text-brand-text/40 italic">Unspecified</span>
+                        )}
                       </div>
                     </td>
                     <td className="p-4">
@@ -241,6 +286,14 @@ export default function TeamPage() {
                         ) : (
                           <span className="text-xs text-brand-text/40 font-medium px-2">Active</span>
                         )}
+                        <button 
+                          onClick={() => setInspectUser(user)} 
+                          className="p-1.5 text-brand-text/60 hover:text-brand-text hover:bg-brand-bg rounded-md transition-colors flex items-center gap-1 text-xs font-medium"
+                          title="Inspect User"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span className="hidden sm:inline">Inspect</span>
+                        </button>
                         <button 
                           onClick={() => handleDeleteClick(user)} 
                           className="p-1.5 text-brand-text/40 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
@@ -276,6 +329,83 @@ export default function TeamPage() {
         onConfirm={executeSecurityDelete}
         userName={confirmSecurityDelete.name}
       />
+
+      {/* Inspect User Slide-up Panel */}
+      {inspectUser && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-brand-surface w-full max-w-2xl rounded-t-3xl sm:rounded-2xl overflow-hidden border border-brand-border flex flex-col max-h-[90vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 shadow-2xl">
+            
+            <div className="flex items-start justify-between p-6 sm:p-8 border-b border-brand-border shrink-0 bg-brand-bg/30">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold text-white bg-brand-dark border-2 border-brand-border">
+                  {inspectUser.full_name?.charAt(0) || 'U'}
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-brand-text">{inspectUser.full_name || 'Unnamed Member'}</h2>
+                  <p className="text-sm text-brand-text/50">{inspectUser.email}</p>
+                </div>
+              </div>
+              <button onClick={() => setInspectUser(null)} className="p-2 text-brand-text/50 hover:text-brand-text bg-brand-bg/50 hover:bg-brand-dark/10 rounded-full transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 sm:p-8 overflow-y-auto flex-1 custom-scrollbar space-y-8">
+              
+              {/* Expertise Tags */}
+              <div className="space-y-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-brand-text/50">Full Area of Expertise</h3>
+                <div className="flex flex-wrap gap-2">
+                  {inspectUser.expertise && inspectUser.expertise.length > 0 ? (
+                    inspectUser.expertise.map(tech => (
+                      <span key={tech} className="px-3 py-1 text-xs font-medium bg-brand-dark/10 border border-brand-dark/20 rounded-md text-brand-text/80">
+                        {tech}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-sm text-brand-text/40 italic">No expertise selected yet.</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Metric Cards */}
+                <div className="bg-brand-bg/30 border border-brand-border p-4 rounded-xl space-y-1">
+                  <div className="flex items-center gap-2 text-brand-text/50 mb-2"><Users className="w-4 h-4"/> <span className="text-xs font-bold uppercase tracking-wider">Prospects Listed</span></div>
+                  <div className="text-3xl font-bold text-brand-text">{inspectUser.prospectsListed || 0}</div>
+                </div>
+
+                <div className="bg-brand-bg/30 border border-brand-border p-4 rounded-xl space-y-1">
+                  <div className="flex items-center gap-2 text-brand-text/50 mb-2"><Briefcase className="w-4 h-4"/> <span className="text-xs font-bold uppercase tracking-wider">Projects Worked On</span></div>
+                  <div className="text-3xl font-bold text-brand-text">{inspectUser.projectsCount || 0}</div>
+                </div>
+
+                <div className="bg-brand-bg/30 border border-brand-border p-4 rounded-xl space-y-1">
+                  <div className="flex items-center gap-2 text-brand-text/50 mb-2"><Target className="w-4 h-4"/> <span className="text-xs font-bold uppercase tracking-wider">Meetings (Assigned / Completed)</span></div>
+                  <div className="text-3xl font-bold text-brand-text">{inspectUser.meetingsAssigned || 0} <span className="text-brand-text/40 text-lg">/ {inspectUser.meetingsCompleted || 0}</span></div>
+                </div>
+
+                <div className="bg-brand-bg/30 border border-brand-border p-4 rounded-xl space-y-1">
+                  <div className="flex items-center gap-2 text-brand-text/50 mb-2"><Award className="w-4 h-4"/> <span className="text-xs font-bold uppercase tracking-wider">Closing Rate</span></div>
+                  <div className="text-3xl font-bold text-brand-accent">{inspectUser.closingRate ? inspectUser.closingRate.toFixed(1) : 0}%</div>
+                </div>
+                
+                <div className="col-span-2 bg-brand-bg/30 border border-brand-border p-4 rounded-xl space-y-1">
+                  <div className="flex items-center justify-between text-brand-text/50 mb-2">
+                    <div className="flex items-center gap-2"><ListTodo className="w-4 h-4"/> <span className="text-xs font-bold uppercase tracking-wider">Task Completion Rate</span></div>
+                    <span className="text-xs font-medium text-brand-text">{inspectUser.taskCompletionRate ? inspectUser.taskCompletionRate.toFixed(0) : 0}%</span>
+                  </div>
+                  <div className="w-full bg-brand-dark/10 h-2 rounded-full overflow-hidden">
+                    <div className="bg-brand-accent h-full rounded-full transition-all duration-1000" style={{ width: `${inspectUser.taskCompletionRate || 0}%` }}></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

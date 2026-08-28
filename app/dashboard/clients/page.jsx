@@ -46,6 +46,11 @@ export default function ClientsPage() {
       `)
       .order('created_at', { ascending: false });
 
+    // Fetch prospects to check source
+    const { data: prospects } = await supabase
+      .from('prospects')
+      .select('email, phone, business_name, owner_name');
+
     if (!error && data) {
       // Process data for the table
       const processed = data.map(lead => {
@@ -53,8 +58,20 @@ export default function ClientsPage() {
         const sortedAppts = lead.appointments?.sort((a, b) => new Date(b.scheduled_at) - new Date(a.scheduled_at)) || [];
         const latestAppt = sortedAppts[0];
 
+        // Determine source
+        let source = 'Social Media';
+        if (prospects) {
+          const isProspect = prospects.some(p => {
+             const emailMatch = p.email && lead.email && p.email.toLowerCase() === lead.email.toLowerCase();
+             const phoneMatch = p.phone && lead.phone && p.phone === lead.phone;
+             return emailMatch || phoneMatch;
+          });
+          if (isProspect) source = 'Cold Outreach';
+        }
+
         return {
           ...lead,
+          source,
           latest_appointment: latestAppt,
           projects_list: lead.projects || []
         };
@@ -194,6 +211,7 @@ export default function ClientsPage() {
               <tr className="border-b border-brand-border bg-brand-bg/50">
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Client Info</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Contact</th>
+                <th className="p-4 font-medium text-brand-text/70 text-sm">Source</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Meeting Status</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Meeting Result</th>
                 <th className="p-4 font-medium text-brand-text/70 text-sm">Projects</th>
@@ -203,11 +221,11 @@ export default function ClientsPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="6" className="p-8 text-center text-brand-text/50">Loading clients...</td>
+                  <td colSpan="7" className="p-8 text-center text-brand-text/50">Loading clients...</td>
                 </tr>
               ) : clients.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="p-8 text-center text-brand-text/50">No clients found. Book a meeting to create a client.</td>
+                  <td colSpan="7" className="p-8 text-center text-brand-text/50">No clients found. Book a meeting to create a client.</td>
                 </tr>
               ) : (
                 clients.map((client) => (
@@ -219,6 +237,11 @@ export default function ClientsPage() {
                     <td className="p-4">
                       <div className="text-sm text-brand-text/80">{client.email || '-'}</div>
                       <div className="text-xs text-brand-text/60 mt-0.5">{client.phone || '-'}</div>
+                    </td>
+                    <td className="p-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${client.source === 'Cold Outreach' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : 'bg-pink-100 text-pink-800 border-pink-200'}`}>
+                        {client.source}
+                      </span>
                     </td>
                     <td className="p-4">
                       {client.latest_appointment ? (

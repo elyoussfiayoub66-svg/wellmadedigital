@@ -12,6 +12,7 @@ export default function ProfilePage() {
   
   // Profile State
   const [fullName, setFullName] = useState('');
+  const [expertise, setExpertise] = useState([]);
   
   // Password State
   const [passwordForm, setPasswordForm] = useState({
@@ -27,6 +28,17 @@ export default function ProfilePage() {
       if (session) {
         setUser(session.user);
         setFullName(session.user.user_metadata?.full_name || '');
+        
+        // Fetch extended profile data (including expertise)
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('expertise')
+          .eq('id', session.user.id)
+          .single();
+          
+        if (profile?.expertise) {
+          setExpertise(profile.expertise);
+        }
       }
     };
     fetchUser();
@@ -48,7 +60,10 @@ export default function ProfilePage() {
       if (user) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({ full_name: fullName })
+          .update({ 
+            full_name: fullName,
+            expertise: expertise 
+          })
           .eq('id', user.id);
         if (profileError) throw profileError;
       }
@@ -56,7 +71,7 @@ export default function ProfilePage() {
       toast.success("Profile updated successfully!");
     } catch (err) {
       console.error(err);
-      toast.error(err.message || "Failed to update profile");
+      toast.error(err.message || "Failed to update profile. Make sure the expertise column exists in the database.");
     } finally {
       setIsSaving(false);
     }
@@ -178,6 +193,35 @@ export default function ProfilePage() {
                       disabled
                       className="w-full rounded-xl border border-brand-border bg-brand-bg/30 px-4 py-3.5 text-brand-text/50 font-medium cursor-not-allowed" 
                     />
+                  </div>
+                  
+                  <div className="space-y-4 pt-4 border-t border-brand-border">
+                    <label className="text-xs font-bold uppercase tracking-wider text-brand-text/50">Area of Expertise (Dev Languages)</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {[
+                        "React", "Next.js", "Vue.js", "Angular", "Node.js", 
+                        "Python", "Django", "Ruby", "PHP", "Laravel", 
+                        "Java", "Spring", "Go", "Rust", "C#", ".NET", 
+                        "SQL", "PostgreSQL", "MongoDB", "Redis", 
+                        "GraphQL", "TypeScript", "Tailwind CSS", "WebGL", "Three.js"
+                      ].map(tech => (
+                        <label key={tech} className="flex items-center gap-2 p-3 rounded-lg border border-brand-border bg-brand-bg/30 cursor-pointer hover:bg-brand-surface transition-colors">
+                          <input 
+                            type="checkbox" 
+                            checked={expertise.includes(tech)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setExpertise([...expertise, tech]);
+                              } else {
+                                setExpertise(expertise.filter(t => t !== tech));
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-brand-border text-brand-accent focus:ring-brand-accent/20 bg-brand-dark/20"
+                          />
+                          <span className="text-xs font-medium text-brand-text/80">{tech}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                   
                   <div className="pt-4">

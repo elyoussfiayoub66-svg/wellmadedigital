@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Plus, X, Calendar, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Plus, X, Calendar, Clock, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 
 export default function TasksPage() {
   const [projects, setProjects] = useState([]);
@@ -99,6 +99,24 @@ export default function TasksPage() {
     } catch (error) {
       console.error("Failed to update task status:", error);
       // Ideally, revert UI state here on failure
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    if (!confirm('Are you sure you want to delete this task?')) return;
+    
+    // Optimistic update
+    setTasks(prev => prev.filter(t => t.id !== taskId));
+    
+    // DB delete
+    const supabase = createClient();
+    try {
+      const { error } = await supabase.from('tasks').delete().eq('id', taskId);
+      if (error) throw error;
+    } catch (err) {
+      console.error("Failed to delete task:", err);
+      alert("Failed to delete task.");
+      // Ideally refresh tasks if it failed
     }
   };
 
@@ -223,9 +241,16 @@ export default function TasksPage() {
                         key={task.id}
                         draggable
                         onDragStart={(e) => handleDragStart(e, task.id)}
-                        className="bg-brand-surface border border-brand-border p-4 rounded-xl  cursor-grab active:cursor-grabbing hover:border-brand-accent/30 transition-colors group"
+                        className="bg-brand-surface border border-brand-border p-4 rounded-xl  cursor-grab active:cursor-grabbing hover:border-brand-accent/30 transition-colors group relative"
                       >
-                        <h4 className="font-medium text-brand-text text-sm mb-1">{task.title}</h4>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id); }}
+                          className="absolute top-3 right-3 text-brand-text/30 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                          title="Delete Task"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <h4 className="font-medium text-brand-text text-sm mb-1 pr-6">{task.title}</h4>
                         {task.description && (
                           <p className="text-xs text-brand-text/60 line-clamp-2 mb-3">{task.description}</p>
                         )}

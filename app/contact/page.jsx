@@ -19,7 +19,7 @@ export default function ContactPage() {
       <header className="sticky top-0 z-50 bg-brand-bg/90 backdrop-blur-md border-b border-brand-border">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="text-xl font-medium text-brand-text flex items-center gap-2">
-            <img src="/assets/logo.png" alt="Wellmade Digital Logo" className="w-[120px] h-auto object-contain" />
+            <img src="/assets/logo.png?v=2" alt="Wellmade Digital Logo" className="w-[120px] h-auto object-contain" />
           </Link>
           <nav className="hidden md:flex gap-8 text-sm font-medium text-brand-text/70">
             <Link href="/services" className="hover:text-brand-text transition-colors">Solutions</Link>
@@ -98,7 +98,7 @@ export default function ContactPage() {
       <footer className="bg-brand-bg py-12 px-6 border-t border-brand-border mt-auto">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="font-medium text-brand-text flex items-center gap-2">
-            <img src="/assets/logo.png" alt="Wellmade Digital Logo" className="w-[100px] h-auto object-contain" />
+            <img src="/assets/logo.png?v=2" alt="Wellmade Digital Logo" className="w-[100px] h-auto object-contain" />
           </div>
           <p className="text-sm text-brand-text/60">&copy; {new Date().getFullYear()} Wellmade Digital.</p>
         </div>

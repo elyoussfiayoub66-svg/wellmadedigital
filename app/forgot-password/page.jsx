@@ -35,6 +35,10 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-brand-bg absolute inset-0 z-50">
       <div className="max-w-md w-full bg-brand-surface p-8 rounded-[10px] border border-brand-border  border border-brand-border">
         
+        <div className="flex justify-center mb-8">
+          <img src="/assets/logo.png?v=2" alt="Wellmade Digital Logo" className="h-[90px] w-auto object-contain" />
+        </div>
+
         <Link href="/login" className="inline-flex items-center gap-2 text-sm text-brand-text/50 hover:text-brand-text mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to login
         </Link>

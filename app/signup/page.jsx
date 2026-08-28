@@ -47,6 +47,9 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-brand-bg absolute inset-0 z-50">
       <div className="max-w-md w-full bg-brand-surface p-8 rounded-[10px] border border-brand-border ">
+        <div className="flex justify-center mb-6">
+          <img src="/assets/logo.png?v=2" alt="Wellmade Digital Logo" className="h-[90px] w-auto object-contain" />
+        </div>
         <h1 className="text-2xl font-bold text-center mb-6">Create an Account</h1>
         
         {error && <div className="bg-[#1F0D0D] text-[#F87171] border border-[#3D1515] p-3 rounded-lg mb-4 text-sm">{error}</div>}

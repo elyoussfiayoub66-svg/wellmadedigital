@@ -25,7 +25,7 @@ export default function AdminLayout({ children }) {
       {/* Sidebar */}
       <aside className="w-64 bg-brand-accent text-brand-text-light flex flex-col">
         <div className="p-6 font-bold text-xl tracking-tight border-b border-brand-text-light/10 flex items-center gap-3">
-          <img src="/assets/logo.png" alt="Wellmade Digital Logo" className="w-[120px] h-auto rounded" />
+          <img src="/assets/logo.png?v=2" alt="Wellmade Digital Logo" className="w-[120px] h-auto rounded" />
         </div>
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           <Link href="/admin/dashboard" className="flex items-center px-4 py-3 rounded-lg hover:bg-brand-dark/90 transition-colors">

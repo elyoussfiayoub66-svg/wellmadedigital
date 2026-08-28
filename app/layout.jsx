@@ -7,11 +7,11 @@ import { Toaster } from 'react-hot-toast'
 const inter = Inter({ subsets: ['latin'], weight: ['300', '400', '500', '600'] })
 
 export const metadata = {
-  title: 'Studio Noir | Digital Studio',
+  title: 'Wellmade Digital | Digital Studio',
   description: 'We design and build the digital systems businesses need to operate better, automate repetitive work, and grow.',
   themeColor: '#0E0E0F',
   icons: {
-    icon: '/assets/logo.png',
+    icon: '/assets/favicon.png?v=2',
   },
 }
 

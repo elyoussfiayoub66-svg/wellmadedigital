@@ -77,8 +77,7 @@ export default function ThankYouPage() {
 
         {/* Brand */}
         <div className="ty-brand">
-          <img src="/1.png" alt="ScaleUp Agency Logo" className="brand-logo" />
-          ScaleUp Agency
+          <img src="/assets/logo.png?v=2" alt="Wellmade Digital Logo" className="brand-logo" />
         </div>
 
         {/* Check mark hero */}

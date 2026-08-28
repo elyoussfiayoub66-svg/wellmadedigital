@@ -130,6 +130,7 @@ export default function DashboardLayout({ children }) {
 
   const navItems = [
     { name: 'Dashboard',    href: '/dashboard',              icon: LayoutDashboard },
+    { name: 'Prospects',    href: '/dashboard/prospects',    icon: Search },
     { name: 'Projects',     href: '/dashboard/projects',     icon: FolderGit2 },
     { name: 'Chat',         href: '/dashboard/chat',         icon: MessageSquare },
     { name: 'Tasks',        href: '/dashboard/tasks',        icon: CheckSquare },
@@ -166,8 +167,8 @@ export default function DashboardLayout({ children }) {
           <Link href="/dashboard" className="flex items-center gap-2.5 group">
             <div className="relative w-[52px] h-[52px] shrink-0 group-hover:scale-105 transition-transform flex items-center justify-center">
               <img
-                src="/assets/logo.png"
-                alt="Studio Noir Logo"
+                src="/assets/logo.png?v=2"
+                alt="Wellmade Digital Logo"
                 className="w-full h-full object-contain"
                 onError={(e) => {
                   e.target.style.display = 'none';
@@ -184,7 +185,7 @@ export default function DashboardLayout({ children }) {
             <span className={`text-[13px] font-semibold tracking-wide text-brand-text whitespace-nowrap transition-all duration-300 ${
               collapsed ? 'w-0 opacity-0 overflow-hidden' : 'opacity-100'
             }`}>
-              Studio Noir
+              Wellmade Digital
             </span>
           </Link>
         </div>

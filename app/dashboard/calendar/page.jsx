@@ -12,6 +12,7 @@ export default function CalendarPage() {
   const [selectedAssignee, setSelectedAssignee] = useState('all');
   const [currentWeekStart, setCurrentWeekStart] = useState(getStartOfWeek(new Date()));
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('calendar');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,7 +63,7 @@ export default function CalendarPage() {
     return d;
   }
 
-  const weekDays = Array.from({ length: 5 }).map((_, i) => {
+  const weekDays = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date(currentWeekStart);
     d.setDate(d.getDate() + i);
     return d;
@@ -95,9 +96,15 @@ export default function CalendarPage() {
         id, scheduled_at, status, title, meeting_link, notes, assignee_id,
         profiles!appointments_assignee_id_fkey(full_name),
         leads(id, full_name, agency_name, phone, email, instagram, business_type, website, main_problem, current_booking_method, desired_outcome, buying_timeline)
-      `)
-      .gte('scheduled_at', startDate.toISOString())
-      .lte('scheduled_at', endDate.toISOString());
+      `);
+
+    if (activeTab === 'calendar') {
+      query = query
+        .gte('scheduled_at', startDate.toISOString())
+        .lte('scheduled_at', endDate.toISOString());
+    } else {
+      query = query.order('scheduled_at', { ascending: false });
+    }
 
     if (selectedAssignee !== 'all') {
       query = query.eq('assignee_id', selectedAssignee);
@@ -121,7 +128,7 @@ export default function CalendarPage() {
 
   useEffect(() => {
     fetchAppointments();
-  }, [currentWeekStart, selectedAssignee]);
+  }, [currentWeekStart, selectedAssignee, activeTab]);
 
   // Fetch available slots when host or date changes in modal
   useEffect(() => {
@@ -358,8 +365,11 @@ export default function CalendarPage() {
 
   const getStatusColor = (status) => {
     switch(status?.toUpperCase()) {
-      case 'COMPLETED': return 'bg-green-100 text-green-700 border-green-200';
-      case 'CANCELLED': return 'bg-red-100 text-red-700 border-red-200';
+      case 'COMPLETED':
+      case 'WON': return 'bg-green-100 text-green-700 border-green-200';
+      case 'CANCELLED':
+      case 'LOST': return 'bg-red-100 text-red-700 border-red-200';
+      case 'FOLLOWUP NEEDED': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
       case 'SCHEDULED':
       default: return 'bg-blue-100 text-blue-700 border-blue-200';
     }
@@ -391,7 +401,7 @@ export default function CalendarPage() {
             <button onClick={prevWeek} className="p-1 hover:bg-brand-bg rounded"><ChevronLeft className="w-4 h-4" /></button>
             <span className="text-sm font-medium px-2">
               {currentWeekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - 
-              {weekDays[4].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              {weekDays[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </span>
             <button onClick={nextWeek} className="p-1 hover:bg-brand-bg rounded"><ChevronRight className="w-4 h-4" /></button>
           </div>
@@ -402,10 +412,27 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* Calendar Grid Container */}
-      <div className="bg-brand-surface rounded-xl border border-brand-border  flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="flex border-b border-brand-border shrink-0">
+      <div className="flex border-b border-brand-border mb-6">
+        <button
+          onClick={() => setActiveTab('calendar')}
+          className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'calendar' ? 'border-brand-accent text-brand-accent' : 'border-transparent text-brand-text/60 hover:text-brand-text'}`}
+        >
+          Calendar
+        </button>
+        <button
+          onClick={() => setActiveTab('agenda')}
+          className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'agenda' ? 'border-brand-accent text-brand-accent' : 'border-transparent text-brand-text/60 hover:text-brand-text'}`}
+        >
+          Agenda
+        </button>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="bg-brand-surface rounded-xl border border-brand-border flex-1 flex flex-col overflow-hidden">
+        {activeTab === 'calendar' ? (
+          <>
+            {/* Calendar Header */}
+            <div className="flex border-b border-brand-border shrink-0">
           <div className="w-20 border-r border-brand-border shrink-0"></div>
           {weekDays.map(day => (
             <div key={day.toISOString()} className="flex-1 text-center py-3 border-r border-brand-border last:border-r-0">
@@ -439,10 +466,10 @@ export default function CalendarPage() {
                   
                   const apptInSlot = appointments.find(a => {
                     const d = new Date(a.scheduled_at);
-                    return d.getDate() === slotDate.getDate() && 
-                           d.getMonth() === slotDate.getMonth() && 
-                           d.getHours() === slotDate.getHours() && 
-                           d.getMinutes() === slotDate.getMinutes();
+                    return d.getUTCDate() === slotDate.getDate() && 
+                           d.getUTCMonth() === slotDate.getMonth() && 
+                           d.getUTCHours() === parseInt(hour) && 
+                           d.getUTCMinutes() === parseInt(minute);
                   });
 
                   return (
@@ -467,6 +494,51 @@ export default function CalendarPage() {
             )
           })}
         </div>
+          </>
+        ) : (
+          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+            {loading ? (
+              <div className="text-center p-8 text-brand-text/50 font-medium">Loading agenda...</div>
+            ) : appointments.length === 0 ? (
+              <div className="text-center p-8 text-brand-text/50 font-medium">No upcoming meetings found.</div>
+            ) : (
+              <div className="space-y-3 max-w-4xl mx-auto">
+                {appointments.map(appt => {
+                  const d = new Date(appt.scheduled_at);
+                  return (
+                    <div 
+                      key={appt.id} 
+                      onClick={() => handleAppointmentClick(appt)}
+                      className="bg-brand-surface border border-brand-border rounded-xl p-4 flex items-center justify-between hover:bg-brand-bg/50 cursor-pointer transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 flex flex-col items-center justify-center shrink-0 border-r border-brand-border pr-4">
+                          <span className="text-xs font-semibold text-brand-text/50 uppercase">{d.toLocaleDateString('en-US', { month: 'short' })}</span>
+                          <span className="text-xl font-bold text-brand-text">{d.getDate()}</span>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-brand-text text-lg">{appt.title || appt.leads?.full_name || 'Meeting'}</h3>
+                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border uppercase ${getStatusColor(appt.status)}`}>
+                              {appt.status || 'SCHEDULED'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-brand-text/60">
+                            <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+                            <span className="flex items-center gap-1.5"><User className="w-4 h-4" /> {appt.profiles?.full_name || 'Unassigned'}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-brand-text/30 group-hover:text-brand-text/60 transition-colors">
+                        <ChevronRight className="w-5 h-5" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Right Side Slide-in Panel */}
@@ -662,6 +734,9 @@ export default function CalendarPage() {
                   <select value={editFormData.status} onChange={e => updateEditForm('status', e.target.value)} className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent">
                     <option value="SCHEDULED">Scheduled</option>
                     <option value="COMPLETED">Completed</option>
+                    <option value="LOST">Lost</option>
+                    <option value="WON">Won</option>
+                    <option value="FOLLOWUP NEEDED">Followup Needed</option>
                     <option value="CANCELLED">Cancelled</option>
                   </select>
                 </div>
