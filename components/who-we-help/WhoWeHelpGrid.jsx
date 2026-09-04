@@ -6,58 +6,53 @@ import WhoWeHelp3D from './WhoWeHelp3D';
 
 const industries = [
   { 
-    title: "Doctors & Medical", 
+    title: "Dental Clinics", 
+    slug: "dental-clinics",
     image: "/industries/medical.jpg",
-    howWeHelp: "We build secure, robust patient portals, automated appointment scheduling systems, and accessible platforms that prioritize patient trust and institutional authority.",
-    outcome: "Streamlined patient onboarding, drastically fewer missed appointments, and a professional digital footprint that establishes absolute medical credibility."
+    howWeHelp: "We build secure, robust CRM systems and automated appointment workflows that integrate seamlessly with your existing clinical software.",
+    outcome: "Elimination of double-bookings, significantly fewer missed appointments, and hundreds of administrative hours saved every month."
   },
   { 
     title: "Aesthetic Clinics", 
+    slug: "aesthetic-clinics",
     image: "/industries/aesthetics.jpg",
-    howWeHelp: "We design highly visual, luxury-focused digital experiences that highlight your procedures, integrating seamless consultation booking systems and CRM lead pipelines.",
-    outcome: "Increased premium consultation requests, effortless internal lead management, and a brand perception that justifies the high ticket price of your services."
-  },
-  { 
-    title: "Spas & Wellness", 
-    image: "/industries/spa.jpg",
-    howWeHelp: "We create calming, frictionless digital environments with integrated e-commerce for products, gift cards, and direct calendar synchronization for treatments.",
-    outcome: "A 24/7 digital concierge that drives passive revenue and completely fills your booking calendar without constant manual administrative effort."
+    howWeHelp: "We design highly visual, luxury-focused digital environments and integrate them with automated consultation and follow-up pipelines.",
+    outcome: "Effortless internal patient management, automated retention sequences, and an operational flow that justifies high-ticket pricing."
   },
   { 
     title: "Beauty Salons", 
+    slug: "beauty-salons",
     image: "/industries/salon.jpg",
-    howWeHelp: "We develop portfolio-driven platforms that showcase your stylists' work, coupled with intelligent automated SMS reminders and VIP loyalty program integrations.",
-    outcome: "Maximized customer retention, the virtual elimination of no-shows, and a highly shareable aesthetic brand that continuously attracts local high-end clientele."
-  },
-  { 
-    title: "Rental Car Agencies", 
-    image: "/industries/rental.jpg",
-    howWeHelp: "We engineer dynamic fleet inventory systems, complex dynamic pricing algorithms, and frictionless checkout flows optimized for fast mobile bookings.",
-    outcome: "Higher direct booking volume (bypassing third-party aggregator fees), mathematically optimized fleet utilization, and a superior customer reservation experience."
-  },
-  { 
-    title: "Real Estate Agencies", 
-    image: "/industries/realestate.jpg",
-    howWeHelp: "We construct immersive property listing platforms featuring 3D virtual tours, advanced filtering algorithms, and automated CRM routing for high-net-worth buyer inquiries.",
-    outcome: "Significantly faster property turnover, higher quality verified lead generation for your agents, and a digital presence that dominates the local luxury market."
-  },
-  { 
-    title: "Luxury Hotels", 
-    image: "/industries/hotels.jpg",
-    howWeHelp: "We craft experiential booking platforms that sell the destination and the lifestyle, integrating flawlessly with your internal property management systems (PMS).",
-    outcome: "A massive increase in direct bookings, heavily reduced reliance on OTA commissions (Booking.com/Expedia), and higher guest lifetime value."
-  },
-  { 
-    title: "Exclusive Resorts", 
-    image: "/industries/resorts.jpg",
-    howWeHelp: "We build comprehensive digital ecosystems that allow guests to explore exclusive amenities, book dining or excursions before arrival, and immerse themselves in your property.",
-    outcome: "Maximized on-property spend per guest, completely seamless guest experiences from booking to checkout, and elevated global brand prestige."
+    howWeHelp: "We develop systems that handle complex stylist schedules, inventory tracking, and intelligent SMS reminders.",
+    outcome: "Zero administrative chaos at the front desk, the virtual elimination of no-shows, and drastically reduced operational costs."
   },
   { 
     title: "Travel Agencies", 
+    slug: "travel-agencies",
     image: "/industries/travel.jpg",
-    howWeHelp: "We develop scalable e-commerce platforms for complex itinerary building, custom trip packaging, and secure global payment processing for bespoke travel experiences.",
-    outcome: "Fully automated booking workflows, highly scalable itinerary management, and the technological ability to seamlessly sell high-ticket travel packages globally."
+    howWeHelp: "We develop complex CRM dashboards to manage custom itinerary building, client documents, and secure global payment processing.",
+    outcome: "Fully automated booking workflows and the technological infrastructure to flawlessly manage high-ticket clients without relying on messy spreadsheets."
+  },
+  { 
+    title: "Hotels", 
+    slug: "hotels",
+    image: "/industries/hotels.jpg",
+    howWeHelp: "We craft experiential booking interfaces backed by rigorous automation that connects to your internal Property Management Systems (PMS).",
+    outcome: "A massive reduction in manual guest communication, streamlined check-in processes, and a seamless digital concierge experience."
+  },
+  { 
+    title: "Spas", 
+    slug: "spas",
+    image: "/industries/spa.jpg",
+    howWeHelp: "We engineer digital environments with integrated e-commerce for products, gift cards, and automated treatment scheduling workflows.",
+    outcome: "A 24/7 automated receptionist that handles bookings and payments, freeing your staff to focus purely on the client experience."
+  },
+  { 
+    title: "Rental Car Agencies", 
+    slug: "rental-car-agencies",
+    image: "/industries/rental.jpg",
+    howWeHelp: "We engineer dynamic fleet inventory management systems, pricing algorithms, and frictionless checkout automations.",
+    outcome: "Mathematically optimized fleet utilization, zero double-booking errors, and a streamlined back-office system that saves immense time and money."
   }
 ];
 
@@ -162,6 +157,14 @@ export default function WhoWeHelpGrid() {
                         {activeIndustry.outcome}
                       </p>
                     </div>
+
+                    <a 
+                      href={`/industries/${activeIndustry.slug}`}
+                      className="mt-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#F7F5F0] group cursor-pointer w-max"
+                    >
+                      <span className="group-hover:text-[#C2496B] transition-colors">View Industry Solution</span>
+                      <span className="w-8 h-[1px] bg-[#C2496B] group-hover:w-12 transition-all duration-300"></span>
+                    </a>
                   </div>
                 </motion.div>
               </AnimatePresence>
@@ -171,6 +174,19 @@ export default function WhoWeHelpGrid() {
           
         </div>
       </section>
+      
+      {/* SEO / AEO Semantic Layer: Ensures all industries are instantly crawlable without requiring scroll interaction */}
+      <div className="sr-only">
+        {industries.map((ind, i) => (
+          <div key={i}>
+            <h2>{ind.title}</h2>
+            <h3>How We Help</h3>
+            <p>{ind.howWeHelp}</p>
+            <h3>The Outcome</h3>
+            <p>{ind.outcome}</p>
+          </div>
+        ))}
+      </div>
 
     </div>
   );

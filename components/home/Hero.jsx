@@ -22,11 +22,11 @@ export default function Hero() {
       {/* Editorial Text Composition (Upper Middle) */}
       <motion.div style={{ y: yText, opacity: opacityText }} className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 text-center flex flex-col items-center">
         <h1 className="text-5xl md:text-7xl lg:text-[7rem] font-medium tracking-tighter text-[#F7F5F0] leading-[1.05] mb-8">
-          WE MAKE <br /> DIGITAL EXPERIENCES <br />
-          <span className="text-[#C2496B]">MOVE.</span>
+          ELIMINATE <br /> OPERATIONAL <br />
+          <span className="text-[#C2496B]">CHAOS.</span>
         </h1>
         <p className="text-lg md:text-xl text-[#F7F5F0]/60 max-w-2xl font-light mb-12">
-          Strategy, design and technology for businesses that want to move forward.
+          We engineer custom CRM systems, automations, and digital workflows that save you time, reduce costs, and organize your business.
         </p>
         <div className="flex items-center gap-8 text-xs font-bold uppercase tracking-widest">
           <a href="/book" className="text-[#C2496B] border-b border-[#C2496B]/30 pb-1 hover:border-[#C2496B] transition-colors">Start a Project &rarr;</a>

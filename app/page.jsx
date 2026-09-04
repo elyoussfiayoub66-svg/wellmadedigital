@@ -15,8 +15,8 @@ import LoginShortcut from '@/components/home/LoginShortcut';
 import { getProjects } from '@/lib/data/fetchWork';
 
 export const metadata = {
-  title: 'Wellmade Digital | Editorial Design Studio',
-  description: 'Digital experiences, made with intention.',
+  title: 'Wellmade Digital | Custom CRMs & Automation',
+  description: 'We build custom CRM systems and workflows to help businesses save time, reduce costs, and eliminate operational chaos.',
 };
 
 export default async function Home() {

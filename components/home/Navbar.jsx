@@ -16,12 +16,12 @@ export default function Navbar() {
       <Link href="/" className="flex items-center">
         <img src="/assets/logo.png?v=2" alt="Wellmade Digital Logo" className="h-[90px] w-auto object-contain" />
       </Link>
-      
       <div className="hidden md:flex gap-10 text-[10px] uppercase tracking-widest font-bold text-[#F7F5F0]/60">
-        <Link href="/work" className="hover:text-[#F7F5F0] transition-colors">Work</Link>
+        <Link href="/solutions/crm-automation" className="hover:text-[#F7F5F0] transition-colors">Solutions</Link>
         <Link href="/services" className="hover:text-[#F7F5F0] transition-colors">Services</Link>
-        <Link href="/process" className="hover:text-[#F7F5F0] transition-colors">Process</Link>
-        <Link href="/who-we-help" className="hover:text-[#F7F5F0] transition-colors">Who We Help</Link>
+        <Link href="/industries" className="hover:text-[#F7F5F0] transition-colors">Industries</Link>
+        <Link href="/insights" className="hover:text-[#F7F5F0] transition-colors">Insights</Link>
+        <Link href="/work" className="hover:text-[#F7F5F0] transition-colors">Work</Link>
       </div>
 
       <Link href="/book" className="text-[10px] uppercase tracking-widest font-bold text-[#C2496B] flex items-center gap-2 group">

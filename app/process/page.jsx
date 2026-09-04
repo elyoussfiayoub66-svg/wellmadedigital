@@ -5,7 +5,7 @@ import ProcessTimeline from '@/components/process/ProcessTimeline';
 
 export const metadata = {
   title: 'Process | Wellmade Digital',
-  description: 'Our methodology for building digital systems.',
+  description: 'Our methodology for building custom CRM systems and operational workflows.',
 };
 
 export default function ProcessPage() {

@@ -1,6 +1,6 @@
 'use client';
 export default function Services() {
-  const services = ['STRATEGY', 'WEB DESIGN', 'DEVELOPMENT', 'DIGITAL EXPERIENCES', 'GROWTH'];
+  const services = ['CUSTOM CRMS', 'WORKFLOW AUTOMATION', 'SYSTEMS ENGINEERING', 'DASHBOARDS', 'INTEGRATIONS', 'EFFICIENCY'];
   
   return (
     <section id="services" className="py-40 bg-[#0E0E0F] text-[#F7F5F0] px-6 md:px-12 border-t border-[#F7F5F0]/5 relative min-h-screen flex items-center">

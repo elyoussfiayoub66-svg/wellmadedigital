@@ -13,7 +13,7 @@ import { getProjects } from '@/lib/data/fetchWork';
 
 export const metadata = {
   title: 'Work | Wellmade Digital',
-  description: 'Selected work by Wellmade Digital.',
+  description: 'Case studies of custom CRMs and workflow automations built by Wellmade Digital.',
 };
 
 export default async function WorkPage() {

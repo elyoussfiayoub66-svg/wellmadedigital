@@ -7,21 +7,21 @@ import Services3D from './3d/Services3D';
 const services = [
   {
     id: 0,
-    title: "Website Design & Creation",
-    description: "We don't just build websites. We engineer high-performance digital environments that position your brand at the absolute top of your market. Every pixel is designed to convert.",
-    features: ["Conversion Rate Optimization", "Immersive 3D/WebGL Interactions", "Next.js High-Performance Architecture", "Bespoke Editorial UI/UX"]
-  },
-  {
-    id: 1,
-    title: "CRM Development",
-    description: "Stop wrestling with generic software. We build bespoke client management systems perfectly mapped to your actual sales cycle, allowing your team to close deals instead of fighting software.",
+    title: "Custom CRM Development",
+    description: "Stop wrestling with messy spreadsheets and generic software. We build bespoke client management systems tailored to your exact operations, saving you countless hours of administrative chaos.",
     features: ["Custom Sales Pipelines", "Client Portals & Dashboards", "Secure Data Architecture", "Zero Monthly License Fees"]
   },
   {
+    id: 1,
+    title: "Workflow Automation",
+    description: "Manual data entry burns money. We implement intelligent, automated workflows that connect your disparate tools, process data instantly, and eliminate human error.",
+    features: ["Automated Data Entry", "API Integrations", "Zapier/Make Workflows", "Operational Cost Reduction"]
+  },
+  {
     id: 2,
-    title: "AI Automation",
-    description: "Human error and manual data entry are bottlenecks. We implement intelligent, automated workflows that connect your disparate tools, qualify leads, and process data instantly.",
-    features: ["Automated Lead Qualification", "Custom AI Chatbots & Agents", "API Integrations", "Workflow Automation (Zapier/Make)"]
+    title: "AI & Process Engineering",
+    description: "We audit your business bottlenecks and deploy intelligent systems—from automated appointment scheduling to customized internal dashboards—so your team can focus on growth.",
+    features: ["Custom Dashboards", "Automated Scheduling", "Internal Process Optimization", "AI Assistants"]
   }
 ];
 
@@ -82,7 +82,21 @@ export default function ServicesContent() {
              </Canvas>
            </div>
         </div>
+      </div>
 
+      {/* SEO / AEO Semantic Layer */}
+      <div className="sr-only">
+        {services.map((svc) => (
+          <article key={svc.id}>
+            <h2>{svc.title}</h2>
+            <p>{svc.description}</p>
+            <ul>
+              {svc.features.map((feat, fi) => (
+                <li key={fi}>{feat}</li>
+              ))}
+            </ul>
+          </article>
+        ))}
       </div>
     </section>
   );
