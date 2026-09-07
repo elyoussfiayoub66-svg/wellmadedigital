@@ -12,6 +12,8 @@ import Footer from '@/components/home/Footer';
 import LoginShortcut from '@/components/home/LoginShortcut';
 import { getProjects } from '@/lib/data/fetchWork';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Wellmade Digital | Custom CRMs & Automation',
   description: 'We build custom CRM systems and workflows to help businesses save time, reduce costs, and eliminate operational chaos.',

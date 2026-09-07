@@ -12,6 +12,8 @@ export const metadata = {
   description: 'Explore the custom CRMs and automated workflows we have engineered for service-based businesses.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function WorkPage() {
   const projects = await getProjects();
   

@@ -43,7 +43,7 @@ export default function ServicesPage() {
       {/* Hero Section */}
       <section className="relative pt-40 pb-20 px-6 md:px-12 overflow-hidden border-b border-[#F7F5F0]/10">
         <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
-           <img src="/assets/hero-crm.jpg" alt="Systems engineering abstract" className="w-full h-full object-cover" onError={(e) => e.target.style.display='none'} />
+           <img src="/assets/hero-crm.jpg" alt="Systems engineering abstract" className="w-full h-full object-cover" />
            <div className="absolute inset-0 bg-gradient-to-b from-[#0E0E0F] via-transparent to-[#0E0E0F]" />
         </div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
