@@ -1,19 +1,15 @@
 import Navbar from '@/components/home/Navbar';
 import Footer from '@/components/home/Footer';
 import FinalCTA from '@/components/home/FinalCTA';
-import WorkHero from '@/components/work/WorkHero';
 import FeaturedWork from '@/components/work/FeaturedWork';
 import SelectedProjects from '@/components/work/SelectedProjects';
-import Transformation from '@/components/work/Transformation';
-import WorkResults from '@/components/work/WorkResults';
-import ClientPerspective from '@/components/work/ClientPerspective';
 import WorkArchive from '@/components/work/WorkArchive';
 
 import { getProjects } from '@/lib/data/fetchWork';
 
 export const metadata = {
-  title: 'Work | Wellmade Digital',
-  description: 'Case studies of custom CRMs and workflow automations built by Wellmade Digital.',
+  title: 'Work | Case Studies & Deployments',
+  description: 'Explore the custom CRMs and automated workflows we have engineered for service-based businesses.',
 };
 
 export default async function WorkPage() {
@@ -24,12 +20,23 @@ export default async function WorkPage() {
   const archive = projects;
 
   return (
-    <main className="relative w-full bg-[#0E0E0F] antialiased font-sans selection:bg-[#C2496B] selection:text-[#F7F5F0] overflow-x-hidden">
+    <main className="relative w-full bg-[#0E0E0F] text-[#F7F5F0] antialiased font-sans selection:bg-[#C2496B] selection:text-[#F7F5F0]">
       <Navbar />
       
-      <WorkHero />
+      {/* Main Headline & Intro */}
+      <section className="pt-48 pb-24 px-6 md:px-12 border-b border-[#F7F5F0]/10">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="text-[10px] uppercase tracking-widest font-bold text-[#C8A464] mb-6">CASE STUDIES</div>
+          <h1 className="text-5xl md:text-7xl font-medium tracking-tighter leading-[1.05] mb-8">
+            Proof of <span className="text-[#C2496B]">performance.</span>
+          </h1>
+          <p className="text-xl text-[#F7F5F0]/70 font-light leading-relaxed max-w-2xl mx-auto">
+            We don't measure success by how pretty a website is. We measure it by hours saved, manual tasks eliminated, and revenue generated. Explore our recent deployments below.
+          </p>
+        </div>
+      </section>
       
-      {/* Only render these sections if database returns data */}
+      {/* Projects - Kept as is */}
       {featured && <FeaturedWork project={featured} />}
       {selected.length > 0 && <SelectedProjects projects={selected} />}
       
@@ -39,10 +46,6 @@ export default async function WorkPage() {
         </section>
       )}
 
-      <Transformation />
-      <WorkResults />
-      <ClientPerspective />
-      
       {archive.length > 0 && <WorkArchive projects={archive} />}
       
       <FinalCTA />

@@ -6,7 +6,7 @@ export default function Footer() {
         
         <div className="mb-12 md:mb-0">
           <div className="mb-4">
-            <img src="/assets/logo.png?v=2" alt="Wellmade Digital Logo" className="h-[90px] w-auto object-contain" />
+            <img src="/assets/logo.png?v=2" alt="Wellmade Digital Logo" className="h-[80px] w-auto object-contain" />
           </div>
           <div className="text-sm font-serif italic text-[#C8A464]">Digital systems built for growth.</div>
         </div>

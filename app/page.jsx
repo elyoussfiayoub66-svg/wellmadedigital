@@ -1,14 +1,12 @@
 import Navbar from '@/components/home/Navbar';
 import Hero from '@/components/home/Hero';
-import Philosophy from '@/components/home/Philosophy';
-import Problem from '@/components/home/Problem';
-import Approach from '@/components/home/Approach';
+import TechStackSlider from '@/components/home/TechStackSlider';
+import ServicesContent from '@/components/services/ServicesContent';
+import TargetIndustries from '@/components/home/TargetIndustries';
 import Work from '@/components/home/Work';
-import Services from '@/components/home/Services';
-import Process from '@/components/home/Process';
 import WhyWellmade from '@/components/home/WhyWellmade';
-import SocialProof from '@/components/home/SocialProof';
-import Insights from '@/components/home/Insights';
+import Process from '@/components/home/Process';
+import FAQ from '@/components/home/FAQ';
 import FinalCTA from '@/components/home/FinalCTA';
 import Footer from '@/components/home/Footer';
 import LoginShortcut from '@/components/home/LoginShortcut';
@@ -27,15 +25,13 @@ export default async function Home() {
       <LoginShortcut />
       <Navbar />
       <Hero />
-      <Philosophy />
-      <Problem />
-      <Approach />
+      <TechStackSlider />
+      <ServicesContent />
+      <TargetIndustries />
       <Work projects={projects} />
-      <Services />
-      <Process />
       <WhyWellmade />
-      <SocialProof />
-      <Insights />
+      <Process />
+      <FAQ />
       <FinalCTA />
       <Footer />
     </main>
