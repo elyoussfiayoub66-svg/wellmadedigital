@@ -1,0 +1,21 @@
+config:
+  target: "https://wellmadedigital.vercel.app"
+  phases:
+    - duration: 30
+      arrivalRate: 1
+      rampTo: 10
+      name: "Ramp up load"
+    - duration: 60
+      arrivalRate: 10
+      name: "Sustained load"
+scenarios:
+  - name: "User Booking Flow"
+    flow:
+      - get:
+          url: "/"
+      - think: 2
+      - get:
+          url: "/book"
+      - think: 3
+      - get:
+          url: "/api/availability?date=2024-12-01&assignee_id=00000000-0000-0000-0000-000000000000"

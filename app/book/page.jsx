@@ -37,6 +37,7 @@ export default function BookingPage() {
     async function loadTeam() {
       const supabase = createClient();
       const { data } = await supabase.from('profiles').select('id, full_name, created_at').eq('account_status', 'active');
+      
       if (data) {
         // Assign a mock closing rate if not present in DB for advanced distribution algorithm
         const membersWithRates = data.map(m => ({
@@ -119,16 +120,23 @@ export default function BookingPage() {
     try {
       const supabase = createClient();
 
-      // ADVANCED ROUTING LOGIC: Assign to oldest user first (calendar cascading)
-      const availableMemberIds = memberAvailability[formData.meetingTime] || [];
-      if (availableMemberIds.length === 0) throw new Error("No team members available for this slot.");
+      const { data: settings } = await supabase.from('crm_settings').select('meeting_distribution_mode').limit(1).maybeSingle();
+      
+      let selectedAssigneeId = null;
 
-      // Sort available members by account creation date (oldest first)
-      const availableMembers = teamMembers
-          .filter(m => availableMemberIds.includes(m.id))
-          .sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+      if (!settings || settings.meeting_distribution_mode === 'auto') {
+        // ADVANCED ROUTING LOGIC: Assign to oldest user first (calendar cascading)
+        const availableMemberIds = memberAvailability[formData.meetingTime] || [];
+        if (availableMemberIds.length === 0) throw new Error("No team members available for this slot.");
 
-      const selectedAssigneeId = availableMembers[0].id;
+        // Sort available members by account creation date (oldest first)
+        const availableMembers = teamMembers
+            .filter(m => availableMemberIds.includes(m.id))
+            .sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+
+        selectedAssigneeId = availableMembers[0].id;
+      }
+      // If 'manual', selectedAssigneeId remains null so it lands in the unassigned queue
       
       
       // 1. Insert Lead
@@ -182,7 +190,7 @@ export default function BookingPage() {
             <img src="/assets/logo.png?v=2" alt="Wellmade Digital Logo" className="h-[70px] w-auto object-contain" />
           </Link>
           <div className="text-[10px] font-bold tracking-widest uppercase text-[#C8A464]">
-            Step {step} of 3
+            Step {step} of 2
           </div>
         </div>
       </header>
@@ -193,18 +201,16 @@ export default function BookingPage() {
           <div className="mb-12 text-center">
             <h1 className="text-4xl md:text-5xl font-medium tracking-tighter mb-4 text-[#F7F5F0]">
               {step === 1 && "Tell us about you."}
-              {step === 2 && "Operational Challenges."}
-              {step === 3 && "Schedule Consultation."}
+              {step === 2 && "Schedule Consultation."}
             </h1>
             <p className="text-lg text-[#F7F5F0]/60 font-light">
               {step === 1 && "Basic information to help us prepare for our call."}
-              {step === 2 && "Help us understand what's holding your business back."}
-              {step === 3 && "When is a good time to discuss your custom solution?"}
+              {step === 2 && "When is a good time to discuss your custom solution?"}
             </p>
           </div>
 
           <div className="bg-[#1A1A1B]/40 border border-[#F7F5F0]/10 backdrop-blur-md rounded-2xl p-8 md:p-12 shadow-2xl">
-            <form onSubmit={step === 3 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }} className="space-y-8">
+            <form onSubmit={step === 2 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }} className="space-y-8">
               
               {/* STEP 1 */}
               {step === 1 && (
@@ -244,34 +250,6 @@ export default function BookingPage() {
 
               {/* STEP 2 */}
               {step === 2 && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium text-[#F7F5F0]">What’s the biggest thing you wish your current system could do for you, but it can’t?</label>
-                    <textarea required rows={3} value={formData.problem} onChange={e => updateForm('problem', e.target.value)} className="w-full bg-[#0E0E0F] border border-[#F7F5F0]/10 rounded-lg px-4 py-4 text-[#F7F5F0] focus:outline-none focus:border-[#C2496B] focus:ring-1 focus:ring-[#C2496B]/20 transition-all resize-none"></textarea>
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium text-[#F7F5F0]">How do you currently manage your business information, leads, clients, and daily operations?</label>
-                    <textarea required rows={2} value={formData.currentProcess} onChange={e => updateForm('currentProcess', e.target.value)} placeholder="e.g. Spreadsheets, WhatsApp, Generic CRM" className="w-full bg-[#0E0E0F] border border-[#F7F5F0]/10 rounded-lg px-4 py-4 text-[#F7F5F0] focus:outline-none focus:border-[#C2496B] focus:ring-1 focus:ring-[#C2496B]/20 transition-all resize-none placeholder-[#F7F5F0]/20"></textarea>
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium text-[#F7F5F0]">If you could have one system built specifically around your business, what would you want it to make easier or completely automate?</label>
-                    <textarea required rows={2} value={formData.desiredOutcome} onChange={e => updateForm('desiredOutcome', e.target.value)} className="w-full bg-[#0E0E0F] border border-[#F7F5F0]/10 rounded-lg px-4 py-4 text-[#F7F5F0] focus:outline-none focus:border-[#C2496B] focus:ring-1 focus:ring-[#C2496B]/20 transition-all resize-none"></textarea>
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium text-[#F7F5F0]">Budget Range</label>
-                    <select required value={formData.budget} onChange={e => updateForm('budget', e.target.value)} className="w-full bg-[#0E0E0F] border border-[#F7F5F0]/10 rounded-lg px-4 py-4 text-[#F7F5F0] focus:outline-none focus:border-[#C2496B] focus:ring-1 focus:ring-[#C2496B]/20 transition-all appearance-none cursor-pointer">
-                      <option value="">Select range</option>
-                      <option value="under_5k">Under MAD 5,000</option>
-                      <option value="5k_to_15k">MAD 5,000 - MAD 15,000</option>
-                      <option value="15k_to_30k">MAD 15,000 - MAD 30,000</option>
-                      <option value="30k_plus">MAD 30,000+</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 3 */}
-              {step === 3 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                   <div className="space-y-3">
                     <label className="text-xs uppercase tracking-widest font-bold text-[#F7F5F0]/50">Preferred Meeting Date</label>
@@ -335,7 +313,7 @@ export default function BookingPage() {
                   disabled={status === 'submitting'}
                   className="bg-[#C2496B] text-white text-sm tracking-widest uppercase font-bold px-8 py-4 rounded-lg hover:bg-[#a63c5a] transition-all disabled:opacity-50"
                 >
-                  {status === 'submitting' ? 'Processing...' : step === 3 ? 'Complete Booking' : 'Continue'}
+                  {status === 'submitting' ? 'Processing...' : step === 2 ? 'Complete Booking' : 'Continue'}
                 </button>
               </div>
 

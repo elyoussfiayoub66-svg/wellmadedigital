@@ -106,7 +106,9 @@ export default function CalendarPage() {
       query = query.order('scheduled_at', { ascending: false });
     }
 
-    if (selectedAssignee !== 'all') {
+    if (activeTab === 'unassigned') {
+      query = query.is('assignee_id', null);
+    } else if (selectedAssignee !== 'all') {
       query = query.eq('assignee_id', selectedAssignee);
     }
 
@@ -425,6 +427,12 @@ export default function CalendarPage() {
         >
           Agenda
         </button>
+        <button
+          onClick={() => setActiveTab('unassigned')}
+          className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'unassigned' ? 'border-brand-accent text-brand-accent' : 'border-transparent text-brand-text/60 hover:text-brand-text'}`}
+        >
+          Unassigned Queue
+        </button>
       </div>
 
       {/* Main Content Area */}
@@ -585,7 +593,15 @@ export default function CalendarPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <User className="w-4 h-4 text-brand-accent" />
-                    <span>Host: <span className="font-medium text-brand-text">{selectedAppointment.profiles?.full_name || 'Unassigned'}</span></span>
+                    <div className="flex items-center gap-2 flex-1">
+                      <span>Host: <span className="font-medium text-brand-text">{selectedAppointment.profiles?.full_name || 'Unassigned'}</span></span>
+                      <button 
+                        onClick={openEditModal} 
+                        className="ml-auto text-[10px] font-bold uppercase tracking-wider bg-brand-dark/10 hover:bg-brand-accent hover:text-white text-brand-text/60 px-2 py-1 rounded transition-colors"
+                      >
+                        {selectedAppointment.profiles ? 'Reassign' : 'Assign Now'}
+                      </button>
+                    </div>
                   </div>
                   {selectedAppointment.meeting_link && (
                     <div className="flex items-center gap-3">

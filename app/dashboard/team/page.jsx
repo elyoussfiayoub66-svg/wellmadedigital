@@ -14,10 +14,23 @@ export default function TeamPage() {
   const [confirmSecurityDelete, setConfirmSecurityDelete] = useState({ isOpen: false, id: null, name: '' });
   const [inspectUser, setInspectUser] = useState(null);
 
+  const [distributionMode, setDistributionMode] = useState('auto');
+  const [manualAssigneeId, setManualAssigneeId] = useState(null);
+  const [settingsId, setSettingsId] = useState(null);
+  const [savingRouting, setSavingRouting] = useState(false);
+
   const loadTeamData = async () => {
     setLoading(true);
     const supabase = createClient();
     
+    // 0. Fetch routing settings
+    const { data: settingsData } = await supabase.from('crm_settings').select('id, meeting_distribution_mode, manual_assignee_id').limit(1).maybeSingle();
+    if (settingsData) {
+       setSettingsId(settingsData.id);
+       if (settingsData.meeting_distribution_mode) setDistributionMode(settingsData.meeting_distribution_mode);
+       if (settingsData.manual_assignee_id) setManualAssigneeId(settingsData.manual_assignee_id);
+    }
+
     // 1. Fetch all profiles
     const { data: profilesData } = await supabase.from('profiles').select('*');
     
@@ -174,6 +187,32 @@ export default function TeamPage() {
     }
   };
 
+  const saveRoutingSettings = async (mode, assigneeId) => {
+    setSavingRouting(true);
+    const supabase = createClient();
+    try {
+      if (settingsId) {
+        const { error } = await supabase.from('crm_settings').update({
+          meeting_distribution_mode: mode,
+          manual_assignee_id: assigneeId
+        }).eq('id', settingsId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from('crm_settings').insert([{
+          meeting_distribution_mode: mode,
+          manual_assignee_id: assigneeId
+        }]).select().single();
+        if (error) throw error;
+        if(data) setSettingsId(data.id);
+      }
+      toast.success("Meeting routing settings updated");
+    } catch(err) {
+       console.error(err);
+       toast.error("Failed to update settings. Please run the provided SQL in Supabase.");
+    }
+    setSavingRouting(false);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
@@ -181,6 +220,33 @@ export default function TeamPage() {
           <h1 className="text-3xl font-medium text-brand-text tracking-tight mb-2">Team Performance & Management</h1>
           <p className="text-brand-text/70">Leaderboard, closing rates, and user approvals.</p>
         </div>
+      </div>
+
+      {/* NEW ROUTING SETTINGS PANEL */}
+      <div className="bg-brand-surface rounded-xl border border-brand-border p-6 mb-8 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between animate-in fade-in duration-500">
+         <div>
+            <h2 className="text-lg font-bold text-brand-text flex items-center gap-2"><Target className="w-5 h-5 text-brand-accent"/> Meeting Distribution</h2>
+            <p className="text-sm text-brand-text/60 mt-1">Configure how incoming meetings from the booking page are assigned.</p>
+         </div>
+         
+         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+           <div className="flex items-center gap-2 bg-brand-bg/50 p-1.5 rounded-lg border border-brand-border">
+              <button 
+                onClick={() => { setDistributionMode('auto'); saveRoutingSettings('auto', null); }}
+                disabled={savingRouting}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${distributionMode === 'auto' ? 'bg-brand-accent text-white shadow-md' : 'text-brand-text/60 hover:text-brand-text hover:bg-brand-surface'}`}
+              >
+                Automatic (Round Robin)
+              </button>
+              <button 
+                onClick={() => { setDistributionMode('manual'); saveRoutingSettings('manual', null); }}
+                disabled={savingRouting}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${distributionMode === 'manual' ? 'bg-brand-accent text-white shadow-md' : 'text-brand-text/60 hover:text-brand-text hover:bg-brand-surface'}`}
+              >
+                Manual (Unassigned Queue)
+              </button>
+           </div>
+         </div>
       </div>
 
       <div className="bg-brand-surface rounded-xl border border-brand-border  overflow-hidden">
