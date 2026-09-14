@@ -33,7 +33,7 @@ const NODE_META = {
   whatsapp:    { icon: MessageCircle,      color: '#25D366', bg: 'rgba(37,211,102,0.12)', border: 'rgba(37,211,102,0.35)', label: 'Send Message' },
   interactive: { icon: MousePointerClick,  color: '#3B82F6', bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.35)', label: 'Interactive' },
   crm:         { icon: Database,           color: '#A855F7', bg: 'rgba(168,85,247,0.12)', border: 'rgba(168,85,247,0.35)', label: 'Update CRM' },
-  condition:   { icon: GitMerge,           color: '#6366F1', bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.35)', label: 'Switch' },
+  condition:   { icon: GitMerge,           color: '#6366F1', bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.35)', label: 'Rules & Conditions' },
   delay:       { icon: Clock,             color: '#9CA3AF', bg: 'rgba(156,163,175,0.10)', border: 'rgba(156,163,175,0.30)', label: 'Delay' },
   loop:        { icon: RefreshCw,          color: '#14B8A6', bg: 'rgba(20,184,166,0.12)', border: 'rgba(20,184,166,0.35)', label: 'Loop' },
 };
@@ -190,6 +190,15 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
     ),
     interactive: (
       <div className="space-y-4">
+        <Field label="Message Template">
+          <textarea 
+            rows={3} 
+            className="field-input resize-none" 
+            placeholder="Please choose an option below:" 
+            value={(node.data || {}).template || ''} 
+            onChange={(e) => onUpdate(node.id, { template: e.target.value })}
+          />
+        </Field>
         <Field label="Type">
           <select 
             className="field-input"
@@ -253,13 +262,29 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
     condition: (
       <div className="space-y-4">
         <Field label="If Variable">
-          <input 
-            type="text" 
-            className="field-input font-mono" 
-            value={(node.data || {}).condVar || ''} 
+          <select 
+            className="field-input font-mono text-[11px]" 
+            value={(node.data || {}).condVar || 'lead.qualification_score'} 
             onChange={(e) => onUpdate(node.id, { condVar: e.target.value })}
-            placeholder="{{lead.qualification_score}}"
-          />
+          >
+            <optgroup label="Leads & Prospects">
+              <option value="lead.full_name">lead.full_name</option>
+              <option value="lead.phone">lead.phone</option>
+              <option value="lead.email">lead.email</option>
+              <option value="lead.status">lead.status</option>
+              <option value="lead.qualification_score">lead.qualification_score</option>
+            </optgroup>
+            <optgroup label="Clients">
+              <option value="client.company_name">client.company_name</option>
+              <option value="client.industry">client.industry</option>
+              <option value="client.budget">client.budget</option>
+            </optgroup>
+            <optgroup label="Appointments">
+              <option value="appointment.date">appointment.date</option>
+              <option value="appointment.status">appointment.status</option>
+              <option value="appointment.type">appointment.type</option>
+            </optgroup>
+          </select>
         </Field>
         <Field label="Operator">
           <select 
