@@ -24,12 +24,12 @@ export default function TrackingProvider({ children }) {
       // A better way is an upsert or checking first, but since we rely on anon key, an RPC or just an upsert might work.
       // For now, we do a simple insert and ignore duplicate errors.
       
-      const { error } = await supabase.from('visitors').insert({
+      const { error } = await supabase.from('visitors').upsert({
         visitor_id: visitorId,
         first_page: window.location.pathname,
         device: /Mobi|Android/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop',
         user_agent: navigator.userAgent
-      });
+      }, { onConflict: 'visitor_id', ignoreDuplicates: true });
       
       // We can also insert attribution if it's new
       if (!sessionStorage.getItem('attribution_saved')) {
