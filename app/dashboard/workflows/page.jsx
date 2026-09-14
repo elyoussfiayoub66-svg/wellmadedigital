@@ -306,7 +306,62 @@ export default function WorkflowsManagementPage() {
 
         {activeTab === 'accounts' && (
           <div className="bg-[#1A1A1B] border border-white/5 rounded-xl p-8 text-center max-w-2xl mx-auto mt-4">
-            {accounts.length > 0 ? (
+            {configuringAccount ? (
+              <div className="flex flex-col items-center w-full">
+                <div className="flex flex-col animate-in zoom-in-95 duration-300 w-full max-w-md">
+                  <div className="w-16 h-16 bg-[#25D366]/10 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <CheckCircle2 className="w-8 h-8 text-[#25D366]" />
+                  </div>
+                  <h2 className="text-xl font-bold text-white mb-2">Configure Account</h2>
+                  <p className="text-gray-400 text-sm mb-6">
+                    Configure your new WhatsApp account instance to activate the workflow token.
+                  </p>
+                  
+                  <div className="space-y-4 text-left">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Account Name</label>
+                      <input
+                        type="text"
+                        className="w-full bg-[#2C2C2E] border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[#25D366]/50"
+                        placeholder="e.g. Main Sales Line"
+                        value={accountName}
+                        onChange={e => setAccountName(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Token Duration</label>
+                      <select
+                        className="w-full bg-[#2C2C2E] border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#25D366]/50"
+                        value={accountDuration}
+                        onChange={e => setAccountDuration(e.target.value)}
+                      >
+                        <option value="1">1 Month</option>
+                        <option value="3">3 Months</option>
+                        <option value="6">6 Months</option>
+                        <option value="lifetime">Lifetime</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">This account will disconnect when the token expires.</p>
+                    </div>
+                    
+                    <button
+                      onClick={saveConfiguration}
+                      disabled={loading}
+                      className="w-full py-3 mt-4 bg-[#25D366] text-black font-semibold rounded-lg hover:bg-[#20b858] transition-colors disabled:opacity-50"
+                    >
+                      {loading ? 'Saving...' : 'Save Configuration'}
+                    </button>
+                    <button
+                      onClick={() => setConfiguringAccount(null)}
+                      disabled={loading}
+                      className="w-full py-2 mt-2 bg-transparent text-gray-400 font-semibold rounded-lg hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : accounts.length > 0 ? (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold text-white text-left mb-6">Connected Worker Instances</h2>
                 {accounts.map(acc => (
@@ -366,53 +421,7 @@ export default function WorkflowsManagementPage() {
               </div>
             ) : (
               <div className="flex flex-col items-center w-full">
-                  {configuringAccount ? (
-                    <div className="flex flex-col animate-in zoom-in-95 duration-300 w-full max-w-md">
-                      <div className="w-16 h-16 bg-[#25D366]/10 rounded-full flex items-center justify-center mb-4 mx-auto">
-                        <CheckCircle2 className="w-8 h-8 text-[#25D366]" />
-                      </div>
-                      <h2 className="text-xl font-bold text-white mb-2">Connection Successful!</h2>
-                      <p className="text-gray-400 text-sm mb-6">
-                        Configure your new WhatsApp account instance to activate the workflow token.
-                      </p>
-                      
-                      <div className="space-y-4 text-left">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Account Name</label>
-                          <input
-                            type="text"
-                            className="w-full bg-[#2C2C2E] border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[#25D366]/50"
-                            placeholder="e.g. Main Sales Line"
-                            value={accountName}
-                            onChange={e => setAccountName(e.target.value)}
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-300 mb-1">Token Duration</label>
-                          <select
-                            className="w-full bg-[#2C2C2E] border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#25D366]/50"
-                            value={accountDuration}
-                            onChange={e => setAccountDuration(e.target.value)}
-                          >
-                            <option value="1">1 Month</option>
-                            <option value="3">3 Months</option>
-                            <option value="6">6 Months</option>
-                            <option value="lifetime">Lifetime</option>
-                          </select>
-                          <p className="text-xs text-gray-500 mt-1">This account will disconnect when the token expires.</p>
-                        </div>
-                        
-                        <button
-                          onClick={saveConfiguration}
-                          disabled={loading}
-                          className="w-full py-3 mt-4 bg-[#25D366] text-black font-semibold rounded-lg hover:bg-[#20b858] transition-colors disabled:opacity-50"
-                        >
-                          {loading ? 'Saving...' : 'Save Configuration'}
-                        </button>
-                      </div>
-                    </div>
-                  ) : qrCodeData ? (
+                  {qrCodeData ? (
                     <div className="flex flex-col items-center animate-in zoom-in-95 duration-300">
                       <h2 className="text-xl font-bold text-white mb-2">Scan to Link Worker</h2>
                       <p className="text-gray-400 text-sm max-w-sm mb-8">
