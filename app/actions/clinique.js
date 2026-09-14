@@ -42,12 +42,12 @@ export async function submitCliniqueBooking({ name, phone, businessName, meeting
   }
 
   // 2. Insert Appointment
-  const dateTimeStr = \\T\:00.000Z\;
+  const dateTimeStr = `${meetingDate}T${meetingTime}:00.000Z`;
   const { error: apptError } = await supabase.from('appointments').insert({
     lead_id: lead.id,
     scheduled_at: dateTimeStr,
     status: 'SCHEDULED',
-    title: \Discovery Call - \\,
+    title: `Discovery Call - ${businessName || name}`,
     assignee_id: targetUserId
   });
 
@@ -61,7 +61,7 @@ export async function submitCliniqueBooking({ name, phone, businessName, meeting
     user_id: targetUserId,
     type: 'meeting',
     title: 'New Clinic Booking',
-    content: \\ booked a meeting for \ at \.\,
+    content: `${name} booked a meeting for ${meetingDate} at ${meetingTime}.`,
     link: '/dashboard/calendar'
   });
 

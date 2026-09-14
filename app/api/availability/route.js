@@ -26,15 +26,15 @@ export async function GET(request) {
 
     const allPossibleSlots = [];
     for (let hour = 10; hour < 18; hour++) {
-      allPossibleSlots.push(\\:00\);
-      allPossibleSlots.push(\\:30\);
+      allPossibleSlots.push(`${hour.toString().padStart(2, '0')}:00`);
+      allPossibleSlots.push(`${hour.toString().padStart(2, '0')}:30`);
     }
 
-    const startDate = new Date(\\T00:00:00.000Z\);
-    const endDate = new Date(\\T23:59:59.999Z\);
+    const startDate = new Date(`${dateStr}T00:00:00.000Z`);
+    const endDate = new Date(`${dateStr}T23:59:59.999Z`);
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      return NextResponse.json({ error: \Invalid date format: \\ }, { status: 400 });
+      return NextResponse.json({ error: `Invalid date format: ${dateStr}` }, { status: 400 });
     }
 
     // Only query appointments for this specific user that are NOT canceled
@@ -56,7 +56,7 @@ export async function GET(request) {
       const dateObj = new Date(app.scheduled_at);
       const hours = dateObj.getUTCHours().toString().padStart(2, '0');
       const minutes = dateObj.getUTCMinutes().toString().padStart(2, '0');
-      bookedSlots.add(\\:\\);
+      bookedSlots.add(`${hours}:${minutes}`);
     });
 
     const freeSlots = [];
@@ -72,9 +72,8 @@ export async function GET(request) {
           const [slotH, slotM] = slot.split(':').map(Number);
           // Compare with current UTC time (if appointments are saved in UTC). 
           // If the landing page assumes local time, we should compare against local time.
-          // Let's assume the user is booking for their local time.
           // To be safe, we parse the exact slot time today and check if it's in the past.
-          const slotTime = new Date(\\T\:00.000Z\);
+          const slotTime = new Date(`${dateStr}T${slot}:00.000Z`);
           if (slotTime.getTime() > now.getTime()) {
              freeSlots.push(slot);
           }
