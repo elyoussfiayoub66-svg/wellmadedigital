@@ -161,11 +161,21 @@ app.get('/', (req, res) => {
 async function bootActiveSessions() {
   const { data } = await supabase
     .from('whatsapp_accounts')
-    .select('id')
+    .select('id, token, expires_at')
     .eq('worker_status', 'connected');
     
   if (data) {
     for (const acc of data) {
+      if (!acc.token) {
+        console.log(`Skipping unconfigured account ${acc.id} (missing token)`);
+        continue;
+      }
+      
+      if (acc.expires_at && new Date(acc.expires_at) < new Date()) {
+        console.log(`Skipping expired account ${acc.id}`);
+        continue;
+      }
+      
       console.log(`Restoring session for ${acc.id}`);
       startWhatsAppClient(acc.id).catch(console.error);
     }

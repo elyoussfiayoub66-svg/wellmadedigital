@@ -132,6 +132,23 @@ async function executeWhatsAppNode(workflow, node, payload) {
     return 'failed';
   }
   
+  // Verify Token Security and Expiration
+  const { data: accountData } = await supabase
+    .from('whatsapp_accounts')
+    .select('token, expires_at')
+    .eq('id', workflow.whatsapp_account_id)
+    .single();
+    
+  if (!accountData || !accountData.token) {
+    console.error('Account rejected: Missing workflow token configuration');
+    return 'failed';
+  }
+  
+  if (accountData.expires_at && new Date(accountData.expires_at) < new Date()) {
+    console.error('Account rejected: Workflow token has expired');
+    return 'failed';
+  }
+  
   const sock = activeSocketsRef.get(workflow.whatsapp_account_id);
   if (!sock) {
     console.error('WhatsApp worker not connected for this workflow');

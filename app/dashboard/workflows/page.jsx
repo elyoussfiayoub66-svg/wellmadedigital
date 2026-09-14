@@ -19,6 +19,11 @@ export default function WorkflowsManagementPage() {
   const [pollingInterval, setPollingInterval] = useState(null);
   const [activeAccountId, setActiveAccountId] = useState(null);
 
+  // Configuration Modal states
+  const [configuringAccount, setConfiguringAccount] = useState(null);
+  const [accountName, setAccountName] = useState('');
+  const [accountDuration, setAccountDuration] = useState('1'); // Months
+
   useEffect(() => {
     fetchData();
     return () => clearInterval(pollingInterval);
@@ -103,8 +108,13 @@ export default function WorkflowsManagementPage() {
           clearInterval(interval);
           setIsGenerating(false);
           setQrCodeData(null);
-          setActiveAccountId(null);
-          fetchData(); // Refresh the list
+          
+          if (!data.token) {
+            setConfiguringAccount(data);
+          } else {
+            setActiveAccountId(null);
+            fetchData(); // Refresh the list
+          }
         }
       }
     }, 2000); // Check every 2 seconds
@@ -142,6 +152,47 @@ export default function WorkflowsManagementPage() {
       console.error(err);
       alert("Failed to start WhatsApp worker. Is the worker running?");
       setIsGenerating(false);
+    }
+  };
+
+  const saveConfiguration = async () => {
+    if (!accountName.trim()) {
+      alert("Please provide an account name.");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      
+      // Calculate expiration date
+      let expiresAt = null;
+      if (accountDuration !== 'lifetime') {
+        const date = new Date();
+        date.setMonth(date.getMonth() + parseInt(accountDuration));
+        expiresAt = date.toISOString();
+      }
+      
+      // Generate a simple secure-looking token
+      const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      
+      await supabase
+        .from('whatsapp_accounts')
+        .update({ 
+          name: accountName.trim(), 
+          token: token, 
+          expires_at: expiresAt 
+        })
+        .eq('id', configuringAccount.id);
+        
+      setConfiguringAccount(null);
+      setActiveAccountId(null);
+      fetchData(); // Refresh the list
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save configuration.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -264,13 +315,31 @@ export default function WorkflowsManagementPage() {
                       <div className="w-10 h-10 bg-[#25D366]/10 rounded-full flex items-center justify-center">
                         <Smartphone className="w-5 h-5 text-[#25D366]" />
                       </div>
-                      <div className="text-left">
-                        <div className="text-white font-medium">{acc.phone_number}</div>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#25D366]"></span>
-                          <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Session Active</span>
+                        <div className="text-left">
+                          <div className="text-white font-medium">{acc.name || acc.phone_number}</div>
+                          <div className="flex flex-col gap-1 mt-1">
+                            {acc.name && (
+                              <span className="text-[11px] text-gray-500">{acc.phone_number}</span>
+                            )}
+                            <div className="flex items-center gap-1.5">
+                              {(!acc.expires_at || new Date(acc.expires_at) > new Date()) ? (
+                                <>
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#25D366]"></span>
+                                  <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
+                                    Token Active {acc.expires_at ? `(Expires ${new Date(acc.expires_at).toLocaleDateString()})` : '(Lifetime)'}
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                  <span className="text-[10px] text-red-400 font-medium uppercase tracking-wider">
+                                    Token Expired
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#25D366]/10 text-[#25D366]">
@@ -284,8 +353,54 @@ export default function WorkflowsManagementPage() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center">
-                  {qrCodeData ? (
+              <div className="flex flex-col items-center w-full">
+                  {configuringAccount ? (
+                    <div className="flex flex-col animate-in zoom-in-95 duration-300 w-full max-w-md">
+                      <div className="w-16 h-16 bg-[#25D366]/10 rounded-full flex items-center justify-center mb-4 mx-auto">
+                        <CheckCircle2 className="w-8 h-8 text-[#25D366]" />
+                      </div>
+                      <h2 className="text-xl font-bold text-white mb-2">Connection Successful!</h2>
+                      <p className="text-gray-400 text-sm mb-6">
+                        Configure your new WhatsApp account instance to activate the workflow token.
+                      </p>
+                      
+                      <div className="space-y-4 text-left">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">Account Name</label>
+                          <input
+                            type="text"
+                            className="w-full bg-[#2C2C2E] border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[#25D366]/50"
+                            placeholder="e.g. Main Sales Line"
+                            value={accountName}
+                            onChange={e => setAccountName(e.target.value)}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">Token Duration</label>
+                          <select
+                            className="w-full bg-[#2C2C2E] border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#25D366]/50"
+                            value={accountDuration}
+                            onChange={e => setAccountDuration(e.target.value)}
+                          >
+                            <option value="1">1 Month</option>
+                            <option value="3">3 Months</option>
+                            <option value="6">6 Months</option>
+                            <option value="lifetime">Lifetime</option>
+                          </select>
+                          <p className="text-xs text-gray-500 mt-1">This account will disconnect when the token expires.</p>
+                        </div>
+                        
+                        <button
+                          onClick={saveConfiguration}
+                          disabled={loading}
+                          className="w-full py-3 mt-4 bg-[#25D366] text-black font-semibold rounded-lg hover:bg-[#20b858] transition-colors disabled:opacity-50"
+                        >
+                          {loading ? 'Saving...' : 'Save Configuration'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : qrCodeData ? (
                     <div className="flex flex-col items-center animate-in zoom-in-95 duration-300">
                       <h2 className="text-xl font-bold text-white mb-2">Scan to Link Worker</h2>
                       <p className="text-gray-400 text-sm max-w-sm mb-8">
