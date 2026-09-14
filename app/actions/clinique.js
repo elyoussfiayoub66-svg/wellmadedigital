@@ -7,7 +7,7 @@ function createClient() {
   const cookieStore = cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll() { return cookieStore.getAll(); },
@@ -35,7 +35,7 @@ export async function submitCliniqueBooking({ name, phone, businessName, meeting
 
   if (leadError || !lead) {
     console.error('Lead insertion error:', leadError);
-    return { success: false, error: 'Failed to create lead' };
+    return { success: false, error: leadError?.message || 'Failed to create lead' };
   }
 
   // 2. Insert Appointment
