@@ -48,11 +48,11 @@ async function triggerWorkflows(eventType, payload) {
       console.log(`Starting workflow ${wf.name} for event ${eventType}`);
       
       // Update stats in UI
-      supabase.from('workflows').select('executions').eq('id', wf.id).single().then(({data}) => {
+      supabase.from('workflows').select('total_executions').eq('id', wf.id).single().then(({data}) => {
         if(data) {
           supabase.from('workflows').update({ 
-            last_run: new Date().toISOString(),
-            executions: (data.executions || 0) + 1
+            last_run_at: new Date().toISOString(),
+            total_executions: (data.total_executions || 0) + 1
           }).eq('id', wf.id).then().catch(console.error);
         }
       });
