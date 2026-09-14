@@ -150,7 +150,7 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
         <Field label="Event Type">
           <select 
             className="field-input" 
-            value={node.data.eventType || 'Incoming WhatsApp Message'}
+            value={(node.data || {}).eventType || 'Incoming WhatsApp Message'}
             onChange={(e) => onUpdate(node.id, { eventType: e.target.value })}
           >
             <option>Incoming WhatsApp Message</option>
@@ -171,7 +171,7 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
             rows={4} 
             className="field-input resize-none" 
             placeholder="Hi {{lead.full_name}}..." 
-            value={node.data.template || ''} 
+            value={(node.data || {}).template || ''} 
             onChange={(e) => onUpdate(node.id, { template: e.target.value })}
           />
         </Field>
@@ -179,7 +179,7 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
           {['lead.full_name','lead.phone','lead.email','lead.agency_name','appointment.date'].map(v => (
             <button 
               key={v} 
-              onClick={() => onUpdate(node.id, { template: (node.data.template || '') + ` {{${v}}}` })}
+              onClick={() => onUpdate(node.id, { template: ((node.data || {}).template || '') + ` {{${v}}}` })}
               className="px-2 py-1 bg-[#C2496B]/10 text-[#C2496B] text-[10px] rounded-md font-mono hover:bg-[#C2496B]/20 transition-colors"
             >
               {`{{${v}}}`}
@@ -193,7 +193,7 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
         <Field label="Type">
           <select 
             className="field-input"
-            value={node.data.interactiveType || 'Reply Buttons (Max 3)'}
+            value={(node.data || {}).interactiveType || 'Reply Buttons (Max 3)'}
             onChange={(e) => onUpdate(node.id, { interactiveType: e.target.value })}
           >
             <option>Reply Buttons (Max 3)</option>
@@ -204,7 +204,7 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
           <input 
             type="text" 
             className="field-input" 
-            value={node.data.btn1 || ''} 
+            value={(node.data || {}).btn1 || ''} 
             onChange={(e) => onUpdate(node.id, { btn1: e.target.value })}
             placeholder="Yes, I'm interested"
           />
@@ -213,7 +213,7 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
           <input 
             type="text" 
             className="field-input" 
-            value={node.data.btn2 || ''} 
+            value={(node.data || {}).btn2 || ''} 
             onChange={(e) => onUpdate(node.id, { btn2: e.target.value })}
             placeholder="No, thanks"
           />
@@ -225,7 +225,7 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
         <Field label="Action">
           <select 
             className="field-input"
-            value={node.data.crmAction || 'Update Lead Status'}
+            value={(node.data || {}).crmAction || 'Update Lead Status'}
             onChange={(e) => onUpdate(node.id, { crmAction: e.target.value })}
           >
             <option>Update Lead Status</option>
@@ -238,7 +238,7 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
         <Field label="Value">
           <select 
             className="field-input"
-            value={node.data.crmValue || 'confirmed'}
+            value={(node.data || {}).crmValue || 'confirmed'}
             onChange={(e) => onUpdate(node.id, { crmValue: e.target.value })}
           >
             <option>confirmed</option>
@@ -256,7 +256,7 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
           <input 
             type="text" 
             className="field-input font-mono" 
-            value={node.data.condVar || ''} 
+            value={(node.data || {}).condVar || ''} 
             onChange={(e) => onUpdate(node.id, { condVar: e.target.value })}
             placeholder="{{lead.qualification_score}}"
           />
@@ -264,7 +264,7 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
         <Field label="Operator">
           <select 
             className="field-input"
-            value={node.data.condOp || 'Greater than'}
+            value={(node.data || {}).condOp || 'Greater than'}
             onChange={(e) => onUpdate(node.id, { condOp: e.target.value })}
           >
             <option>Greater than</option>
@@ -278,7 +278,7 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
           <input 
             type="text" 
             className="field-input" 
-            value={node.data.condValue || ''} 
+            value={(node.data || {}).condValue || ''} 
             onChange={(e) => onUpdate(node.id, { condValue: e.target.value })}
             placeholder="50"
           />
@@ -292,7 +292,7 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
             <input 
               type="number" 
               className="field-input" 
-              value={node.data.delayDuration || ''} 
+              value={(node.data || {}).delayDuration || ''} 
               onChange={(e) => onUpdate(node.id, { delayDuration: e.target.value })}
               placeholder="24"
             />
@@ -300,7 +300,7 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
           <Field label="Unit">
             <select 
               className="field-input"
-              value={node.data.delayUnit || 'Minutes'}
+              value={(node.data || {}).delayUnit || 'Minutes'}
               onChange={(e) => onUpdate(node.id, { delayUnit: e.target.value })}
             >
               <option>Minutes</option>
@@ -345,7 +345,7 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
       <div className="flex-1 overflow-y-auto px-8 pb-10 pt-6 custom-scrollbar space-y-6">
         <div className="bg-[#0F0F12]/50 border border-[#27272A]/50 rounded-2xl p-5">
           <Field label="Node Name">
-            <input type="text" className="field-input" defaultValue={node.data.label || meta.label} />
+            <input type="text" className="field-input" defaultValue={(node.data || {}).label || meta.label} />
           </Field>
         </div>
         <div className="bg-[#0F0F12]/50 border border-[#27272A]/50 rounded-2xl p-5">
@@ -505,6 +505,24 @@ function Builder() {
       data: { label: meta?.label || type } 
     }));
   }, [nodes.length, setNodes]);
+
+  const updateNodeConfig = useCallback((nodeId, newData) => {
+    setNodes((nds) =>
+      nds.map((n) => {
+        if (n.id === nodeId) {
+          return { ...n, data: { ...(n.data || {}), ...newData } };
+        }
+        return n;
+      })
+    );
+    
+    setSelectedNode(prev => {
+      if (prev?.id === nodeId) {
+        return { ...prev, data: { ...(prev.data || {}), ...newData } };
+      }
+      return prev;
+    });
+  }, [setNodes]);
 
   return (
     <div className="flex h-screen flex-col" style={{ background: '#09090B' }}>
@@ -687,3 +705,11 @@ export default function WorkflowBuilderPage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
