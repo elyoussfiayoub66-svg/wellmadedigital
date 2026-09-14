@@ -3,17 +3,16 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { ArrowRight, CheckCircle2, Shield, Zap } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { submitCliniqueBooking } from '@/app/actions/clinique';
 import * as meta from '@/lib/tracking/meta';
+
 import { useRouter } from 'next/navigation';
 
 export default function CliniqueLP() {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [status, setStatus] = useState('idle');
-  const [teamMembers, setTeamMembers] = useState([]);
   const [availableSlots, setAvailableSlots] = useState([]);
-  const [memberAvailability, setMemberAvailability] = useState({});
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', businessName: '', meetingDate: '', meetingTime: '' });
 
@@ -25,28 +24,17 @@ export default function CliniqueLP() {
 
   useEffect(() => {
     (async () => {
-      const supabase = createClient();
-      const { data } = await supabase.from('profiles').select('id, full_name, created_at').eq('account_status', 'active');
-      if (data) setTeamMembers(data.map(m => ({ ...m, closing_rate: m.closing_rate ?? Math.floor(Math.random() * 100) })));
-    })();
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      if (!formData.meetingDate || !teamMembers.length) { setAvailableSlots([]); setMemberAvailability({}); return; }
+      if (!formData.meetingDate) { setAvailableSlots([]); return; }
       setLoadingSlots(true);
       try {
-        const allSlots = new Set(); const map = {};
-        await Promise.all(teamMembers.map(async m => {
-          try {
-            const r = await fetch(`/api/availability?date=${formData.meetingDate}&assignee_id=${m.id}`);
-            if (r.ok) { const d = await r.json(); d.availableSlots?.forEach(s => { allSlots.add(s); (map[s] ??= []).push(m.id); }); }
-          } catch {}
-        }));
-        setAvailableSlots([...allSlots].sort()); setMemberAvailability(map);
-      } finally { setLoadingSlots(false); }
+        const r = await fetch(`/api/availability?date=${formData.meetingDate}`);
+        if (r.ok) {
+          const d = await r.json();
+          setAvailableSlots(d.availableSlots?.sort() || []);
+        }
+      } catch {} finally { setLoadingSlots(false); }
     })();
-  }, [formData.meetingDate, teamMembers]);
+  }, [formData.meetingDate]);
 
   const set = (k, v) => setFormData(p => ({ ...p, [k]: v }));
 
@@ -55,20 +43,21 @@ export default function CliniqueLP() {
     if (!formData.meetingTime) { alert("Veuillez sélectionner un créneau."); return; }
     setStatus('submitting');
     try {
-      const supabase = createClient();
-      const { data: cfg } = await supabase.from('crm_settings').select('meeting_distribution_mode').limit(1).maybeSingle();
-      let assignee = null;
-      if (!cfg || cfg.meeting_distribution_mode === 'auto') {
-        const ids = memberAvailability[formData.meetingTime] || [];
-        if (!ids.length) throw new Error("Aucun créneau disponible.");
-        assignee = teamMembers.filter(m => ids.includes(m.id)).sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0))[0].id;
-      }
-      const { data: lead, error: e1 } = await supabase.from('leads').insert([{ full_name: formData.name, phone: formData.phone, agency_name: formData.businessName, status: 'NEW' }]).select().single();
-      if (e1) throw e1;
-      const { error: e2 } = await supabase.from('appointments').insert([{ lead_id: lead.id, assignee_id: assignee, scheduled_at: new Date(`${formData.meetingDate}T${formData.meetingTime}:00.000Z`).toISOString(), status: 'SCHEDULED' }]);
-      if (e2) throw e2;
-      meta.event('Lead', { content_name: 'Clinique LP' }); meta.event('Schedule'); meta.event('Demo_Booked');
-      try { await fetch('/api/meta/capi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ eventName: 'Lead', userData: { phone: formData.phone }, eventData: { content_name: 'Clinique LP' } }) }); } catch {}
+      const result = await submitCliniqueBooking({
+        name: formData.name,
+        phone: formData.phone,
+        businessName: formData.businessName,
+        meetingDate: formData.meetingDate,
+        meetingTime: formData.meetingTime,
+      });
+
+      if (!result.success) throw new Error(result.error || 'Erreur inconnue');
+
+      // Client-side pixel events
+      meta.event('Lead', { content_name: 'Clinique LP' });
+      meta.event('Schedule');
+      meta.event('Demo_Booked');
+
       router.push('/thank-you');
     } catch (err) { alert("Erreur: " + (err.message || JSON.stringify(err))); setStatus('idle'); }
   };
