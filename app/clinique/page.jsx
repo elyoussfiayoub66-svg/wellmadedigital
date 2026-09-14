@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { ArrowRight, CheckCircle2, Shield, Zap } from 'lucide-react';
 import { submitCliniqueBooking } from '@/app/actions/clinique';
 import * as meta from '@/lib/tracking/meta';
-import FeaturesShowcase from '@/components/home/FeaturesShowcase';
 import FAQ from '@/components/home/FAQ';
 
 import { useRouter } from 'next/navigation';
@@ -221,7 +220,6 @@ export default function CliniqueLP() {
       </section>
 
       {/* 5. SOLUTIONS */}
-      <FeaturesShowcase />
       <FAQ />
 
 
