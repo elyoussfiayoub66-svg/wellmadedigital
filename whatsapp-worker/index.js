@@ -27,7 +27,8 @@ const activeSockets = new Map();
 async function startWhatsAppClient(accountId) {
   console.log(`Starting WhatsApp client for account: ${accountId}`);
   
-  const authFolder = path.join(__dirname, 'auth_info', accountId);
+  // Point to the persistent disk mounted at /opt/render/project/src/auth_info
+  const authFolder = path.join(__dirname, '..', 'auth_info', accountId);
   const { state, saveCreds } = await useMultiFileAuthState(authFolder);
 
   const sock = makeWASocket({
