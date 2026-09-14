@@ -8,6 +8,7 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
+const { initWorkflowEngine } = require('./engine');
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -141,6 +142,16 @@ app.post('/api/whatsapp/stop', async (req, res) => {
 });
 
 // Health check endpoint for Render
+
+const { triggerWorkflows } = require('./engine');
+app.post('/api/webhook/lead', async (req, res) => {
+  const lead = req.body.lead;
+  if (lead) {
+    console.log('Webhook: Received new lead ->', lead.id);
+    triggerWorkflows('New Lead Created', { lead });
+  }
+  res.json({ success: true });
+});
 app.get('/', (req, res) => {
   res.status(200).send('OK');
 });
@@ -164,4 +175,7 @@ const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`WhatsApp Worker running on port ${PORT}`);
   bootActiveSessions();
+  initWorkflowEngine(activeSockets);
 });
+
+

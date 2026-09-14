@@ -62,5 +62,17 @@ export async function submitCliniqueBooking({ name, phone, businessName, meeting
     link: '/dashboard/calendar'
   });
 
+  // 4. Trigger Workflow Engine (WhatsApp Worker)
+  try {
+    const workerUrl = process.env.NEXT_PUBLIC_WHATSAPP_WORKER_URL || 'http://localhost:3001';
+    await fetch(`${workerUrl}/api/webhook/lead`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lead })
+    });
+  } catch (err) {
+    console.error('Failed to ping workflow engine:', err);
+  }
+
   return { success: true, leadId: lead.id };
 }
