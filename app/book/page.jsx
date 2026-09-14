@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import * as meta from '@/lib/tracking/meta';
 
 export default function BookingPage() {
   const router = useRouter();
@@ -170,10 +171,36 @@ export default function BookingPage() {
 
       if (apptError) throw apptError;
 
+      // Track the conversion via Pixel (Client-side)
+      meta.event('Lead', { content_name: 'Consultation Booking' });
+      meta.event('Schedule', { content_name: 'Consultation Scheduled' });
+      meta.event('Demo_Booked'); // Also trigger custom event just in case
+
+      // Track the conversion via CAPI (Server-side)
+      try {
+        await fetch('/api/meta/capi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventName: 'Lead',
+            userData: {
+              email: formData.email,
+              phone: formData.phone,
+              // We could also pass fbp and fbc from cookies if available
+            },
+            eventData: {
+              content_name: 'Consultation Booking'
+            }
+          })
+        });
+      } catch (capiError) {
+        console.error('CAPI Error:', capiError);
+      }
+
       router.push('/thank-you');
     } catch (err) {
       console.error(err);
-      alert("Failed to submit booking. Please try again.");
+      alert("Failed to submit booking. Error: " + (err.message || err.details || JSON.stringify(err)));
       setStatus('idle');
     }
   };
@@ -242,7 +269,7 @@ export default function BookingPage() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs uppercase tracking-widest font-bold text-[#F7F5F0]/50">Website</label>
-                      <input type="url" value={formData.website} onChange={e => updateForm('website', e.target.value)} className="w-full bg-[#0E0E0F] border border-[#F7F5F0]/10 rounded-lg px-4 py-4 text-[#F7F5F0] focus:outline-none focus:border-[#C2496B] focus:ring-1 focus:ring-[#C2496B]/20 transition-all placeholder-[#F7F5F0]/20" placeholder="https://" />
+                      <input type="text" value={formData.website} onChange={e => updateForm('website', e.target.value)} className="w-full bg-[#0E0E0F] border border-[#F7F5F0]/10 rounded-lg px-4 py-4 text-[#F7F5F0] focus:outline-none focus:border-[#C2496B] focus:ring-1 focus:ring-[#C2496B]/20 transition-all placeholder-[#F7F5F0]/20" placeholder="https://" />
                     </div>
                   </div>
                 </div>

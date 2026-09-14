@@ -135,7 +135,49 @@ export async function submitLead(formData, visitorId, sessionId, attribution) {
     completed_at: new Date().toISOString()
   }).eq('session_id', sessionId);
   
-  // 5. Optionally, update the Visitor record if not already linked (we omit for simplicity, as session links it)
+  // 5. Fire Meta Conversions API
+  try {
+    const PIXEL_ID = '720698980383477'; // Dataset ID from instructions
+    const ACCESS_TOKEN = process.env.META_CAPI_TOKEN;
+    
+    if (ACCESS_TOKEN) {
+      const crypto = require('crypto');
+      const hash = (val) => val ? crypto.createHash('sha256').update(val.trim().toLowerCase()).digest('hex') : undefined;
+
+      const hashedEm = formData.email ? hash(formData.email) : null;
+      const hashedPh = formData.phone ? hash(formData.phone) : null;
+
+      const userDataPayload = {};
+      if (hashedEm) userDataPayload.em = [hashedEm];
+      if (hashedPh) userDataPayload.ph = [hashedPh];
+      if (lead && lead.id) {
+        // Pass our internal lead.id as string. If they have a meta-generated one, they can pass that
+        userDataPayload.lead_id = lead.id.toString();
+      }
+
+      const payload = {
+        data: [{
+          action_source: "system_generated",
+          custom_data: {
+            event_source: "crm",
+            lead_event_source: "Wellmade CRM",
+            lead_score: score
+          },
+          event_name: 'Lead',
+          event_time: Math.floor(Date.now() / 1000),
+          user_data: userDataPayload
+        }]
+      };
+
+      fetch(`https://graph.facebook.com/v26.0/${PIXEL_ID}/events?access_token=${ACCESS_TOKEN}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(err => console.error('Background CAPI error:', err));
+    }
+  } catch (e) {
+    console.error('Failed to prepare CAPI payload:', e);
+  }
 
   return { success: true, lead };
 }

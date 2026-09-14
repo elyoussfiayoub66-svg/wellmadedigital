@@ -2,6 +2,7 @@ import './globals.css'
 import { Inter } from 'next/font/google'
 import { Suspense } from 'react'
 import TrackingProvider from '@/components/tracking/TrackingProvider'
+import MetaPixel from '@/components/tracking/MetaPixel'
 import { Toaster } from 'react-hot-toast'
 
 const inter = Inter({ subsets: ['latin'], weight: ['300', '400', '500', '600'] })
@@ -34,6 +35,7 @@ export default function RootLayout({ children }) {
       <body className={inter.className}>
         <Suspense fallback={null}>
           <TrackingProvider>
+            <MetaPixel />
             <Toaster
               position="top-right"
               toastOptions={{
