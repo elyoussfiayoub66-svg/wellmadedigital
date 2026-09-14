@@ -1,14 +1,14 @@
 require('dotenv').config({ path: '../.env.local' });
 const express = require('express');
 const cors = require('cors');
-const { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
+const { makeWASocket, useMultiFileAuthState, DisconnectReason, getAggregateVotesInPollMessage } = require('@whiskeysockets/baileys');
 const pino = require('pino');
 const QRCode = require('qrcode');
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
-const { initWorkflowEngine } = require('./engine');
+const { initWorkflowEngine, resumeWorkflowFromInteractive } = require('./engine');
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -111,8 +111,84 @@ async function startWhatsAppClient(accountId) {
 
   // Listen for incoming messages (to trigger workflows later)
   sock.ev.on('messages.upsert', async (m) => {
-    console.log(`New message received on ${accountId}:`, JSON.stringify(m, null, 2));
-    // We will hook this up to workflows later!
+    try {
+      const msg = m.messages[0];
+      if (!msg || !msg.message || msg.key.fromMe) return;
+
+      const senderJid = msg.key.remoteJid;
+      const phone = senderJid.split('@')[0];
+      
+      let incomingText = '';
+      
+      // Check if this phone number is a lead in our DB
+      const { data: lead } = await supabase.from('leads').select('id').like('phone', `%${phone}%`).single();
+      if (!lead) return;
+      
+      // Extract text from standard message
+      if (msg.message.conversation) incomingText = msg.message.conversation;
+      else if (msg.message.extendedTextMessage?.text) incomingText = msg.message.extendedTextMessage.text;
+      
+      if (msg.message.pollUpdateMessage) {
+        console.log(`Received poll vote from ${phone}, parsing...`);
+        const pollCreationMessageKey = msg.message.pollUpdateMessage.pollCreationMessageKey;
+        
+        // Find the exact pending interaction by message_id
+        const { data: pollMemory } = await supabase
+          .from('pending_interactions')
+          .select('*')
+          .eq('message_id', pollCreationMessageKey.id)
+          .single();
+          
+        if (pollMemory && pollMemory.message_json) {
+          const originalMessage = {
+            key: pollCreationMessageKey,
+            message: pollMemory.message_json
+          };
+          
+          try {
+            // Decrypt the vote!
+            const votes = getAggregateVotesInPollMessage({
+              message: originalMessage,
+              pollUpdates: [msg]
+            });
+            
+            // The user could have selected multiple, but we set selectableCount: 1
+            const selectedOption = votes.find(v => v.voters.length > 0);
+            if (selectedOption) {
+              incomingText = selectedOption.name;
+              console.log(`Poll vote decrypted! User selected: ${incomingText}`);
+            }
+          } catch (decodeErr) {
+            console.error("Failed to decrypt poll vote:", decodeErr);
+          }
+        }
+      }
+      
+      if (!incomingText) return;
+      
+      console.log(`Incoming text/vote from ${phone}: ${incomingText}`);
+
+      // Check if this lead has a pending interaction (fallback to text matching if poll vote failed or they typed it)
+      const { data: pendingInt } = await supabase
+        .from('pending_interactions')
+        .select('*')
+        .eq('lead_id', lead.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+        
+      if (pendingInt) {
+        console.log(`Found pending interaction for lead ${lead.id} at node ${pendingInt.node_id}`);
+        // Delete the memory record so they don't get stuck
+        await supabase.from('pending_interactions').delete().eq('id', pendingInt.id);
+        
+        // Resume the engine
+        await resumeWorkflowFromInteractive(pendingInt, incomingText.trim());
+      }
+      
+    } catch (err) {
+      console.error('Error processing incoming message:', err);
+    }
   });
 }
 

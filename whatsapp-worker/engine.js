@@ -82,10 +82,13 @@ async function processNode(workflow, nodeId, payload) {
   let stopExecution = false;
 
   try {
-    switch (node.type) {
+      switch (node.type) {
       case 'whatsapp':
-      case 'interactive': // Interactive node works exactly like whatsapp but uses message template
         nextHandle = await executeWhatsAppNode(workflow, node, payload);
+        break;
+      case 'interactive':
+        stopExecution = true;
+        await executeInteractiveNode(workflow, node, payload);
         break;
       case 'delay':
         // Delay stops synchronous execution
@@ -173,6 +176,101 @@ async function executeWhatsAppNode(workflow, node, payload) {
   return 'sent';
 }
 
+async function executeInteractiveNode(workflow, node, payload) {
+  if (!workflow.whatsapp_account_id) {
+    console.error('No WhatsApp account linked to workflow');
+    return;
+  }
+  
+  // Verify Token Security and Expiration
+  const { data: accountData } = await supabase
+    .from('whatsapp_accounts')
+    .select('token, expires_at')
+    .eq('id', workflow.whatsapp_account_id)
+    .single();
+    
+  if (!accountData || !accountData.token) {
+    console.error('Account rejected: Missing workflow token configuration');
+    return;
+  }
+  
+  if (accountData.expires_at && new Date(accountData.expires_at) < new Date()) {
+    console.error('Account rejected: Workflow token has expired');
+    return;
+  }
+  
+  const sock = activeSocketsRef.get(workflow.whatsapp_account_id);
+  if (!sock) {
+    console.error('WhatsApp worker not connected for this workflow');
+    return;
+  }
+  
+  const leadPhone = payload.lead?.phone;
+  if (!leadPhone) return;
+
+  const cleanPhone = leadPhone.replace(/[^0-9]/g, '');
+  const jid = cleanPhone + '@s.whatsapp.net';
+  
+  const messageText = resolveTemplate(node.data?.template, payload);
+  const btn1Text = node.data?.btn1 || 'Yes';
+  const btn2Text = node.data?.btn2 || 'No';
+  
+  console.log(`Sending Interactive Poll to ${jid}: ${messageText}`);
+  
+  const response = await sock.sendMessage(jid, {
+    poll: {
+      name: messageText,
+      values: [btn1Text, btn2Text],
+      selectableCount: 1
+    }
+  });
+  
+  const messageId = response?.key?.id;
+  if (messageId && payload.lead?.id) {
+    // Save state to pending_interactions memory
+    const { error } = await supabase.from('pending_interactions').insert([{
+      lead_id: payload.lead.id,
+      workflow_id: workflow.id,
+      node_id: node.id,
+      message_id: messageId,
+      message_json: response.message
+    }]);
+    
+    if (error) console.error('Failed to save pending interaction:', error);
+    else console.log(`Workflow paused at node ${node.id}, waiting for lead to vote on poll.`);
+  }
+}
+
+async function resumeWorkflowFromInteractive(pendingInteraction, selectedOptionText) {
+  console.log(`Resuming workflow ${pendingInteraction.workflow_id} from interactive node ${pendingInteraction.node_id}. Selected: ${selectedOptionText}`);
+  
+  // Fetch workflow
+  const { data: workflow } = await supabase.from('workflows').select('*').eq('id', pendingInteraction.workflow_id).single();
+  if (!workflow) return;
+  
+  // Fetch lead
+  const { data: lead } = await supabase.from('leads').select('*').eq('id', pendingInteraction.lead_id).single();
+  if (!lead) return;
+  
+  const node = workflow.nodes?.find(n => n.id === pendingInteraction.node_id);
+  if (!node) return;
+  
+  const btn1Text = node.data?.btn1 || 'Yes';
+  // const btn2Text = node.data?.btn2 || 'No';
+  
+  // Determine which branch to take based on the exact text of the button they voted for
+  const nextHandle = selectedOptionText === btn1Text ? 'opt1' : 'opt2';
+  
+  const payload = { lead };
+  
+  // Find next nodes
+  const nextEdges = workflow.edges?.filter(e => e.source === node.id && e.sourceHandle === nextHandle) || [];
+  
+  for (const edge of nextEdges) {
+    processNode(workflow, edge.target, payload);
+  }
+}
+
 async function executeDelayNode(workflow, node, payload) {
   const duration = parseInt(node.data?.delayDuration || '0', 10);
   const unit = node.data?.delayUnit || 'Minutes';
@@ -242,5 +340,5 @@ async function executeCrmNode(node, payload) {
   return 'success';
 }
 
-module.exports = { initWorkflowEngine, triggerWorkflows };
+module.exports = { initWorkflowEngine, triggerWorkflows, resumeWorkflowFromInteractive };
 
