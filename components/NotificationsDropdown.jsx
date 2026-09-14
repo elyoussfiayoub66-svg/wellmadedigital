@@ -19,8 +19,8 @@ export default function NotificationsDropdown({ userId }) {
     const { data: settings } = await supabase
       .from('crm_settings')
       .select('alert_preferences')
-      .eq('user_id', userId)
-      .single();
+      .limit(1)
+      .maybeSingle();
       
     const prefs = settings?.alert_preferences || {};
     setAlertPreferences(prefs);
