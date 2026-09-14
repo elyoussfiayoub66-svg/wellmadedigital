@@ -45,7 +45,7 @@ async function triggerWorkflows(eventType, payload) {
     
     const nodeEventType = triggerNode.data?.eventType || 'Incoming WhatsApp Message';
     if (nodeEventType === eventType) {
-      console.log(Starting workflow  for event );
+      console.log(`Starting workflow ${wf.name} for event ${eventType}`);
       
       // Start processing from the nodes connected to the trigger
       const nextEdges = wf.edges.filter(e => e.source === triggerNode.id);
@@ -60,7 +60,7 @@ async function processNode(workflow, nodeId, payload) {
   const node = workflow.nodes.find(n => n.id === nodeId);
   if (!node) return;
 
-  console.log(Executing Node [] - );
+  console.log(`Executing Node [${node.type}] - ${node.data?.label || nodeId}`);
   
   // Re-fetch lead to ensure we have latest data (in case previous nodes updated it)
   if (payload.lead?.id) {
@@ -74,6 +74,7 @@ async function processNode(workflow, nodeId, payload) {
   try {
     switch (node.type) {
       case 'whatsapp':
+      case 'interactive': // Interactive node works exactly like whatsapp but uses message template
         nextHandle = await executeWhatsAppNode(workflow, node, payload);
         break;
       case 'delay':
@@ -89,7 +90,7 @@ async function processNode(workflow, nodeId, payload) {
         break;
     }
   } catch (err) {
-    console.error(Error executing node :, err);
+    console.error(`Error executing node ${nodeId}:`, err);
     nextHandle = 'failed';
   }
 
@@ -139,7 +140,7 @@ async function executeWhatsAppNode(workflow, node, payload) {
   
   const messageText = resolveTemplate(node.data?.template, payload);
   
-  console.log(Sending WhatsApp message to : );
+  console.log(`Sending WhatsApp message to ${jid}: ${messageText}`);
   await sock.sendMessage(jid, { text: messageText });
   
   return 'sent';
@@ -154,11 +155,11 @@ async function executeDelayNode(workflow, node, payload) {
   if (unit === 'Hours') ms = duration * 60 * 60 * 1000;
   if (unit === 'Days') ms = duration * 24 * 60 * 60 * 1000;
   
-  console.log(Delaying workflow for   (ms));
+  console.log(`Delaying workflow for ${duration} ${unit} (${ms}ms)`);
   
   // WARNING: In-memory delay. If server restarts, this is lost.
   setTimeout(() => {
-    console.log(Delay finished. Resuming workflow.);
+    console.log(`Delay finished. Resuming workflow.`);
     // Find next nodes
     const nextEdges = workflow.edges.filter(e => e.source === node.id && (e.sourceHandle === 'done' || !e.sourceHandle));
     for (const edge of nextEdges) {
@@ -195,7 +196,7 @@ async function executeConditionNode(node, payload) {
     case 'Less than': result = Number(a) < Number(b); break;
   }
   
-  console.log(Condition evaluated:    => );
+  console.log(`Condition evaluated: ${actualValue} ${operator} ${expectedValue} => ${result}`);
   return result ? 'true' : 'false';
 }
 
@@ -207,7 +208,7 @@ async function executeCrmNode(node, payload) {
   if (!leadId) return 'failed';
   
   if (action === 'Update Lead Status') {
-    console.log(Updating lead  status to );
+    console.log(`Updating lead ${leadId} status to ${value}`);
     await supabase.from('leads').update({ status: value }).eq('id', leadId);
   }
   
