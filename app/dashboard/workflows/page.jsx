@@ -127,8 +127,9 @@ export default function WorkflowsManagementPage() {
       
       setActiveAccountId(account.id);
       
+      const workerUrl = process.env.NEXT_PUBLIC_WHATSAPP_WORKER_URL || 'http://localhost:3001';
       // 2. Call the background worker to start the Baileys session
-      await fetch('http://localhost:3001/api/whatsapp/start', {
+      await fetch(`${workerUrl}/api/whatsapp/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ accountId: account.id })
@@ -146,16 +147,16 @@ export default function WorkflowsManagementPage() {
 
   const disconnectAccount = async (id) => {
     if (!window.confirm("Disconnect this WhatsApp account? Automation will stop.")) return;
-    
+    const workerUrl = process.env.NEXT_PUBLIC_WHATSAPP_WORKER_URL || 'http://localhost:3001';
     // Tell worker to logout
     try {
-      await fetch('http://localhost:3001/api/whatsapp/stop', {
+      await fetch(`${workerUrl}/api/whatsapp/stop`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ accountId: id })
       });
-    } catch(e) {
-      console.warn("Worker might not be running", e);
+    } catch (e) {
+      console.error("Worker might already be stopped", e);
     }
 
     setAccounts(accounts.filter(a => a.id !== id));
