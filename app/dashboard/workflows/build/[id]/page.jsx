@@ -148,7 +148,11 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
     trigger: (
       <div className="space-y-4">
         <Field label="Event Type">
-          <select className="field-input">
+          <select 
+            className="field-input" 
+            value={node.data.eventType || 'Incoming WhatsApp Message'}
+            onChange={(e) => onUpdate(node.id, { eventType: e.target.value })}
+          >
             <option>Incoming WhatsApp Message</option>
             <option>New Lead Created</option>
             <option>Lead Status Changed</option>
@@ -163,11 +167,21 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
     whatsapp: (
       <div className="space-y-4">
         <Field label="Message Template">
-          <textarea rows={4} className="field-input resize-none" placeholder="Hi {{lead.full_name}}..." defaultValue={node.data.template} />
+          <textarea 
+            rows={4} 
+            className="field-input resize-none" 
+            placeholder="Hi {{lead.full_name}}..." 
+            value={node.data.template || ''} 
+            onChange={(e) => onUpdate(node.id, { template: e.target.value })}
+          />
         </Field>
         <div className="flex flex-wrap gap-1.5">
           {['lead.full_name','lead.phone','lead.email','lead.agency_name','appointment.date'].map(v => (
-            <button key={v} className="px-2 py-1 bg-[#C2496B]/10 text-[#C2496B] text-[10px] rounded-md font-mono hover:bg-[#C2496B]/20 transition-colors">
+            <button 
+              key={v} 
+              onClick={() => onUpdate(node.id, { template: (node.data.template || '') + ` {{${v}}}` })}
+              className="px-2 py-1 bg-[#C2496B]/10 text-[#C2496B] text-[10px] rounded-md font-mono hover:bg-[#C2496B]/20 transition-colors"
+            >
               {`{{${v}}}`}
             </button>
           ))}
@@ -177,23 +191,43 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
     interactive: (
       <div className="space-y-4">
         <Field label="Type">
-          <select className="field-input">
+          <select 
+            className="field-input"
+            value={node.data.interactiveType || 'Reply Buttons (Max 3)'}
+            onChange={(e) => onUpdate(node.id, { interactiveType: e.target.value })}
+          >
             <option>Reply Buttons (Max 3)</option>
             <option>List Menu (Max 10)</option>
           </select>
         </Field>
         <Field label="Button 1">
-          <input type="text" className="field-input" defaultValue="Yes, I'm interested" />
+          <input 
+            type="text" 
+            className="field-input" 
+            value={node.data.btn1 || ''} 
+            onChange={(e) => onUpdate(node.id, { btn1: e.target.value })}
+            placeholder="Yes, I'm interested"
+          />
         </Field>
         <Field label="Button 2">
-          <input type="text" className="field-input" defaultValue="No, thanks" />
+          <input 
+            type="text" 
+            className="field-input" 
+            value={node.data.btn2 || ''} 
+            onChange={(e) => onUpdate(node.id, { btn2: e.target.value })}
+            placeholder="No, thanks"
+          />
         </Field>
       </div>
     ),
     crm: (
       <div className="space-y-4">
         <Field label="Action">
-          <select className="field-input">
+          <select 
+            className="field-input"
+            value={node.data.crmAction || 'Update Lead Status'}
+            onChange={(e) => onUpdate(node.id, { crmAction: e.target.value })}
+          >
             <option>Update Lead Status</option>
             <option>Add Qualification Score</option>
             <option>Assign to Agent</option>
@@ -202,7 +236,11 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
           </select>
         </Field>
         <Field label="Value">
-          <select className="field-input">
+          <select 
+            className="field-input"
+            value={node.data.crmValue || 'confirmed'}
+            onChange={(e) => onUpdate(node.id, { crmValue: e.target.value })}
+          >
             <option>confirmed</option>
             <option>follow up scheduled</option>
             <option>followed up</option>
@@ -215,10 +253,20 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
     condition: (
       <div className="space-y-4">
         <Field label="If Variable">
-          <input type="text" className="field-input font-mono" defaultValue="{{lead.qualification_score}}" />
+          <input 
+            type="text" 
+            className="field-input font-mono" 
+            value={node.data.condVar || ''} 
+            onChange={(e) => onUpdate(node.id, { condVar: e.target.value })}
+            placeholder="{{lead.qualification_score}}"
+          />
         </Field>
         <Field label="Operator">
-          <select className="field-input">
+          <select 
+            className="field-input"
+            value={node.data.condOp || 'Greater than'}
+            onChange={(e) => onUpdate(node.id, { condOp: e.target.value })}
+          >
             <option>Greater than</option>
             <option>Less than</option>
             <option>Equals</option>
@@ -227,7 +275,13 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
           </select>
         </Field>
         <Field label="Value">
-          <input type="text" className="field-input" defaultValue="50" />
+          <input 
+            type="text" 
+            className="field-input" 
+            value={node.data.condValue || ''} 
+            onChange={(e) => onUpdate(node.id, { condValue: e.target.value })}
+            placeholder="50"
+          />
         </Field>
       </div>
     ),
@@ -235,10 +289,20 @@ function PropertiesPanel({ node, onClose, onUpdate }) {
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Duration">
-            <input type="number" className="field-input" defaultValue="24" />
+            <input 
+              type="number" 
+              className="field-input" 
+              value={node.data.delayDuration || ''} 
+              onChange={(e) => onUpdate(node.id, { delayDuration: e.target.value })}
+              placeholder="24"
+            />
           </Field>
           <Field label="Unit">
-            <select className="field-input">
+            <select 
+              className="field-input"
+              value={node.data.delayUnit || 'Minutes'}
+              onChange={(e) => onUpdate(node.id, { delayUnit: e.target.value })}
+            >
               <option>Minutes</option>
               <option>Hours</option>
               <option>Days</option>
@@ -575,8 +639,10 @@ function Builder() {
         {/* ── Properties panel (right) ── */}
         {selectedNode && (
           <PropertiesPanel
+            key={selectedNode.id}
             node={selectedNode}
             onClose={() => setSelectedNode(null)}
+            onUpdate={updateNodeConfig}
           />
         )}
       </div>
