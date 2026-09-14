@@ -130,6 +130,8 @@ export default function DashboardLayout({ children }) {
 
   const navItems = [
     { name: 'Dashboard',    href: '/dashboard',              icon: LayoutDashboard },
+    { name: 'Leads',        href: '/dashboard/leads',        icon: Users },
+    { name: 'Workflows',    href: '/dashboard/workflows',    icon: FolderGit2 },
     { name: 'Prospects',    href: '/dashboard/prospects',    icon: Search },
     { name: 'Projects',     href: '/dashboard/projects',     icon: FolderGit2 },
     { name: 'Chat',         href: '/dashboard/chat',         icon: MessageSquare },

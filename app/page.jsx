@@ -10,6 +10,7 @@ import FAQ from '@/components/home/FAQ';
 import FinalCTA from '@/components/home/FinalCTA';
 import Footer from '@/components/home/Footer';
 import LoginShortcut from '@/components/home/LoginShortcut';
+import FeaturesShowcase from '@/components/home/FeaturesShowcase';
 import { getProjects } from '@/lib/data/fetchWork';
 
 export const dynamic = 'force-dynamic';
@@ -29,6 +30,7 @@ export default async function Home() {
       <Hero />
       <TechStackSlider />
       <ServicesContent />
+      <FeaturesShowcase />
       <TargetIndustries />
       <Work projects={projects} />
       <WhyWellmade />

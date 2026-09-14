@@ -35,8 +35,7 @@ export async function submitCliniqueBooking({ name, phone, businessName, meeting
     // Get all active team members
     const { data: members } = await supabase
       .from('profiles')
-      .select('id, full_name, created_at')
-      .eq('account_status', 'active');
+      .select('id, full_name, created_at');
 
     if (members && members.length > 0) {
       // Check availability for this specific slot

@@ -1,27 +1,28 @@
 'use client';
+
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
 
 const faqs = [
   {
-    question: "Do you use templates or custom code?",
-    answer: "Every system we build is entirely custom-engineered using modern frameworks like React, Next.js, and Supabase. We do not use bloated templates or generic page builders, ensuring maximum performance, security, and scalability for your specific business."
+    question: "Nous utilisons déjà un logiciel médical standard. Pourquoi changer ?",
+    answer: "Les outils standards sont génériques. Nous construisons des systèmes sur-mesure conçus spécifiquement pour le flux de travail de votre clinique. Cela signifie moins de clics, des intégrations parfaites et une expérience de marque unique."
   },
   {
-    question: "How long does a typical project take?",
-    answer: "A standard CRM implementation or custom web platform typically takes between 4 to 8 weeks, depending on the complexity of the data migration and the specific automated workflows required. We outline a strict timeline during the initial audit."
+    question: "Combien de temps faut-il pour déployer notre système ?",
+    answer: "Grâce à notre architecture puissante, nous pouvons généralement livrer votre système entièrement personnalisé en quelques semaines seulement, et non en plusieurs mois."
   },
   {
-    question: "Do you provide ongoing support after launch?",
-    answer: "Yes. While our goal is to build systems you own entirely without mandatory retainers, we offer optional Service Level Agreements (SLAs) for ongoing feature development, priority support, and infrastructure maintenance."
+    question: "Sera-t-il difficile pour mon secrétariat de s'y habituer ?",
+    answer: "Pas du tout. Nous privilégions une interface claire et intuitive. Nous supprimons le superflu présent dans les logiciels traditionnels pour que votre équipe puisse le maîtriser dès le premier jour."
   },
   {
-    question: "Can you integrate with our existing legacy software?",
-    answer: "Absolutely. As long as your legacy software has a functional API or allows for secure webhooks, we can build custom middleware to sync data between your old systems and the modern dashboards we build for you."
+    question: "Peut-on l'intégrer avec nos outils WhatsApp ou SMS actuels ?",
+    answer: "Oui ! Notre plateforme inclut un constructeur de workflows qui peut déclencher automatiquement des messages WhatsApp, des e-mails et des SMS lors de la prise de rendez-vous."
   },
   {
-    question: "What is Answer Engine Optimization (AEO)?",
-    answer: "AEO is the practice of structuring data and content so that AI engines (like ChatGPT, Claude, and Perplexity) can easily read, understand, and cite your business when users ask industry-related questions. Our architectures are built AEO-first."
+    question: "Et si nous avons besoin d'une nouvelle fonctionnalité plus tard ?",
+    answer: "C'est l'avantage du sur-mesure. À mesure que votre clinique se développe, nous pouvons facilement ajouter de nouveaux modules ou des rapports personnalisés que les logiciels prêts à l'emploi ne permettraient jamais."
   }
 ];
 
@@ -29,63 +30,46 @@ export default function FAQ() {
   const [openIndex, setOpenIndex] = useState(0);
 
   return (
-    <section className="bg-[#0E0E0F] text-[#F7F5F0] py-32 px-6 md:px-12 border-b border-[#F7F5F0]/10">
-      <div className="max-w-4xl mx-auto">
+    <section className="py-24 bg-[#0E0E0F] border-t border-white/[.05]">
+      <div className="max-w-[800px] mx-auto px-6">
+        
         <div className="text-center mb-16">
-          <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-[10px] uppercase tracking-widest font-bold text-[#C8A464] mb-8">
-            COMMON QUESTIONS
-          </motion.div>
-          <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="text-4xl md:text-5xl font-medium tracking-tighter leading-[1.1]">
-            Frequently Asked <span className="text-[#C2496B]">Questions.</span>
-          </motion.h2>
+          <h2 className="text-3xl md:text-5xl font-semibold text-white tracking-tight mb-4">
+            Questions Fréquentes
+          </h2>
+          <p className="text-[#888888] text-lg font-light">
+            Tout ce que vous devez savoir sur la mise à niveau de votre système.
+          </p>
         </div>
 
         <div className="space-y-4">
-          {faqs.map((faq, i) => (
-            <motion.div 
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="border border-[#F7F5F0]/10 rounded-2xl bg-[#1A1A1B]/20 overflow-hidden"
-            >
-              <button 
-                onClick={() => setOpenIndex(openIndex === i ? -1 : i)}
-                className="w-full text-left px-8 py-6 flex items-center justify-between hover:bg-[#1A1A1B]/40 transition-colors"
+          {faqs.map((faq, idx) => {
+            const isOpen = openIndex === idx;
+            return (
+              <div 
+                key={idx} 
+                className={`border rounded-2xl transition-all duration-200 overflow-hidden ${isOpen ? 'bg-[#18181B] border-[#27272A]' : 'bg-transparent border-white/5 hover:border-white/10'}`}
               >
-                <span className="text-lg font-medium pr-8">{faq.question}</span>
-                <span className={`text-[#C2496B] font-medium text-2xl transition-transform duration-300 ${openIndex === i ? 'rotate-45' : ''}`}>
-                  +
-                </span>
-              </button>
-              <AnimatePresence>
-                {openIndex === i && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <div className="px-8 pb-6 text-[#F7F5F0]/60 font-light leading-relaxed">
-                      {faq.answer}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          ))}
+                <button
+                  onClick={() => setOpenIndex(isOpen ? -1 : idx)}
+                  className="w-full px-6 py-5 flex items-center justify-between text-left"
+                >
+                  <span className="text-white font-medium text-lg pr-8">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-gray-500 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                <div 
+                  className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-48 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}
+                >
+                  <p className="text-[#A1A1AA] leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
-      </div>
-      
-      {/* Semantic AEO Schema */}
-      <div className="sr-only">
-        {faqs.map((faq, i) => (
-          <article key={i}>
-            <h2>{faq.question}</h2>
-            <p>{faq.answer}</p>
-          </article>
-        ))}
+        
       </div>
     </section>
   );

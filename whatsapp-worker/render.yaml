@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: whatsapp-worker
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /
+    disk:
+      name: auth_data
+      mountPath: /opt/render/project/src/auth_info
+      sizeGB: 1
+    envVars:
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: PORT
+        value: 3001
