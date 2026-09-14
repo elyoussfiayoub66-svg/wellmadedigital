@@ -44,19 +44,26 @@ async function startWhatsAppClient(accountId) {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr) {
-      console.log(`Received QR for ${accountId}`);
+      console.log(`Received QR for ${accountId}. Converting to DataURL...`);
       try {
         // Convert QR to Base64 image
         const qrDataUrl = await QRCode.toDataURL(qr);
+        console.log(`Successfully converted QR. Updating Supabase...`);
         
         // Save QR to Supabase so frontend can display it
-        await supabase
+        const { error: updateErr } = await supabase
           .from('whatsapp_accounts')
           .update({ 
             qr_code_url: qrDataUrl,
             worker_status: 'pairing'
           })
           .eq('id', accountId);
+          
+        if (updateErr) {
+          console.error("Supabase QR update failed:", updateErr);
+        } else {
+          console.log("Supabase QR updated successfully!");
+        }
           
       } catch (err) {
         console.error("Failed to generate QR data URL", err);
@@ -67,11 +74,12 @@ async function startWhatsAppClient(accountId) {
       const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
       console.log(`Connection closed for ${accountId}. Reconnecting: ${shouldReconnect}`);
       
+      activeSockets.delete(accountId);
+
       if (shouldReconnect) {
-        startWhatsAppClient(accountId);
+        setTimeout(() => startWhatsAppClient(accountId), 5000); // 5 sec delay
       } else {
         console.log(`Logged out of ${accountId}`);
-        activeSockets.delete(accountId);
         await supabase
           .from('whatsapp_accounts')
           .update({ worker_status: 'disconnected', qr_code_url: null })
