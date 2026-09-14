@@ -322,7 +322,14 @@ export default function WorkflowsManagementPage() {
                               <span className="text-[11px] text-gray-500">{acc.phone_number}</span>
                             )}
                             <div className="flex items-center gap-1.5">
-                              {(!acc.expires_at || new Date(acc.expires_at) > new Date()) ? (
+                              {!acc.token ? (
+                                <>
+                                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                                  <span className="text-[10px] text-yellow-500 font-medium uppercase tracking-wider">
+                                    Action Required: Setup Incomplete
+                                  </span>
+                                </>
+                              ) : (!acc.expires_at || new Date(acc.expires_at) > new Date()) ? (
                                 <>
                                   <span className="w-1.5 h-1.5 rounded-full bg-[#25D366]"></span>
                                   <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
@@ -341,14 +348,19 @@ export default function WorkflowsManagementPage() {
                           </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#25D366]/10 text-[#25D366]">
-                        {acc.worker_status}
-                      </span>
-                      <button onClick={() => disconnectAccount(acc.id)} className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors ml-2" title="Disconnect">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                      <div className="flex items-center gap-3">
+                        <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#25D366]/10 text-[#25D366]">
+                          {acc.worker_status}
+                        </span>
+                        {!acc.token && acc.worker_status === 'connected' && (
+                          <button onClick={() => setConfiguringAccount(acc)} className="p-2 text-gray-400 hover:text-yellow-400 hover:bg-yellow-500/10 rounded-lg transition-colors ml-2" title="Complete Setup">
+                            <Settings className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button onClick={() => disconnectAccount(acc.id)} className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors ml-2" title="Disconnect">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                   </div>
                 ))}
               </div>
