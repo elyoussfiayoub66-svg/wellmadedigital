@@ -3,8 +3,8 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-function createClient() {
-  const cookieStore = cookies();
+async function createClient() {
+  const cookieStore = await cookies();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -20,7 +20,7 @@ function createClient() {
 }
 
 export async function submitCliniqueBooking({ name, phone, businessName, meetingDate, meetingTime }) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // HARDCODED USER ID AS REQUESTED
   const targetUserId = '84c58de0-775c-4e67-87a8-72b545e96a3c';
