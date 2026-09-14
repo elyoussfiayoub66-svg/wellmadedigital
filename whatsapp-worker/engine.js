@@ -47,6 +47,16 @@ async function triggerWorkflows(eventType, payload) {
     if (nodeEventType === eventType) {
       console.log(`Starting workflow ${wf.name} for event ${eventType}`);
       
+      // Update stats in UI
+      supabase.from('workflows').select('executions').eq('id', wf.id).single().then(({data}) => {
+        if(data) {
+          supabase.from('workflows').update({ 
+            last_run: new Date().toISOString(),
+            executions: (data.executions || 0) + 1
+          }).eq('id', wf.id).then().catch(console.error);
+        }
+      });
+      
       // Start processing from the nodes connected to the trigger
       const nextEdges = wf.edges.filter(e => e.source === triggerNode.id);
       for (const edge of nextEdges) {
@@ -216,3 +226,4 @@ async function executeCrmNode(node, payload) {
 }
 
 module.exports = { initWorkflowEngine, triggerWorkflows };
+
