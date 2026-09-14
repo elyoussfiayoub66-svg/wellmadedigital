@@ -8,10 +8,11 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const dateStr = searchParams.get('date');
-    const assigneeId = searchParams.get('assignee_id');
+    // HARDCODED USER ID AS REQUESTED
+    const targetUserId = '84c58de0-775c-4e67-87a8-72b545e96a3c';
 
     if (!dateStr) {
-      return NextResponse.json({ error: `Missing parameter date` }, { status: 400 });
+      return NextResponse.json({ error: \Missing parameter date\ }, { status: 400 });
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -25,55 +26,23 @@ export async function GET(request) {
 
     const allPossibleSlots = [];
     for (let hour = 10; hour < 18; hour++) {
-      allPossibleSlots.push(`${hour.toString().padStart(2, '0')}:00`);
-      allPossibleSlots.push(`${hour.toString().padStart(2, '0')}:30`);
+      allPossibleSlots.push(\\:00\);
+      allPossibleSlots.push(\\:30\);
     }
 
-    const startDate = new Date(`${dateStr}T00:00:00.000Z`);
-    const endDate = new Date(`${dateStr}T23:59:59.999Z`);
+    const startDate = new Date(\\T00:00:00.000Z\);
+    const endDate = new Date(\\T23:59:59.999Z\);
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      return NextResponse.json({ error: `Invalid date format: ${dateStr}` }, { status: 400 });
+      return NextResponse.json({ error: \Invalid date format: \\ }, { status: 400 });
     }
 
-    let teamIds = [];
-    if (assigneeId) {
-      teamIds = [assigneeId];
-    } else {
-      const { data: profiles } = await supabase.from('profiles').select('id');
-      teamIds = profiles?.map(p => p.id) || [];
-    }
-
-    const freeSlots = [];
-    if (teamIds.length === 0) {
-      // If no profiles exist yet, just allow booking based on global appointments
-      const { data: appointments } = await supabase
-        .from('appointments')
-        .select('scheduled_at')
-        .gte('scheduled_at', startDate.toISOString())
-        .lte('scheduled_at', endDate.toISOString());
-        
-      const bookedSlots = new Set();
-      (appointments || []).forEach(app => {
-        const dateObj = new Date(app.scheduled_at);
-        const hours = dateObj.getUTCHours().toString().padStart(2, '0');
-        const minutes = dateObj.getUTCMinutes().toString().padStart(2, '0');
-        bookedSlots.add(`${hours}:${minutes}`);
-      });
-      
-      allPossibleSlots.forEach(slot => {
-        if (!bookedSlots.has(slot)) {
-          freeSlots.push(slot);
-        }
-      });
-      
-      return NextResponse.json({ date: dateStr, availableSlots: freeSlots });
-    }
-
+    // Only query appointments for this specific user that are NOT canceled
     const { data: appointments, error } = await supabase
       .from('appointments')
-      .select('scheduled_at, assignee_id')
-      .in('assignee_id', teamIds)
+      .select('scheduled_at, assignee_id, status')
+      .eq('assignee_id', targetUserId)
+      .neq('status', 'CANCELED') // Free up canceled slots
       .gte('scheduled_at', startDate.toISOString())
       .lte('scheduled_at', endDate.toISOString());
 
@@ -82,25 +51,36 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Database query failed', details: error.message }, { status: 500 });
     }
 
-    // For each slot, check if AT LEAST ONE team member is free
-    
-    // Group booked times by assignee
-    const bookingsByAssignee = {};
-    teamIds.forEach(id => bookingsByAssignee[id] = new Set());
-    
+    const bookedSlots = new Set();
     (appointments || []).forEach(app => {
       const dateObj = new Date(app.scheduled_at);
       const hours = dateObj.getUTCHours().toString().padStart(2, '0');
       const minutes = dateObj.getUTCMinutes().toString().padStart(2, '0');
-      const timeSlot = `${hours}:${minutes}`;
-      bookingsByAssignee[app.assignee_id]?.add(timeSlot);
+      bookedSlots.add(\\:\\);
     });
 
+    const freeSlots = [];
+    
+    // Real-time check: Do not allow past times if the date is today
+    const now = new Date();
+    // Assuming clinic timezone is UTC for math, or local. Let's compare timestamps.
+    const isToday = now.toISOString().split('T')[0] === dateStr;
+
     allPossibleSlots.forEach(slot => {
-      // Slot is available if there is any team member who hasn't booked this slot
-      const isAvailable = teamIds.some(id => !bookingsByAssignee[id].has(slot));
-      if (isAvailable) {
-        freeSlots.push(slot);
+      if (!bookedSlots.has(slot)) {
+        if (isToday) {
+          const [slotH, slotM] = slot.split(':').map(Number);
+          // Compare with current UTC time (if appointments are saved in UTC). 
+          // If the landing page assumes local time, we should compare against local time.
+          // Let's assume the user is booking for their local time.
+          // To be safe, we parse the exact slot time today and check if it's in the past.
+          const slotTime = new Date(\\T\:00.000Z\);
+          if (slotTime.getTime() > now.getTime()) {
+             freeSlots.push(slot);
+          }
+        } else {
+          freeSlots.push(slot);
+        }
       }
     });
 
