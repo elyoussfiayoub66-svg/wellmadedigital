@@ -285,25 +285,25 @@ export default function WorkflowsManagementPage() {
               </div>
             ) : (
               <div className="flex flex-col items-center">
-                {isGenerating ? (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <Loader2 className="w-10 h-10 text-[#25D366] animate-spin mb-4" />
-                    <p className="text-gray-300 font-medium">Connecting to WhatsApp Worker...</p>
-                    <p className="text-gray-500 text-sm mt-2">Initializing secure proxy session.</p>
-                  </div>
-                ) : qrCodeData ? (
-                  <div className="flex flex-col items-center animate-in zoom-in-95 duration-300">
-                    <h2 className="text-xl font-bold text-white mb-2">Scan to Link Worker</h2>
-                    <p className="text-gray-400 text-sm max-w-sm mb-8">
-                      Open WhatsApp on your phone, tap Menu or Settings and select Linked Devices. Point your phone to this screen to capture the code.
-                    </p>
-                    
-                    <div className="p-4 bg-white rounded-2xl mb-8">
-                      <img src={qrCodeData} alt="WhatsApp QR Code" className="w-64 h-64 opacity-90" />
+                  {qrCodeData ? (
+                    <div className="flex flex-col items-center animate-in zoom-in-95 duration-300">
+                      <h2 className="text-xl font-bold text-white mb-2">Scan to Link Worker</h2>
+                      <p className="text-gray-400 text-sm max-w-sm mb-8">
+                        Open WhatsApp on your phone, tap Menu or Settings and select Linked Devices. Point your phone to this screen to capture the code.
+                      </p>
+                      
+                      <div className="p-4 bg-white rounded-2xl mb-8">
+                        <img src={qrCodeData} alt="WhatsApp QR Code" className="w-64 h-64 opacity-90" />
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <>
+                  ) : isGenerating ? (
+                    <div className="flex flex-col items-center justify-center py-12 animate-in fade-in duration-300">
+                      <div className="w-12 h-12 border-4 border-[#25D366]/20 border-t-[#25D366] rounded-full animate-spin mb-6" />
+                      <p className="text-gray-300 font-medium">Connecting to WhatsApp Worker...</p>
+                      <p className="text-gray-500 text-sm mt-2">Initializing secure proxy session.</p>
+                    </div>
+                  ) : (
+                    <>
                     <div className="w-20 h-20 bg-[#25D366]/10 rounded-full flex items-center justify-center mb-6">
                       <QrCode className="w-10 h-10 text-[#25D366]" />
                     </div>
