@@ -25,15 +25,12 @@ export async function submitCliniqueBooking({ name, phone, businessName, meeting
   // HARDCODED USER ID AS REQUESTED
   const targetUserId = '84c58de0-775c-4e67-87a8-72b545e96a3c';
 
-  // 1. Insert Lead (Assigned to the target user)
+  // 1. Insert Lead
   const { data: lead, error: leadError } = await supabase.from('leads').insert({
     full_name: name,
     phone,
     agency_name: businessName,
-    business_type: 'Clinique',
-    status: 'NEW',
-    source: 'Website Booking',
-    assigned_to: targetUserId
+    status: 'NEW'
   }).select().single();
 
   if (leadError || !lead) {
