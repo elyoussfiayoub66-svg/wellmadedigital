@@ -12,7 +12,7 @@ export async function GET(request) {
     const targetUserId = '84c58de0-775c-4e67-87a8-72b545e96a3c';
 
     if (!dateStr) {
-      return NextResponse.json({ error: \Missing parameter date\ }, { status: 400 });
+      return NextResponse.json({ error: `Missing parameter date` }, { status: 400 });
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
