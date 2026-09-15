@@ -45,6 +45,8 @@ export async function submitCarsBooking({ name, phone, fleetSize, lostReservatio
     agency_name: 'Agence Auto (Catalogue)',
     business_type: 'Location de Voitures',
     fleet_size: fleetSize || null,
+    main_problem: lostReservations || null,
+    current_booking_method: role || null,
     status: 'NEW'
   }).select().single();
 

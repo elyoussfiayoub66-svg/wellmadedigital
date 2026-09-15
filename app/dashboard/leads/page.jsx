@@ -435,7 +435,7 @@ export default function LeadsPage() {
                     </div>
 
                     {/* Additional fields mock timeline events */}
-                    {selectedLead.main_problem && (
+                    {(selectedLead.main_problem || selectedLead.buying_timeline || selectedLead.current_booking_method || selectedLead.fleet_size) && (
                       <div className="relative pl-6">
                         <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-brand-muted ring-4 ring-brand-surface" />
                         <div className="flex items-start gap-2 mb-1">
@@ -447,10 +447,18 @@ export default function LeadsPage() {
                             </p>
                           </div>
                         </div>
-                        <div className="mt-2 bg-brand-bg p-3 rounded-lg border border-brand-border">
-                          <p className="text-xs text-brand-text"><span className="text-brand-muted">Problem:</span> {selectedLead.main_problem}</p>
+                        <div className="mt-2 bg-brand-bg p-3 rounded-lg border border-brand-border space-y-1.5">
+                          {selectedLead.fleet_size && (
+                            <p className="text-xs text-brand-text"><span className="text-brand-muted">Fleet / Size:</span> {selectedLead.fleet_size}</p>
+                          )}
+                          {selectedLead.current_booking_method && (
+                            <p className="text-xs text-brand-text"><span className="text-brand-muted">Role / Booking Method:</span> {selectedLead.current_booking_method}</p>
+                          )}
+                          {selectedLead.main_problem && (
+                            <p className="text-xs text-brand-text"><span className="text-brand-muted">Problem / Needs:</span> {selectedLead.main_problem}</p>
+                          )}
                           {selectedLead.buying_timeline && (
-                            <p className="text-xs text-brand-text mt-1"><span className="text-brand-muted">Timeline:</span> {selectedLead.buying_timeline}</p>
+                            <p className="text-xs text-brand-text"><span className="text-brand-muted">Timeline:</span> {selectedLead.buying_timeline}</p>
                           )}
                         </div>
                       </div>
