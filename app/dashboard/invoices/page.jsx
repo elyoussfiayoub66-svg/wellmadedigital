@@ -5,8 +5,6 @@ import { createClient } from '@/lib/supabase/client';
 import { Edit2, Trash2, X, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmModal from '@/components/ConfirmModal';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState([]);
@@ -108,8 +106,11 @@ export default function InvoicesPage() {
     return 'bg-yellow-100 text-yellow-800 border-yellow-200';
   };
 
-  const generatePDF = (invoice) => {
+  const generatePDF = async (invoice) => {
     try {
+      const { default: jsPDF } = await import('jspdf');
+      await import('jspdf-autotable');
+
       const doc = new jsPDF();
       
       // Header

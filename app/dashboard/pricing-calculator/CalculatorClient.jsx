@@ -52,74 +52,70 @@ export default function CalculatorClient({ initialData }) {
     alert('Quote configuration saved locally.');
   };
 
-  const handleGenerateQuote = () => {
-    const quoteHtml = `
-      <html>
-        <head>
-          <title>Project Estimate - Wellmade Digital</title>
-          <style>
-            body { font-family: -apple-system, system-ui, sans-serif; padding: 40px; color: #111; max-width: 800px; margin: auto; }
-            h1 { color: #800020; margin-bottom: 5px; }
-            .subtitle { color: #666; margin-bottom: 40px; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-            th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
-            th { font-weight: bold; color: #555; }
-            .right { text-align: right; }
-            .total-row { font-size: 1.2em; font-weight: bold; border-top: 2px solid #111; }
-            .discount-row { color: #800020; }
-          </style>
-        </head>
-        <body>
-          <h1>Wellmade Digital</h1>
-          <div class="subtitle">Project Investment Estimate</div>
-          
-          <table>
-            <thead>
-              <tr>
-                <th>Service / Feature</th>
-                <th class="right">Quantity</th>
-                <th class="right">Investment</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${calculation.selectedDetails.map(item => `
-                <tr>
-                  <td>${item.name}</td>
-                  <td class="right">${item.quantity > 1 ? item.quantity : '-'}</td>
-                  <td class="right">${item.linePrice.toLocaleString()} MAD</td>
-                </tr>
-              `).join('')}
-              
-              <tr style="height: 20px;"><td colspan="3"></td></tr>
-              
-              <tr>
-                <td colspan="2" class="right">Subtotal</td>
-                <td class="right">${calculation.subtotal.toLocaleString()} MAD</td>
-              </tr>
-              
-              ${calculation.appliedDiscounts.map(d => `
-                <tr class="discount-row">
-                  <td colspan="2" class="right">Group Discount (${d.groupName})</td>
-                  <td class="right">-${d.discountAmount.toLocaleString()} MAD</td>
-                </tr>
-              `).join('')}
-              
-              <tr class="total-row">
-                <td colspan="2" class="right">Final Investment</td>
-                <td class="right">${calculation.finalPrice.toLocaleString()} MAD</td>
-              </tr>
-            </tbody>
-          </table>
-          <p style="font-size: 0.9em; color: #777; text-align: center; margin-top: 50px;">
-            This is an estimate. Prices may vary based on specific requirements and finalized scope.
-          </p>
-        </body>
-      </html>
-    `;
-    
-    const win = window.open('', '_blank');
-    win.document.write(quoteHtml);
-    win.document.close();
+  const handleGenerateQuote = async () => {
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      await import('jspdf-autotable');
+
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFontSize(20);
+      doc.setTextColor(33, 37, 41);
+      doc.text('PROJECT ESTIMATE', 14, 22);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Reference: EST-${Math.floor(1000 + Math.random() * 9000)}`, 14, 30);
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 35);
+      doc.text(`Status: Estimate`, 14, 40);
+
+      // Agency details (Left)
+      doc.setFontSize(12);
+      doc.setTextColor(33, 37, 41);
+      doc.text('From:', 14, 55);
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text('Wellmade Digital', 14, 62);
+      doc.text('contact@wellmadedigital.com', 14, 67);
+
+      // Client details (Right)
+      doc.setFontSize(12);
+      doc.setTextColor(33, 37, 41);
+      doc.text('To:', 120, 55);
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text('Client', 120, 62);
+      doc.text('Pending Project', 120, 67);
+
+      const discountTotal = calculation.appliedDiscounts.reduce((sum, d) => sum + d.discountAmount, 0);
+
+      // Line items using autoTable
+      doc.autoTable({
+        startY: 80,
+        head: [['Description', 'Amount']],
+        body: [
+          ['Subtotal', `MAD ${calculation.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`],
+          ...(discountTotal > 0 ? [['Group Discount', `- MAD ${discountTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`]] : []),
+          ['Final Investment', `MAD ${calculation.finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}`]
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: [194, 73, 107] }, // brand color
+        margin: { top: 80 }
+      });
+
+      // Footer
+      const finalY = doc.lastAutoTable.finalY || 80;
+      doc.setFontSize(10);
+      doc.setTextColor(150);
+      doc.text('This is an estimate. Prices may vary based on specific requirements and finalized scope.', 14, finalY + 20);
+
+      // Save
+      doc.save(`Quote_Estimate.pdf`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate PDF quote.");
+    }
   };
 
   // Perform calculations
