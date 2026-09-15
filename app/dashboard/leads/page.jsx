@@ -147,6 +147,27 @@ export default function LeadsPage() {
     }
   };
 
+  const updateLeadStatus = async (newStatus) => {
+    if (!selectedLead) return;
+    try {
+      const supabase = createClient();
+      const updated_at = new Date().toISOString();
+      const { error } = await supabase
+        .from('leads')
+        .update({ status: newStatus, updated_at })
+        .eq('id', selectedLead.id);
+
+      if (error) throw error;
+
+      const updatedLead = { ...selectedLead, status: newStatus, updated_at };
+      setSelectedLead(updatedLead);
+      setLeads(prev => prev.map(l => l.id === selectedLead.id ? updatedLead : l));
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      alert('Failed to update status: ' + err.message);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -424,14 +445,28 @@ export default function LeadsPage() {
                       <div className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full bg-brand-accent ring-4 ring-brand-surface" />
                       <div className="flex items-start gap-2 mb-1">
                         <CheckCircle className="w-4 h-4 text-brand-accent mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-brand-text">Status: {selectedLead.status || 'NEW'}</p>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-brand-text flex items-center gap-2">
+                            Status: 
+                            <select 
+                              value={selectedLead.status || 'NEW'} 
+                              onChange={(e) => updateLeadStatus(e.target.value)}
+                              className="bg-brand-bg border border-brand-border text-brand-text text-xs rounded px-2 py-1 outline-none"
+                            >
+                              <option value="NEW">NEW</option>
+                              <option value="pending for confirmation">pending for confirmation</option>
+                              <option value="confirmed">confirmed</option>
+                              <option value="follow up scheduled">follow up scheduled</option>
+                              <option value="followed up">followed up</option>
+                              <option value="canceled">canceled</option>
+                            </select>
+                          </p>
                           <p className="text-xs text-brand-muted mt-0.5">
                             {formatDate(selectedLead.updated_at || selectedLead.created_at)} at {formatTime(selectedLead.updated_at || selectedLead.created_at)}
                           </p>
                         </div>
                       </div>
-                      <p className="text-xs text-brand-muted/80 mt-1">Lead status was updated to {selectedLead.status || 'NEW'}.</p>
+                      <p className="text-xs text-brand-muted/80 mt-1">Lead status was updated.</p>
                     </div>
 
                     {/* Additional fields mock timeline events */}
@@ -441,24 +476,36 @@ export default function LeadsPage() {
                         <div className="flex items-start gap-2 mb-1">
                           <User className="w-4 h-4 text-brand-muted mt-0.5" />
                           <div>
-                            <p className="text-sm font-medium text-brand-text">Provided Details</p>
+                            <p className="text-sm font-medium text-brand-text">Formulaire de qualification</p>
                             <p className="text-xs text-brand-muted mt-0.5">
                               {formatDate(selectedLead.created_at)}
                             </p>
                           </div>
                         </div>
-                        <div className="mt-2 bg-brand-bg p-3 rounded-lg border border-brand-border space-y-1.5">
-                          {selectedLead.fleet_size && (
-                            <p className="text-xs text-brand-text"><span className="text-brand-muted">Fleet / Size:</span> {selectedLead.fleet_size}</p>
-                          )}
+                        <div className="mt-2 bg-brand-bg p-3 rounded-lg border border-brand-border space-y-3">
                           {selectedLead.current_booking_method && (
-                            <p className="text-xs text-brand-text"><span className="text-brand-muted">Role / Booking Method:</span> {selectedLead.current_booking_method}</p>
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wider text-brand-muted mb-0.5">Propriétaire ou gérant ?</p>
+                              <p className="text-sm font-medium text-brand-text">{selectedLead.current_booking_method}</p>
+                            </div>
+                          )}
+                          {selectedLead.fleet_size && (
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wider text-brand-muted mb-0.5">Nombre de voitures dans votre flotte</p>
+                              <p className="text-sm font-medium text-brand-text">{selectedLead.fleet_size}</p>
+                            </div>
                           )}
                           {selectedLead.main_problem && (
-                            <p className="text-xs text-brand-text"><span className="text-brand-muted">Problem / Needs:</span> {selectedLead.main_problem}</p>
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wider text-brand-muted mb-0.5">Où perdez-vous le plus de réservations ?</p>
+                              <p className="text-sm font-medium text-brand-text">{selectedLead.main_problem}</p>
+                            </div>
                           )}
                           {selectedLead.buying_timeline && (
-                            <p className="text-xs text-brand-text"><span className="text-brand-muted">Timeline:</span> {selectedLead.buying_timeline}</p>
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wider text-brand-muted mb-0.5">Délai / Timeline</p>
+                              <p className="text-sm font-medium text-brand-text">{selectedLead.buying_timeline}</p>
+                            </div>
                           )}
                         </div>
                       </div>

@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Edit2, Trash2, X, Plus } from 'lucide-react';
+import { Edit2, Trash2, X, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmModal from '@/components/ConfirmModal';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState([]);
@@ -106,6 +108,75 @@ export default function InvoicesPage() {
     return 'bg-yellow-100 text-yellow-800 border-yellow-200';
   };
 
+  const generatePDF = (invoice) => {
+    try {
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFontSize(20);
+      doc.setTextColor(33, 37, 41);
+      doc.text('INVOICE', 14, 22);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Invoice Number: ${invoice.invoice_number}`, 14, 30);
+      doc.text(`Date: ${new Date(invoice.created_at).toLocaleDateString()}`, 14, 35);
+      doc.text(`Status: ${invoice.status}`, 14, 40);
+
+      // Agency details (Left)
+      doc.setFontSize(12);
+      doc.setTextColor(33, 37, 41);
+      doc.text('Billed From:', 14, 55);
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text('Wellmade Digital', 14, 62);
+      doc.text('contact@wellmadedigital.com', 14, 67);
+
+      // Client details (Right)
+      doc.setFontSize(12);
+      doc.setTextColor(33, 37, 41);
+      doc.text('Billed To:', 120, 55);
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(invoice.leads?.agency_name || invoice.leads?.full_name || 'Client', 120, 62);
+      doc.text(invoice.projects?.name || 'Project Name', 120, 67);
+
+      // Line items using autoTable
+      doc.autoTable({
+        startY: 80,
+        head: [['Description', 'Type', 'Total']],
+        body: [
+          [
+            `Web Development - ${invoice.projects?.name || 'Project'}`,
+            invoice.type || 'Deposit',
+            `MAD ${Number(invoice.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+          ]
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: [194, 73, 107] }, // brand color
+        margin: { top: 80 }
+      });
+
+      // Total
+      const finalY = doc.lastAutoTable.finalY || 80;
+      doc.setFontSize(12);
+      doc.setTextColor(33, 37, 41);
+      doc.text(`Total Amount: MAD ${Number(invoice.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}`, 14, finalY + 20);
+
+      // Footer
+      doc.setFontSize(10);
+      doc.setTextColor(150);
+      doc.text('Thank you for your business.', 14, finalY + 40);
+
+      // Save
+      doc.save(`invoice_${invoice.invoice_number}.pdf`);
+      toast.success("PDF Downloaded");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to generate PDF");
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
@@ -165,6 +236,9 @@ export default function InvoicesPage() {
                     </td>
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2">
+                        <button onClick={() => generatePDF(inv)} className="p-1.5 text-brand-text/50 hover:text-green-500 hover:bg-green-500/10 rounded-md transition-colors" title="Download PDF">
+                          <Download className="w-4 h-4" />
+                        </button>
                         <button onClick={() => openEditModal(inv)} className="p-1.5 text-brand-text/50 hover:text-brand-accent hover:bg-brand-accent/10 rounded-md transition-colors" title="Edit">
                           <Edit2 className="w-4 h-4" />
                         </button>
