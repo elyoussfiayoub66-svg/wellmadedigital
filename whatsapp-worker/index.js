@@ -119,6 +119,7 @@ async function startWhatsAppClient(accountId) {
       if (!msg || !msg.message || msg.key.fromMe) return;
 
       const senderJid = msg.key.remoteJid;
+      if (!senderJid || senderJid.endsWith('@g.us') || senderJid === 'status@broadcast') return;
       const phone = senderJid.split('@')[0];
       
       let incomingText = '';

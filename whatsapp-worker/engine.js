@@ -121,11 +121,13 @@ async function processNode(workflow, nodeId, payload) {
     if (latestLead) payload.lead = latestLead;
   }
   
+  addLog('info', 'NODE', `Executing node [${node.id}] (${node.type}: "${node.data?.label || node.id}")`);
+
   let nextHandle = 'next';
   let stopExecution = false;
 
   try {
-      switch (node.type) {
+    switch (node.type) {
       case 'whatsapp':
         nextHandle = await executeWhatsAppNode(workflow, node, payload);
         break;
@@ -147,13 +149,29 @@ async function processNode(workflow, nodeId, payload) {
     }
   } catch (err) {
     console.error(`Error executing node ${nodeId}:`, err);
+    addLog('error', 'NODE', `Error executing node [${node.id}]: ${err.message}`);
     nextHandle = 'failed';
   }
 
-  if (stopExecution) return; // Delay handles its own continuation
+  if (stopExecution) {
+    if (node.type === 'interactive') {
+      addLog('info', 'WAITING', `⏸️ Workflow is PAUSED at interactive node [${node.id}]. Downstream nodes will NOT run until the lead taps a button in WhatsApp.`);
+    }
+    return;
+  }
 
-  // Find next nodes
-  const nextEdges = workflow.edges.filter(e => e.source === node.id && (!e.sourceHandle || e.sourceHandle === nextHandle || nextHandle === 'next'));
+  // Find next nodes with handle synonym support ('sent' / 'done' / 'success' / 'next')
+  const nextEdges = workflow.edges.filter(e => {
+    if (e.source !== node.id) return false;
+    if (!e.sourceHandle) return true;
+    if (nextHandle === 'next') return true;
+    if (e.sourceHandle === nextHandle) return true;
+    const successHandles = ['sent', 'done', 'success', 'next'];
+    if (successHandles.includes(nextHandle) && successHandles.includes(e.sourceHandle)) return true;
+    const failureHandles = ['failed', 'error', 'false'];
+    if (failureHandles.includes(nextHandle) && failureHandles.includes(e.sourceHandle)) return true;
+    return false;
+  });
   
   for (const edge of nextEdges) {
     processNode(workflow, edge.target, payload);
