@@ -537,6 +537,8 @@ export default function WorkflowsManagementPage() {
               </div>
             )}
           </div>
+        )}
+
         {activeTab === 'terminal' && (
           <div className="space-y-4 animate-in fade-in duration-200">
             {/* Terminal Control Bar */}
