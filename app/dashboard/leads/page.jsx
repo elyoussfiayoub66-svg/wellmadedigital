@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Loader2, Search, Filter, X, Clock, ArrowRight, User, Phone, Mail, Building, MapPin, Calendar, CheckCircle } from 'lucide-react';
+import { Loader2, Search, Filter, X, Clock, ArrowRight, User, Phone, Mail, Building, MapPin, Calendar, CheckCircle, Trash2, CheckSquare, Square, MinusSquare, AlertTriangle } from 'lucide-react';
 
 // Format date natively
 const formatDate = (isoString) => {
@@ -23,6 +23,11 @@ export default function LeadsPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
+
+  // Selection & Deletion state
+  const [selectedLeadIds, setSelectedLeadIds] = useState(new Set());
+  const [deleting, setDeleting] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({ open: false, singleId: null, count: 0 });
 
   const availableStatuses = ['ALL', ...Array.from(new Set(leads.map(l => l.status || 'NEW')))];
 
@@ -69,6 +74,79 @@ export default function LeadsPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const isAllSelected = filteredLeads.length > 0 && filteredLeads.every(l => selectedLeadIds.has(l.id));
+  const isSomeSelected = filteredLeads.some(l => selectedLeadIds.has(l.id)) && !isAllSelected;
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedLeadIds(new Set());
+    } else {
+      const next = new Set(selectedLeadIds);
+      filteredLeads.forEach(l => next.add(l.id));
+      setSelectedLeadIds(next);
+    }
+  };
+
+  const toggleSelectLead = (id, e) => {
+    e.stopPropagation();
+    const next = new Set(selectedLeadIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    setSelectedLeadIds(next);
+  };
+
+  const requestDeleteSingle = (id, e) => {
+    e.stopPropagation();
+    setConfirmModal({ open: true, singleId: id, count: 1 });
+  };
+
+  const requestDeleteSelected = () => {
+    if (selectedLeadIds.size === 0) return;
+    setConfirmModal({ open: true, singleId: null, count: selectedLeadIds.size });
+  };
+
+  const confirmDelete = async () => {
+    const idsToDelete = confirmModal.singleId 
+      ? [confirmModal.singleId] 
+      : Array.from(selectedLeadIds);
+
+    if (idsToDelete.length === 0) return;
+    setDeleting(true);
+
+    try {
+      const supabase = createClient();
+      // Cleanup relations safely first
+      await supabase.from('appointments').delete().in('lead_id', idsToDelete);
+      await supabase.from('form_sessions').update({ lead_id: null }).in('lead_id', idsToDelete);
+      await supabase.from('pending_interactions').delete().in('lead_id', idsToDelete);
+      
+      const { error } = await supabase.from('leads').delete().in('id', idsToDelete);
+      if (error) throw error;
+
+      // Update state
+      setLeads(prev => prev.filter(l => !idsToDelete.includes(l.id)));
+      setSelectedLeadIds(prev => {
+        const next = new Set(prev);
+        idsToDelete.forEach(id => next.delete(id));
+        return next;
+      });
+
+      if (selectedLead && idsToDelete.includes(selectedLead.id)) {
+        closeSlideOver();
+      }
+
+      setConfirmModal({ open: false, singleId: null, count: 0 });
+    } catch (err) {
+      console.error('Failed to delete leads:', err);
+      alert('Failed to delete: ' + (err?.message || 'Unknown error'));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -76,6 +154,26 @@ export default function LeadsPage() {
           <h1 className="text-2xl font-bold text-brand-text tracking-tight">Leads Overview</h1>
           <p className="text-brand-muted text-sm mt-1">Manage and track your incoming leads.</p>
         </div>
+        {selectedLeadIds.size > 0 && (
+          <div className="flex items-center gap-3 animate-in fade-in duration-200">
+            <span className="text-xs text-brand-muted font-medium">
+              {selectedLeadIds.size} selected
+            </span>
+            <button
+              onClick={() => setSelectedLeadIds(new Set())}
+              className="px-3 py-1.5 text-xs text-brand-muted hover:text-brand-text bg-brand-bg border border-brand-border rounded-lg transition-colors"
+            >
+              Clear
+            </button>
+            <button
+              onClick={requestDeleteSelected}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete Selected ({selectedLeadIds.size})
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="bg-brand-surface border border-brand-border rounded-xl overflow-hidden shadow-sm">
@@ -90,38 +188,49 @@ export default function LeadsPage() {
               className="w-full pl-9 pr-4 py-2 bg-brand-bg border border-brand-border rounded-lg text-sm text-brand-text focus:outline-none focus:border-brand-accent transition-colors"
             />
           </div>
-          <div className="relative">
-            <button 
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="flex items-center gap-2 px-4 py-2 bg-brand-bg border border-brand-border rounded-lg text-sm font-medium text-brand-text hover:bg-brand-border/40 transition-colors w-full sm:w-auto justify-center"
-            >
-              <Filter className="w-4 h-4" />
-              {filterStatus === 'ALL' ? 'Filter' : filterStatus}
-            </button>
-
-            {isFilterOpen && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setIsFilterOpen(false)} />
-                <div className="absolute right-0 mt-2 w-48 bg-brand-surface border border-brand-border rounded-lg shadow-lg z-20 py-1">
-                  {availableStatuses.map(status => (
-                    <button
-                      key={status}
-                      onClick={() => {
-                        setFilterStatus(status);
-                        setIsFilterOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                        filterStatus === status 
-                          ? 'bg-brand-accent/10 text-brand-accent font-medium' 
-                          : 'text-brand-text hover:bg-brand-bg'
-                      }`}
-                    >
-                      {status}
-                    </button>
-                  ))}
-                </div>
-              </>
+          <div className="flex items-center gap-3">
+            {selectedLeadIds.size > 0 && (
+              <button
+                onClick={requestDeleteSelected}
+                className="flex sm:hidden items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete ({selectedLeadIds.size})
+              </button>
             )}
+            <div className="relative">
+              <button 
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="flex items-center gap-2 px-4 py-2 bg-brand-bg border border-brand-border rounded-lg text-sm font-medium text-brand-text hover:bg-brand-border/40 transition-colors w-full sm:w-auto justify-center"
+              >
+                <Filter className="w-4 h-4" />
+                {filterStatus === 'ALL' ? 'Filter' : filterStatus}
+              </button>
+
+              {isFilterOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsFilterOpen(false)} />
+                  <div className="absolute right-0 mt-2 w-48 bg-brand-surface border border-brand-border rounded-lg shadow-lg z-20 py-1">
+                    {availableStatuses.map(status => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          setFilterStatus(status);
+                          setIsFilterOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                          filterStatus === status 
+                            ? 'bg-brand-accent/10 text-brand-accent font-medium' 
+                            : 'text-brand-text hover:bg-brand-bg'
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -139,68 +248,111 @@ export default function LeadsPage() {
             <table className="w-full text-left text-sm text-brand-text">
               <thead className="text-xs uppercase bg-brand-bg/50 text-brand-muted border-b border-brand-border">
                 <tr>
+                  <th className="w-12 px-4 py-4 text-center">
+                    <button
+                      onClick={toggleSelectAll}
+                      className="p-1 text-brand-muted hover:text-brand-text transition-colors"
+                      title={isAllSelected ? "Deselect All" : "Select All"}
+                    >
+                      {isAllSelected ? (
+                        <CheckSquare className="w-4 h-4 text-brand-accent" />
+                      ) : isSomeSelected ? (
+                        <MinusSquare className="w-4 h-4 text-brand-accent" />
+                      ) : (
+                        <Square className="w-4 h-4" />
+                      )}
+                    </button>
+                  </th>
                   <th className="px-6 py-4 font-semibold">Contact Info</th>
                   <th className="px-6 py-4 font-semibold">Business</th>
                   <th className="px-6 py-4 font-semibold">Status</th>
                   <th className="px-6 py-4 font-semibold">Problem / Timeline</th>
                   <th className="px-6 py-4 font-semibold text-right">Date</th>
+                  <th className="w-16 px-4 py-4 text-center font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-border">
-                {filteredLeads.map((lead) => (
-                  <tr key={lead.id} onClick={() => openSlideOver(lead)} className="hover:bg-brand-bg/30 transition-colors group cursor-pointer">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-brand-text">{lead.full_name || 'N/A'}</div>
-                      <div className="text-brand-muted text-xs mt-1 flex flex-col gap-0.5">
-                        {lead.email && <span>{lead.email}</span>}
-                        {lead.phone && <span>{lead.phone}</span>}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium">{lead.agency_name || 'N/A'}</div>
-                      {lead.business_type && (
-                        <div className="text-brand-muted text-xs mt-1">{lead.business_type}</div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        lead.status === 'pending for confirmation' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
-                        lead.status === 'confirmed' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
-                        lead.status === 'canceled' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
-                        lead.status === 'follow up scheduled' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
-                        lead.status === 'followed up' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' :
-                        lead.status === 'followedup 2' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' :
-                        lead.status === 'expired' ? 'bg-gray-500/10 text-gray-400 border border-gray-500/20' :
-                        'bg-brand-border/50 text-brand-muted border border-brand-border'
-                      }`}>
-                        {lead.status || 'pending for confirmation'}
-                      </span>
-                      {lead.qualification_score !== null && lead.qualification_score !== undefined && (
-                        <div className="text-[10px] text-brand-muted mt-2 font-semibold">
-                          Score: {lead.qualification_score}
+                {filteredLeads.map((lead) => {
+                  const isSelected = selectedLeadIds.has(lead.id);
+                  return (
+                    <tr 
+                      key={lead.id} 
+                      onClick={() => openSlideOver(lead)} 
+                      className={`hover:bg-brand-bg/30 transition-colors group cursor-pointer ${
+                        isSelected ? 'bg-brand-accent/5' : ''
+                      }`}
+                    >
+                      <td className="w-12 px-4 py-4 text-center" onClick={(e) => toggleSelectLead(lead.id, e)}>
+                        <button className="p-1 text-brand-muted hover:text-brand-text transition-colors">
+                          {isSelected ? (
+                            <CheckSquare className="w-4 h-4 text-brand-accent" />
+                          ) : (
+                            <Square className="w-4 h-4 opacity-50 group-hover:opacity-100" />
+                          )}
+                        </button>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-brand-text">{lead.full_name || 'N/A'}</div>
+                        <div className="text-brand-muted text-xs mt-1 flex flex-col gap-0.5">
+                          {lead.email && <span>{lead.email}</span>}
+                          {lead.phone && <span>{lead.phone}</span>}
                         </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 max-w-[200px]">
-                      {lead.main_problem ? (
-                        <div className="truncate text-xs text-brand-text mb-1" title={lead.main_problem}>
-                          {lead.main_problem}
-                        </div>
-                      ) : (
-                        <span className="text-brand-muted text-xs italic">-</span>
-                      )}
-                      {lead.buying_timeline && (
-                        <div className="text-[10px] text-brand-accent/80 font-medium">
-                          {lead.buying_timeline}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right whitespace-nowrap text-brand-muted text-xs">
-                      {formatDate(lead.created_at)}
-                      <div className="text-[10px] mt-1">{formatTime(lead.created_at)}</div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="font-medium">{lead.agency_name || 'N/A'}</div>
+                        {lead.business_type && (
+                          <div className="text-brand-muted text-xs mt-1">{lead.business_type}</div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          lead.status === 'pending for confirmation' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' :
+                          lead.status === 'confirmed' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                          lead.status === 'canceled' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                          lead.status === 'follow up scheduled' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+                          lead.status === 'followed up' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' :
+                          lead.status === 'followedup 2' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' :
+                          lead.status === 'expired' ? 'bg-gray-500/10 text-gray-400 border border-gray-500/20' :
+                          'bg-brand-border/50 text-brand-muted border border-brand-border'
+                        }`}>
+                          {lead.status || 'pending for confirmation'}
+                        </span>
+                        {lead.qualification_score !== null && lead.qualification_score !== undefined && (
+                          <div className="text-[10px] text-brand-muted mt-2 font-semibold">
+                            Score: {lead.qualification_score}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 max-w-[200px]">
+                        {lead.main_problem ? (
+                          <div className="truncate text-xs text-brand-text mb-1" title={lead.main_problem}>
+                            {lead.main_problem}
+                          </div>
+                        ) : (
+                          <span className="text-brand-muted text-xs italic">-</span>
+                        )}
+                        {lead.buying_timeline && (
+                          <div className="text-[10px] text-brand-accent/80 font-medium">
+                            {lead.buying_timeline}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap text-brand-muted text-xs">
+                        {formatDate(lead.created_at)}
+                        <div className="text-[10px] mt-1">{formatTime(lead.created_at)}</div>
+                      </td>
+                      <td className="w-16 px-4 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={(e) => requestDeleteSingle(lead.id, e)}
+                          className="p-2 text-brand-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                          title="Delete Lead"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
@@ -326,6 +478,51 @@ export default function LeadsPage() {
           </>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {confirmModal.open && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-[#1A1A1B] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center mb-4">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-1">
+              {confirmModal.count === 1 ? 'Delete Lead' : `Delete ${confirmModal.count} Leads`}
+            </h3>
+            <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+              Are you sure you want to delete {confirmModal.count === 1 ? 'this lead' : `these ${confirmModal.count} leads`}? This will permanently remove their records, appointments, and workflow history. This action cannot be undone.
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmModal({ open: false, singleId: null, count: 0 })}
+                disabled={deleting}
+                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 shadow-lg shadow-red-600/20"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Confirm Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

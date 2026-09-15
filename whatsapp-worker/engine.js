@@ -5,22 +5,65 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// In-memory execution log buffer (holds last 300 logs for live terminal)
+const executionLogs = [];
+
+function addLog(level, category, message, details = null) {
+  const logEntry = {
+    id: Math.random().toString(36).substring(2, 11),
+    timestamp: new Date().toISOString(),
+    level, // 'info' | 'success' | 'warning' | 'error'
+    category, // 'SYSTEM' | 'TRIGGER' | 'TOKEN' | 'PHONE' | 'NODE' | 'WHATSAPP' | 'POLL' | 'REPLY'
+    message,
+    details: details ? details : undefined
+  };
+  executionLogs.unshift(logEntry);
+  if (executionLogs.length > 300) executionLogs.pop();
+
+  console.log(`[${logEntry.level.toUpperCase()}] [${category}] ${message}`, details ? JSON.stringify(details) : '');
+
+  // Asynchronously attempt to persist to workflow_logs in Supabase if table exists
+  try {
+    supabase.from('workflow_logs').insert([{
+      status: level,
+      node_type: category,
+      message,
+      details: details ? details : null,
+      created_at: logEntry.timestamp
+    }]).then(() => {}).catch(() => {});
+  } catch {}
+
+  return logEntry;
+}
+
+function getExecutionLogs() {
+  return executionLogs;
+}
+
+function clearExecutionLogs() {
+  executionLogs.length = 0;
+  return true;
+}
+
 // We need a reference to the activeSockets from index.js
 let activeSocketsRef = null;
 
 function initWorkflowEngine(activeSockets) {
   activeSocketsRef = activeSockets;
-  console.log('Initializing Workflow Execution Engine...');
+  addLog('info', 'SYSTEM', 'Workflow execution engine initialized and listening for triggers');
 
   // Listen to new leads
   supabase
     .channel('public:leads:inserts')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leads' }, payload => {
-      console.log('Workflow Engine: Detected new lead!', payload.new.id);
+      addLog('info', 'TRIGGER', `Realtime DB trigger: New lead inserted (${payload.new.full_name || 'No Name'} - ${payload.new.phone || 'No Phone'})`, { leadId: payload.new.id, lead: payload.new });
       triggerWorkflows('New Lead Created', { lead: payload.new });
     })
     .subscribe((status) => {
       console.log('Workflow Engine: Leads listener status ->', status);
+      if (status === 'SUBSCRIBED') {
+        addLog('success', 'SYSTEM', 'Supabase Realtime subscription connected for "leads" table');
+      }
     });
 }
 
@@ -160,119 +203,158 @@ async function resolveJid(sock, rawPhone) {
 }
 
 async function executeWhatsAppNode(workflow, node, payload) {
+  const leadName = payload.lead?.full_name || 'Lead';
+  const leadPhone = payload.lead?.phone;
+
   if (!workflow.whatsapp_account_id) {
-    console.error('No WhatsApp account linked to workflow');
+    addLog('error', 'ACCOUNT', `No WhatsApp worker account linked to workflow "${workflow.name}". Please link an account in the canvas settings.`, { workflowId: workflow.id });
     return 'failed';
   }
   
   // Verify Token Security and Expiration
-  const { data: accountData } = await supabase
+  const { data: accountData, error: accErr } = await supabase
     .from('whatsapp_accounts')
-    .select('token, expires_at')
+    .select('token, expires_at, name, worker_status')
     .eq('id', workflow.whatsapp_account_id)
     .single();
     
-  if (!accountData || !accountData.token) {
-    console.error('Account rejected: Missing workflow token configuration');
+  if (accErr || !accountData) {
+    addLog('error', 'ACCOUNT', `Failed to find account ${workflow.whatsapp_account_id} in database!`, { error: accErr?.message });
+    return 'failed';
+  }
+
+  if (!accountData.token) {
+    addLog('error', 'TOKEN', `Account "${accountData.name || accountData.id}" is rejected: Missing valid token configuration. Complete setup in Accounts tab.`, { accountId: workflow.whatsapp_account_id });
     return 'failed';
   }
   
   if (accountData.expires_at && new Date(accountData.expires_at) < new Date()) {
-    console.error('Account rejected: Workflow token has expired');
+    addLog('error', 'TOKEN', `Account "${accountData.name || accountData.id}" token expired on ${new Date(accountData.expires_at).toLocaleString()}! Message blocked.`, { expiresAt: accountData.expires_at });
     return 'failed';
   }
   
+  addLog('info', 'TOKEN', `Token verified active for "${accountData.name || 'Worker'}". Expiration: ${accountData.expires_at ? new Date(accountData.expires_at).toLocaleDateString() : 'Lifetime'}`);
+
   const sock = activeSocketsRef.get(workflow.whatsapp_account_id);
   if (!sock) {
-    console.error('WhatsApp worker not connected for this workflow');
+    addLog('error', 'SOCKET', `WhatsApp worker session is NOT active in memory for account "${accountData.name || workflow.whatsapp_account_id}". Status in DB: ${accountData.worker_status}. Make sure phone is paired.`, { accountId: workflow.whatsapp_account_id });
     return 'failed';
   }
   
-  const leadPhone = payload.lead?.phone;
   if (!leadPhone) {
-    console.error('Lead has no phone number');
+    addLog('error', 'PHONE', `Lead "${leadName}" has no phone number in database! Cannot send message.`, { leadId: payload.lead?.id });
     return 'failed';
   }
 
   const jid = await resolveJid(sock, leadPhone);
   if (!jid) {
-    console.error(`Could not resolve valid WhatsApp JID for ${leadPhone}`);
+    addLog('error', 'PHONE', `Could not resolve a valid WhatsApp destination JID for number "${leadPhone}".`);
     return 'failed';
   }
   
+  addLog('info', 'PHONE', `Resolved WhatsApp destination JID: ${jid} for "${leadName}" (${leadPhone})`);
+
   const messageText = resolveTemplate(node.data?.template, payload);
   
-  console.log(`Sending WhatsApp message to ${jid}: ${messageText}`);
-  await sock.sendMessage(jid, { text: messageText });
-  
-  return 'sent';
+  addLog('info', 'WHATSAPP', `Sending message to ${jid} (Template: "${messageText.substring(0, 60)}${messageText.length > 60 ? '...' : ''}")`);
+  try {
+    await sock.sendMessage(jid, { text: messageText });
+    addLog('success', 'WHATSAPP', `Message successfully delivered to WhatsApp for ${leadName} (${jid})`);
+    return 'sent';
+  } catch (err) {
+    addLog('error', 'WHATSAPP', `Failed to send WhatsApp message to ${jid}: ${err.message}`, { error: err.message, stack: err.stack });
+    return 'failed';
+  }
 }
 
 async function executeInteractiveNode(workflow, node, payload) {
+  const leadName = payload.lead?.full_name || 'Lead';
+  const leadPhone = payload.lead?.phone;
+
   if (!workflow.whatsapp_account_id) {
-    console.error('No WhatsApp account linked to workflow');
+    addLog('error', 'ACCOUNT', `No WhatsApp worker account linked to workflow "${workflow.name}".`, { workflowId: workflow.id });
     return;
   }
   
   // Verify Token Security and Expiration
-  const { data: accountData } = await supabase
+  const { data: accountData, error: accErr } = await supabase
     .from('whatsapp_accounts')
-    .select('token, expires_at')
+    .select('token, expires_at, name, worker_status')
     .eq('id', workflow.whatsapp_account_id)
     .single();
     
-  if (!accountData || !accountData.token) {
-    console.error('Account rejected: Missing workflow token configuration');
+  if (accErr || !accountData) {
+    addLog('error', 'ACCOUNT', `Account ${workflow.whatsapp_account_id} not found in database!`, { error: accErr?.message });
+    return;
+  }
+
+  if (!accountData.token) {
+    addLog('error', 'TOKEN', `Account "${accountData.name || accountData.id}" rejected: Missing valid token configuration.`, { accountId: workflow.whatsapp_account_id });
     return;
   }
   
   if (accountData.expires_at && new Date(accountData.expires_at) < new Date()) {
-    console.error('Account rejected: Workflow token has expired');
+    addLog('error', 'TOKEN', `Account "${accountData.name || accountData.id}" token expired! Interactive poll blocked.`, { expiresAt: accountData.expires_at });
     return;
   }
   
+  addLog('info', 'TOKEN', `Token verified active for "${accountData.name || 'Worker'}". Interactive poll approved.`);
+
   const sock = activeSocketsRef.get(workflow.whatsapp_account_id);
   if (!sock) {
-    console.error('WhatsApp worker not connected for this workflow');
+    addLog('error', 'SOCKET', `WhatsApp worker session is NOT active in memory for account "${accountData.name || workflow.whatsapp_account_id}". Status in DB: ${accountData.worker_status}. Make sure phone is paired.`, { accountId: workflow.whatsapp_account_id });
     return;
   }
   
-  const leadPhone = payload.lead?.phone;
-  if (!leadPhone) return;
+  if (!leadPhone) {
+    addLog('error', 'PHONE', `Lead "${leadName}" has no phone number in database! Cannot send interactive poll.`, { leadId: payload.lead?.id });
+    return;
+  }
 
   const jid = await resolveJid(sock, leadPhone);
   if (!jid) {
-    console.error(`Could not resolve valid WhatsApp JID for ${leadPhone}`);
+    addLog('error', 'PHONE', `Could not resolve a valid WhatsApp destination JID for number "${leadPhone}".`);
     return;
   }
   
+  addLog('info', 'PHONE', `Resolved WhatsApp destination JID: ${jid} for "${leadName}" (${leadPhone})`);
+
   const messageText = resolveTemplate(node.data?.template, payload);
   const btn1Text = node.data?.btn1 || 'Yes';
   const btn2Text = node.data?.btn2 || 'No';
   
-  console.log(`Sending Interactive Poll to ${jid}: ${messageText}`);
+  addLog('info', 'POLL', `Sending Interactive Poll to ${jid}: "${messageText}" [Option 1: "${btn1Text}", Option 2: "${btn2Text}"]`);
   
-  const response = await sock.sendMessage(jid, {
-    poll: {
-      name: messageText,
-      values: [btn1Text, btn2Text],
-      selectableCount: 1
-    }
-  });
-  
-  const messageId = response?.key?.id;
-  if (messageId && payload.lead?.id) {
-    // Save state to pending_interactions memory
-    const { error } = await supabase.from('pending_interactions').insert([{
-      lead_id: payload.lead.id,
-      workflow_id: workflow.id,
-      node_id: node.id,
-      message_id: messageId,
-      message_json: response.message
-    }]);
+  try {
+    const response = await sock.sendMessage(jid, {
+      poll: {
+        name: messageText,
+        values: [btn1Text, btn2Text],
+        selectableCount: 1
+      }
+    });
     
-    if (error) console.error('Failed to save pending interaction:', error);
-    else console.log(`Workflow paused at node ${node.id}, waiting for lead to vote on poll.`);
+    const messageId = response?.key?.id;
+    if (messageId && payload.lead?.id) {
+      // Save state to pending_interactions memory
+      const { error } = await supabase.from('pending_interactions').insert([{
+        lead_id: payload.lead.id,
+        workflow_id: workflow.id,
+        node_id: node.id,
+        message_id: messageId,
+        message_json: response.message
+      }]);
+      
+      if (error) {
+        addLog('error', 'MEMORY', `Failed to save pending interaction state to database: ${error.message}`, { error });
+      } else {
+        addLog('success', 'POLL', `Interactive Poll sent to ${jid} (Message ID: ${messageId}). Workflow paused at node [${node.id}] waiting for lead reply.`);
+      }
+    } else {
+      addLog('warning', 'POLL', `Poll sent but message ID or lead ID was missing. Response key: ${JSON.stringify(response?.key)}`);
+    }
+  } catch (err) {
+    addLog('error', 'POLL', `Failed to dispatch WhatsApp poll to ${jid}: ${err.message}`, { error: err.message, stack: err.stack });
   }
 }
 
@@ -375,5 +457,12 @@ async function executeCrmNode(node, payload) {
   return 'success';
 }
 
-module.exports = { initWorkflowEngine, triggerWorkflows, resumeWorkflowFromInteractive };
+module.exports = { 
+  initWorkflowEngine, 
+  triggerWorkflows, 
+  resumeWorkflowFromInteractive,
+  addLog,
+  getExecutionLogs,
+  clearExecutionLogs
+};
 

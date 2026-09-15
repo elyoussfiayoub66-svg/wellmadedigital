@@ -8,7 +8,7 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
-const { initWorkflowEngine, resumeWorkflowFromInteractive } = require('./engine');
+const { initWorkflowEngine, resumeWorkflowFromInteractive, addLog, getExecutionLogs, clearExecutionLogs, triggerWorkflows } = require('./engine');
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -75,6 +75,7 @@ async function startWhatsAppClient(accountId) {
     if (connection === 'close') {
       const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
       console.log(`Connection closed for ${accountId}. Reconnecting: ${shouldReconnect}`);
+      addLog(shouldReconnect ? 'warning' : 'error', 'SOCKET', `WhatsApp connection closed for account ${accountId}. Auto-reconnecting: ${shouldReconnect}`);
       
       activeSockets.delete(accountId);
 
@@ -82,6 +83,7 @@ async function startWhatsAppClient(accountId) {
         setTimeout(() => startWhatsAppClient(accountId), 5000); // 5 sec delay
       } else {
         console.log(`Logged out of ${accountId}`);
+        addLog('error', 'SOCKET', `Logged out of WhatsApp account ${accountId}. Please re-pair.`);
         await supabase
           .from('whatsapp_accounts')
           .update({ worker_status: 'disconnected', qr_code_url: null })
@@ -97,6 +99,7 @@ async function startWhatsAppClient(accountId) {
       
       // Try to get phone number
       const phoneId = sock.user?.id?.split(':')[0] || sock.user?.id?.split('@')[0] || 'Unknown';
+      addLog('success', 'SOCKET', `WhatsApp connection OPEN and READY for account ${accountId} (+${phoneId})`);
       
       await supabase
         .from('whatsapp_accounts')
@@ -200,7 +203,7 @@ async function startWhatsAppClient(accountId) {
         .single();
         
       if (pendingInt) {
-        console.log(`Found pending interaction for lead ${lead.id} at node ${pendingInt.node_id}`);
+        console.log(`Found pending interaction for lead ${targetLeadId} at node ${pendingInt.node_id}`);
         // Delete the memory record so they don't get stuck
         await supabase.from('pending_interactions').delete().eq('id', pendingInt.id);
         
@@ -241,18 +244,32 @@ app.post('/api/whatsapp/stop', async (req, res) => {
 });
 
 // Health check endpoint for Render
+app.get('/', (req, res) => {
+  res.status(200).send('OK');
+});
 
-const { triggerWorkflows } = require('./engine');
+// Logs endpoints for Developer Terminal tab
+app.get('/api/logs', (req, res) => {
+  res.json({ 
+    success: true, 
+    logs: getExecutionLogs(),
+    activeSocketsCount: activeSockets.size
+  });
+});
+
+app.post('/api/logs/clear', (req, res) => {
+  clearExecutionLogs();
+  addLog('info', 'SYSTEM', 'Execution logs cleared by user');
+  res.json({ success: true });
+});
+
 app.post('/api/webhook/lead', async (req, res) => {
   const lead = req.body.lead;
   if (lead) {
-    console.log('Webhook: Received new lead ->', lead.id);
+    addLog('info', 'WEBHOOK', `Webhook received new lead: ${lead.full_name || 'Anonymous'} (${lead.phone || 'No phone'})`, { leadId: lead.id, leadPhone: lead.phone });
     triggerWorkflows('New Lead Created', { lead });
   }
   res.json({ success: true });
-});
-app.get('/', (req, res) => {
-  res.status(200).send('OK');
 });
 
 // Restore previously connected sessions on boot
