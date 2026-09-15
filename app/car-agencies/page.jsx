@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { ArrowRight, CheckCircle2, Shield, Zap, Car, Key, Clock, Calendar, Check } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Shield, Zap, Info, Clock, Check } from 'lucide-react';
 import { submitCarAgencyBooking } from '@/app/actions/car-agencies';
 import * as meta from '@/lib/tracking/meta';
 import FAQ from '@/components/home/FAQ';
@@ -17,8 +17,9 @@ export default function CarAgenciesLP() {
   const [formData, setFormData] = useState({ 
     name: '', 
     phone: '', 
-    businessName: '', 
-    fleetSize: '6–15', 
+    fleetSize: '1–5 véhicules', 
+    painPoint: 'Tout ça à la fois',
+    role: 'Propriétaire',
     meetingDate: '', 
     meetingTime: '' 
   });
@@ -53,8 +54,9 @@ export default function CarAgenciesLP() {
       const result = await submitCarAgencyBooking({
         name: formData.name,
         phone: formData.phone,
-        businessName: formData.businessName,
         fleetSize: formData.fleetSize,
+        painPoint: formData.painPoint,
+        role: formData.role,
         meetingDate: formData.meetingDate,
         meetingTime: formData.meetingTime,
       });
@@ -63,7 +65,7 @@ export default function CarAgenciesLP() {
 
       // Client-side tracking events
       try {
-        meta.event('Lead', { content_name: 'Car Agencies LP' });
+        meta.event('Lead', { content_name: 'Car Agencies LP PAS' });
         meta.event('Schedule');
         meta.event('Demo_Booked');
       } catch {}
@@ -81,13 +83,14 @@ export default function CarAgenciesLP() {
   };
 
   /* ── CTA button (reusable) ── */
-  const CTA = ({ className = '', text = "Automatiser mon agence (Démo gratuite)" }) => (
+  const CTA = ({ className = '', text = "Réservez Votre Appel Gratuit de 15 Minutes" }) => (
     <a 
       href="#rdv" 
       onClick={goToForm} 
-      className={`flex items-center justify-center gap-2 w-full bg-[#C2496B] hover:bg-[#a83c5c] text-white font-semibold text-sm tracking-wide px-6 py-4 rounded-2xl active:scale-[.98] transition-all shadow-[0_6px_24px_rgba(194,73,107,0.3)] hover:shadow-[0_8px_32px_rgba(194,73,107,0.45)] ${className}`}
+      className={`flex flex-col items-center justify-center w-full bg-[#C2496B] hover:bg-[#a83c5c] text-white font-semibold text-sm tracking-wide px-6 py-4 rounded-2xl active:scale-[.98] transition-all shadow-[0_6px_24px_rgba(194,73,107,0.3)] hover:shadow-[0_8px_32px_rgba(194,73,107,0.45)] ${className}`}
     >
-      {text} <ArrowRight className="w-4 h-4" />
+      <span className="flex items-center gap-2">{text} <ArrowRight className="w-4 h-4" /></span>
+      <span className="text-[10px] text-white/70 font-normal mt-1 text-center">Reprenez le contrôle sur votre flotte — cette semaine, pas dans six mois.</span>
     </a>
   );
 
@@ -99,212 +102,100 @@ export default function CarAgenciesLP() {
         <div className="max-w-lg mx-auto flex items-center justify-between px-5 py-3.5">
           <Link href="/"><img src="/assets/logo.png?v=2" alt="Logo" className="h-8 w-auto" /></Link>
           <a href="#rdv" onClick={goToForm} className="text-[11px] font-semibold tracking-widest uppercase text-[#C2496B] hover:text-white transition-colors">
-            Audit Flotte Gratuit →
+            Prendre le contrôle →
           </a>
         </div>
       </header>
 
-
-      {/* ═══ 1. HERO ═══ */}
-      <section className="relative min-h-[92svh] flex flex-col justify-end px-6 pb-10 pt-28 max-w-lg mx-auto overflow-hidden">
+      {/* ═══ 1. PROBLEM (HERO) ═══ */}
+      <section className="relative min-h-[92svh] flex flex-col justify-end px-6 pb-12 pt-28 max-w-lg mx-auto overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1200&auto=format&fit=crop" 
-            alt="Car Rental Fleet" 
-            className="w-full h-full object-cover opacity-25 grayscale" 
+            src="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=1200&auto=format&fit=crop" 
+            alt="Luxury Car Interior" 
+            className="w-full h-full object-cover opacity-30 grayscale" 
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0B] via-[#0A0A0B]/60 to-[#0A0A0B]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0B] via-[#0A0A0B]/70 to-[#0A0A0B]" />
         </div>
 
         <div className="relative z-10 space-y-6">
-          <span className="inline-flex items-center gap-2 bg-[#C2496B]/12 border border-[#C2496B]/25 text-[#C2496B] text-[10px] tracking-[.18em] uppercase font-bold px-3.5 py-1.5 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#C2496B] animate-pulse" /> Spécial Agences de Location Auto
-          </span>
-
           <h1 className="text-[2.2rem] leading-[1.08] font-semibold tracking-tight">
-            Vos véhicules sont prêts.<br />
-            <span className="text-[#C2496B]">Votre gestion WhatsApp vous coûte des locations.</span>
+            Chaque réservation perdue dans WhatsApp, <span className="text-[#C2496B]">c'est un peu de contrôle sur votre propre entreprise qui vous échappe.</span>
           </h1>
 
-          <p className="text-base text-white/55 font-light leading-relaxed">
-            Ce matin, un client a demandé la disponibilité d'une voiture pour le week-end. Vous étiez en train de faire un état des lieux ou sur la route.
-            Il a loué chez votre concurrent 5 minutes plus tard.
+          <p className="text-base text-white/60 font-light leading-relaxed">
+            Vous avez construit cette agence vous-même. Mais aujourd'hui, elle tourne entre WhatsApp, Instagram, et un carnet — et un peu plus de contrôle vous échappe chaque jour.
           </p>
 
           <CTA />
-          <p className="text-center text-[11px] text-white/30 tracking-widest uppercase">15 min · Démo personnalisée · Aucun engagement</p>
         </div>
       </section>
 
-
-      {/* ═══ 2. PAIN REALITY ═══ */}
+      {/* ═══ 2. AGITATE ═══ */}
       <section className="px-6 py-20 max-w-lg mx-auto">
-        <p className="text-[10px] tracking-[.2em] uppercase text-[#C2496B] font-bold mb-8">Pensez à votre routine quotidienne</p>
+        <h2 className="text-xl font-medium text-white mb-8">Voici à quoi ça ressemble, concrètement :</h2>
 
-        <div className="space-y-10">
-          <div className="space-y-1">
-            <p className="text-xl font-medium text-white leading-snug">
-              Combien de messages WhatsApp recevez-vous chaque jour pour juste demander : "Disponible ? Quel prix ?"
-            </p>
-            <p className="text-sm text-white/40 font-light leading-relaxed">
-              Vous passez des heures à envoyer des photos une par une, négocier les cautions et vérifier sur un cahier si la Clio ou le Range Rover rentre mardi.
-            </p>
-          </div>
-
-          <div className="space-y-1 border-l-2 border-[#C2496B]/30 pl-5">
-            <p className="text-xl font-medium text-white leading-snug">
-              Et quand un client réserve verbalement sans acompte ni contrat immédiat, que se passe-t-il le jour J ?
-            </p>
-            <p className="text-sm text-white/40 font-light leading-relaxed">
-              No-show. Le client ne vient pas, le véhicule reste immobilisé sur votre parking, et vous avez refusé 3 autres clients pour rien.
-            </p>
-          </div>
-
-          <div className="space-y-1 border-l-2 border-[#C2496B]/60 pl-5">
-            <p className="text-xl font-medium text-white leading-snug">
-              Si votre flotte passe de 10 à 30 véhicules sans système automatisé, qui va gérer les retours et les relances ?
-            </p>
-            <p className="text-sm text-white/40 font-light leading-relaxed">
-              Vous allez vous noyer sous les appels et les erreurs de planning. Le secret des grandes agences n'est pas le nombre d'employés — c'est leur système d'automatisation.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-10">
-          <CTA />
-        </div>
-      </section>
-
-
-      {/* ═══ 3. BEFORE / AFTER ═══ */}
-      <section className="px-6 py-16 max-w-lg mx-auto">
-        <p className="text-[10px] tracking-[.2em] uppercase text-[#C2496B] font-bold mb-3">Deux réalités, même flotte</p>
-        <h2 className="text-2xl font-semibold tracking-tight text-white mb-8">Gestion manuelle vs. Système WebGo Automatisé</h2>
-
-        <div className="space-y-4">
+        <div className="space-y-4 mb-10">
           {[
-            { 
-              scene: "Un client demande un devis", 
-              left: "Vous répondez après 2h. Le client a déjà loué ailleurs.", 
-              right: "Réponse WhatsApp instantanée avec photos, tarifs et lien de réservation direct." 
-            },
-            { 
-              scene: "Le suivi de disponibilité", 
-              left: "Cahier papier ou mémoire. Risque permanent de double-booking.", 
-              right: "Planning interactif synchronisé. Le véhicule est bloqué dès la réservation." 
-            },
-            { 
-              scene: "Le jour de la prise en charge", 
-              left: "Le client arrive en retard ou oublie les documents nécessaires.", 
-              right: "Rappel automatique WhatsApp 24h avant avec checklist (Permis, Caution, Heure exacte)." 
-            },
-            { 
-              scene: "La restitution du véhicule", 
-              left: "Relances manuelles stressantes pour récupérer le véhicule à l'heure.", 
-              right: "Notification automatique 3h avant le terme du contrat avec localisation de l'agence." 
-            },
-          ].map((r, i) => (
-            <div key={i} className="rounded-2xl border border-white/[.06] overflow-hidden bg-white/[.02]">
-              <div className="px-4 py-2.5 bg-white/[.03] border-b border-white/[.06]">
-                <p className="text-[11px] uppercase tracking-widest font-semibold text-white/50">{r.scene}</p>
+            "Une réservation reçue par message WhatsApp la semaine dernière — impossible à retrouver dans la conversation",
+            "Un client qui écrit sur Instagram pendant que vous êtes au téléphone avec un autre — et le message se perd dans la liste",
+            "Une page du carnet tachée, déchirée, ou tout simplement oubliée à la maison le jour où vous en avez besoin",
+            "Une réservation notée à la main, une autre dans la tête, une autre \"on verra bien\" — jusqu'au jour où deux clients se présentent pour la même voiture"
+          ].map((text, i) => (
+            <div key={i} className="flex gap-4 items-start bg-white/[.02] border border-white/[.06] p-4 rounded-2xl">
+              <div className="w-6 h-6 rounded-full bg-[#C2496B]/10 border border-[#C2496B]/20 text-[#C2496B] flex items-center justify-center shrink-0 mt-0.5">
+                <Info className="w-3.5 h-3.5" />
               </div>
-              <div className="grid grid-cols-2">
-                <div className="p-4 border-r border-white/[.06]">
-                  <p className="text-xs text-white/35 font-light leading-relaxed">{r.left}</p>
-                </div>
-                <div className="p-4 bg-[#C2496B]/[.04]">
-                  <p className="text-xs text-white/90 font-medium leading-relaxed">{r.right}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* Business Impact row */}
-          <div className="rounded-2xl border border-[#C2496B]/20 overflow-hidden bg-[#C2496B]/[.06]">
-            <div className="px-4 py-2.5 bg-[#C2496B]/[.08] border-b border-[#C2496B]/15">
-              <p className="text-[11px] uppercase tracking-widest font-semibold text-[#C2496B]">Ce que vos clients pensent de votre agence</p>
-            </div>
-            <div className="grid grid-cols-2">
-              <div className="p-4 border-r border-[#C2496B]/10">
-                <p className="text-xs text-white/35 font-light leading-relaxed italic">"C'est long, ils manquent de professionnalisme."</p>
-              </div>
-              <div className="p-4">
-                <p className="text-xs text-white font-medium leading-relaxed italic">"Service 5 étoiles, réponse en 10 secondes. Je relouerai ici !"</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* ═══ 4. THE GAP BANNER ═══ */}
-      <section className="relative mx-5 max-w-lg md:mx-auto rounded-3xl overflow-hidden my-8">
-        <img 
-          src="https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=800&auto=format&fit=crop" 
-          alt="Luxury Car Interior" 
-          className="w-full h-56 object-cover grayscale opacity-25" 
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0B] via-[#0A0A0B]/90 to-transparent" />
-        <div className="absolute inset-0 bg-[#C2496B]/10 mix-blend-overlay" />
-        <div className="relative p-7 -mt-28">
-          <p className="text-base text-white/50 font-light leading-relaxed mb-4">
-            La différence entre une agence qui stagne et une agence qui remplit sa flotte 30 jours sur 30 ?
-          </p>
-          <p className="text-[1.7rem] font-bold tracking-tight text-white leading-tight mb-2">
-            Un système de réservation WhatsApp automatisé.
-          </p>
-          <p className="text-white/40 font-light mb-6">Et nous l'installons pour vous clé en main.</p>
-          <CTA text="Réserver mon audit gratuit" />
-        </div>
-      </section>
-
-
-      {/* ═══ 5. HOW IT WORKS ═══ */}
-      <section className="px-6 py-16 max-w-lg mx-auto space-y-8">
-        <div>
-          <span className="text-[10px] tracking-[.2em] uppercase text-[#C2496B] font-bold">Fonctionnalités Clés</span>
-          <h2 className="text-2xl font-semibold text-white mt-1">Conçu exclusivement pour les loueurs de voitures</h2>
-        </div>
-
-        <div className="space-y-4">
-          {[
-            {
-              icon: Car,
-              title: "Catalogue Flotte Instantané sur WhatsApp",
-              desc: "Le client choisit sa catégorie (Économique, SUV, Luxe), voit les disponibilités et reçoit immédiatement les tarifs avec photos professionnelles."
-            },
-            {
-              icon: Zap,
-              title: "Validation & Confirmation Automatiques",
-              desc: "Collecte automatique de la photo du permis et du passeport, génération du contrat et confirmation par message WhatsApp officiel."
-            },
-            {
-              icon: Clock,
-              title: "Élimination totale des No-Shows",
-              desc: "Rappels automatiques programmés 24h et 3h avant la prise en charge, avec itinéraire GPS de votre agence."
-            },
-            {
-              icon: Key,
-              title: "Gestion des Cautions & Prolongations",
-              desc: "Notification automatique la veille du retour pour proposer une prolongation de contrat ou confirmer l'état des lieux de retour."
-            }
-          ].map((item, idx) => (
-            <div key={idx} className="p-5 bg-white/[.02] border border-white/[.06] rounded-2xl flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[#C2496B]/10 border border-[#C2496B]/20 text-[#C2496B] flex items-center justify-center shrink-0 mt-0.5">
-                <item.icon className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-white mb-1">{item.title}</h3>
-                <p className="text-xs text-white/50 leading-relaxed font-light">{item.desc}</p>
-              </div>
+              <p className="text-sm text-white/70 font-light leading-relaxed">{text}</p>
             </div>
           ))}
         </div>
+
+        <div className="relative rounded-3xl overflow-hidden mb-10 border border-white/[.08]">
+          <img 
+            src="https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=800&auto=format&fit=crop" 
+            alt="Person checking phone messages" 
+            className="w-full h-48 object-cover grayscale opacity-50" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0B] to-transparent" />
+        </div>
+
+        <div className="space-y-6 border-l-2 border-[#C2496B]/40 pl-5">
+          <p className="text-base text-white/80 font-light leading-relaxed">
+            Rien de tout ça n'est une grosse erreur en soi. Mais additionné, jour après jour, c'est votre entreprise qui vous échappe un peu plus — pas parce que vous gérez mal, mais parce qu'aucun outil ne vous a été conçu pour vraiment tout voir au même endroit.
+          </p>
+          <p className="text-base text-[#C2496B] font-medium leading-relaxed">
+            Et plus votre flotte grandit, plus l'écart entre ce que vous croyez savoir et ce qui se passe réellement s'agrandit.
+          </p>
+        </div>
       </section>
 
+      {/* ═══ 3. SOLVE ═══ */}
+      <section className="px-6 py-16 max-w-lg mx-auto bg-[#C2496B]/[.03] border-y border-[#C2496B]/10">
+        <h2 className="text-2xl font-semibold tracking-tight text-white mb-6">Ce n'est pas une question d'organisation personnelle. C'est une question d'outil.</h2>
 
-      {/* ═══ 6. FORM CARD ═══ */}
-      <section id="rdv" className="mx-4 mb-16 max-w-lg md:mx-auto rounded-3xl overflow-hidden border border-white/[.08] bg-[#111112] shadow-[0_16px_60px_rgba(0,0,0,0.5)]">
+        <p className="text-sm text-white/60 font-light leading-relaxed mb-8">
+          Nous ne vendons pas une application de réservation générique. Nous construisons, pour chaque agence, un système qui centralise tout — chaque réservation, chaque client, chaque voiture — à un seul endroit, visible depuis votre téléphone, à tout moment.
+        </p>
+
+        <div className="relative rounded-3xl overflow-hidden mb-8 border border-white/[.08]">
+          <img 
+            src="https://images.unsplash.com/photo-1555215695-3004980ad54e?q=80&w=800&auto=format&fit=crop" 
+            alt="Modern car dashboard and control" 
+            className="w-full h-56 object-cover opacity-80" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0B] via-transparent to-transparent" />
+        </div>
+
+        <p className="text-base text-white font-medium leading-relaxed mb-8 text-center px-4">
+          Dites-nous ce qui vous coûte le plus de temps ou de stress en ce moment, et on vous montre exactement comment reprendre le contrôle — construit autour de la façon dont votre agence fonctionne, pas un modèle standard.
+        </p>
+
+        <CTA />
+      </section>
+
+      {/* ═══ 4. FORM CARD ═══ */}
+      <section id="rdv" className="mx-4 my-16 max-w-lg md:mx-auto rounded-3xl overflow-hidden border border-white/[.08] bg-[#111112] shadow-[0_16px_60px_rgba(0,0,0,0.5)]">
         <div className="relative h-36 overflow-hidden">
           <img 
             src="https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?q=80&w=800&auto=format&fit=crop" 
@@ -313,17 +204,16 @@ export default function CarAgenciesLP() {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#C2496B]/20 to-[#111112]" />
           <div className="absolute bottom-0 left-0 p-5">
-            <p className="text-xl font-semibold text-white tracking-tight">Réservez votre Démo Gratuite</p>
-            <p className="text-xs text-white/40 mt-0.5">15 min · Découverte en direct · Aucun engagement</p>
+            <p className="text-xl font-semibold text-white tracking-tight">Formulaire de qualification</p>
+            <p className="text-xs text-white/40 mt-0.5">Réservation pour votre appel de 15 minutes</p>
           </div>
         </div>
 
         <div className="p-5 space-y-5">
           {/* trust tags */}
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap mb-2">
             {[
               { i: Shield, t: "100% gratuit" }, 
-              { i: Zap, t: "Mise en place en 48h" }, 
               { i: CheckCircle2, t: "Sans engagement" }
             ].map(({ i: I, t }) => (
               <span key={t} className="inline-flex items-center gap-1.5 bg-white/[.04] border border-white/[.07] rounded-full px-3 py-1">
@@ -332,59 +222,73 @@ export default function CarAgenciesLP() {
             ))}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3.5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-[10px] uppercase tracking-[.15em] font-semibold text-white/35 mb-1">Votre Nom complet</label>
+              <label className="block text-[10px] uppercase tracking-[.15em] font-semibold text-white/40 mb-1.5">Nom</label>
               <input 
                 required 
                 type="text" 
                 value={formData.name} 
                 onChange={e => set('name', e.target.value)} 
-                placeholder="Ex: Youssef El Mansouri"
+                placeholder="Votre nom complet"
                 className="w-full bg-white/[.03] border border-white/[.08] focus:border-[#C2496B] focus:ring-2 focus:ring-[#C2496B]/15 rounded-xl px-4 py-3 text-white text-sm placeholder-white/15 outline-none transition-all" 
               />
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase tracking-[.15em] font-semibold text-white/35 mb-1">Numéro WhatsApp</label>
+              <label className="block text-[10px] uppercase tracking-[.15em] font-semibold text-white/40 mb-1.5">Téléphone / WhatsApp</label>
               <input 
                 required 
                 type="tel" 
                 value={formData.phone} 
                 onChange={e => set('phone', e.target.value)} 
-                placeholder="06 12 34 56 78 ou +212 6..."
+                placeholder="+212 6..."
                 className="w-full bg-white/[.03] border border-white/[.08] focus:border-[#C2496B] focus:ring-2 focus:ring-[#C2496B]/15 rounded-xl px-4 py-3 text-white text-sm placeholder-white/15 outline-none transition-all" 
               />
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase tracking-[.15em] font-semibold text-white/35 mb-1">Nom de l'Agence de Location</label>
-              <input 
-                required 
-                type="text" 
-                value={formData.businessName} 
-                onChange={e => set('businessName', e.target.value)} 
-                placeholder="Ex: Atlas Cars Marrakech"
-                className="w-full bg-white/[.03] border border-white/[.08] focus:border-[#C2496B] focus:ring-2 focus:ring-[#C2496B]/15 rounded-xl px-4 py-3 text-white text-sm placeholder-white/15 outline-none transition-all" 
-              />
+              <label className="block text-[10px] uppercase tracking-[.15em] font-semibold text-white/40 mb-1.5">Propriétaire ou gérant ?</label>
+              <select 
+                value={formData.role} 
+                onChange={e => set('role', e.target.value)}
+                className="w-full bg-[#1A1A1C] border border-white/[.08] focus:border-[#C2496B] focus:ring-2 focus:ring-[#C2496B]/15 rounded-xl px-4 py-3 text-white text-sm outline-none transition-all cursor-pointer"
+              >
+                <option value="Propriétaire">Propriétaire</option>
+                <option value="Gérant">Gérant</option>
+                <option value="Autre">Autre</option>
+              </select>
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase tracking-[.15em] font-semibold text-white/35 mb-1">Taille de votre flotte</label>
+              <label className="block text-[10px] uppercase tracking-[.15em] font-semibold text-white/40 mb-1.5">Nombre de voitures dans votre flotte</label>
               <select 
                 value={formData.fleetSize} 
                 onChange={e => set('fleetSize', e.target.value)}
                 className="w-full bg-[#1A1A1C] border border-white/[.08] focus:border-[#C2496B] focus:ring-2 focus:ring-[#C2496B]/15 rounded-xl px-4 py-3 text-white text-sm outline-none transition-all cursor-pointer"
               >
-                <option value="1–5 véhicules">1 à 5 véhicules</option>
-                <option value="6–15 véhicules">6 à 15 véhicules</option>
-                <option value="16–30 véhicules">16 à 30 véhicules</option>
-                <option value="30+ véhicules">Plus de 30 véhicules</option>
+                <option value="1–5 véhicules">1–5</option>
+                <option value="6–15 véhicules">6–15</option>
+                <option value="16+ véhicules">16+</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase tracking-[.15em] font-semibold text-white/35 mb-1">Date souhaitée pour l'appel</label>
+              <label className="block text-[10px] uppercase tracking-[.15em] font-semibold text-white/40 mb-1.5">Ce qui vous fait perdre le plus de temps/argent</label>
+              <select 
+                value={formData.painPoint} 
+                onChange={e => set('painPoint', e.target.value)}
+                className="w-full bg-[#1A1A1C] border border-white/[.08] focus:border-[#C2496B] focus:ring-2 focus:ring-[#C2496B]/15 rounded-xl px-4 py-3 text-white text-sm outline-none transition-all cursor-pointer"
+              >
+                <option value="Réservations éparpillées entre WhatsApp/Instagram/carnet">Réservations éparpillées (WhatsApp/Instagram/carnet)</option>
+                <option value="Oublis et doubles réservations">Oublis et doubles réservations</option>
+                <option value="Recherche d'informations perdues">Recherche d'informations perdues</option>
+                <option value="Tout ça à la fois">Tout ça à la fois</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] uppercase tracking-[.15em] font-semibold text-white/40 mb-1.5 mt-2">Date souhaitée pour l'appel</label>
               <input 
                 required 
                 type="date" 
@@ -429,14 +333,19 @@ export default function CarAgenciesLP() {
             <button 
               type="submit" 
               disabled={status === 'submitting'}
-              className="w-full mt-2 bg-[#C2496B] hover:bg-[#a83c5c] disabled:opacity-50 text-white font-semibold text-sm tracking-wide py-4 rounded-2xl active:scale-[.99] transition-all shadow-[0_6px_24px_rgba(194,73,107,0.3)]"
+              className="w-full mt-4 flex flex-col items-center justify-center bg-[#C2496B] hover:bg-[#a83c5c] disabled:opacity-50 text-white font-semibold text-sm tracking-wide py-4 px-2 rounded-2xl active:scale-[.99] transition-all shadow-[0_6px_24px_rgba(194,73,107,0.3)]"
             >
               {status === 'submitting' ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
                   Confirmation en cours...
                 </span>
-              ) : 'Bloquer mon créneau de démo →'}
+              ) : (
+                <>
+                  <span className="flex items-center gap-2">Réservez Votre Appel Gratuit <ArrowRight className="w-4 h-4" /></span>
+                  <span className="text-[10px] text-white/70 font-normal mt-1 text-center">Reprenez le contrôle sur votre flotte — cette semaine, pas dans six mois.</span>
+                </>
+              )}
             </button>
           </form>
         </div>
@@ -448,7 +357,7 @@ export default function CarAgenciesLP() {
       {/* ═══ STICKY BOTTOM MOBILE CTA ═══ */}
       <div className={`fixed bottom-0 inset-x-0 px-4 pb-4 pt-2 bg-[#0A0A0B]/95 backdrop-blur-xl border-t border-white/[.05] z-50 transition-transform duration-500 md:hidden ${scrolled ? 'translate-y-0' : 'translate-y-full'}`}>
         <a href="#rdv" onClick={goToForm} className="flex items-center justify-center gap-2 w-full bg-[#C2496B] text-white font-semibold text-sm py-3.5 rounded-2xl shadow-lg">
-          Réserver mon audit gratuit <ArrowRight className="w-4 h-4" />
+          Réserver Mon Appel Gratuit <ArrowRight className="w-4 h-4" />
         </a>
       </div>
     </div>

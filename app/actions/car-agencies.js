@@ -19,7 +19,7 @@ async function createClient() {
   );
 }
 
-export async function submitCarAgencyBooking({ name, phone, businessName, fleetSize, meetingDate, meetingTime }) {
+export async function submitCarAgencyBooking({ name, phone, businessName, fleetSize, painPoint, role, meetingDate, meetingTime }) {
   const supabase = await createClient();
 
   // HARDCODED USER ID AS REQUESTED (Same user as clinique)
@@ -42,7 +42,7 @@ export async function submitCarAgencyBooking({ name, phone, businessName, fleetS
   const { data: lead, error: leadError } = await supabase.from('leads').insert({
     full_name: name,
     phone: cleanPhone || phone,
-    agency_name: businessName,
+    agency_name: businessName || 'Agence Non spécifiée',
     business_type: 'Location de Voitures',
     fleet_size: fleetSize || null,
     status: 'NEW'
@@ -73,14 +73,16 @@ export async function submitCarAgencyBooking({ name, phone, businessName, fleetS
     user_id: targetUserId,
     type: 'meeting',
     title: 'Nouvelle Réservation - Agence de Voitures',
-    description: `${name} (${businessName || 'Agence'}) a réservé un appel le ${meetingDate} à ${meetingTime}. Flotte: ${fleetSize || 'Non spécifiée'}.`,
+    description: `${name} (${role || 'Propriétaire'}) a réservé un appel le ${meetingDate} à ${meetingTime}. Flotte: ${fleetSize || 'Non spécifiée'}. Problème: ${painPoint || 'Non spécifié'}.`,
     action_url: '/dashboard/calendar',
     metadata: {
       lead_id: lead.id,
       scheduled_at: dateTimeStr,
       phone: cleanPhone || phone,
       business_name: businessName,
-      fleet_size: fleetSize
+      fleet_size: fleetSize,
+      role: role,
+      pain_point: painPoint
     }
   });
 
