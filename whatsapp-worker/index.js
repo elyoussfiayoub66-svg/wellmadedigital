@@ -132,6 +132,8 @@ async function startWhatsAppClient(accountId) {
         console.log(`Received poll vote from ${phone}, parsing...`);
         const pollCreationMessageKey = msg.message.pollUpdateMessage.pollCreationMessageKey;
         
+        addLog('info', 'POLL_REPLY', `Incoming poll response detected from ${phone} (msgId: ${pollCreationMessageKey?.id})`);
+
         // Find the exact pending interaction by message_id
         const { data: pollMemory } = await supabase
           .from('pending_interactions')
@@ -159,11 +161,15 @@ async function startWhatsAppClient(accountId) {
               if (selectedOption) {
                 incomingText = selectedOption.name;
                 console.log(`Poll vote decrypted! User selected: ${incomingText}`);
+                addLog('success', 'POLL_REPLY', `Decrypted poll vote from ${phone}: "${incomingText}"`, { vote: incomingText });
               }
             } catch (decodeErr) {
               console.error("Failed to decrypt poll vote:", decodeErr);
+              addLog('error', 'POLL_REPLY', `Failed to decrypt poll vote from ${phone}: ${decodeErr.message}`);
             }
           }
+        } else {
+          addLog('warning', 'POLL_REPLY', `Poll vote received from ${phone}, but no active pending interaction was found for message ID ${pollCreationMessageKey?.id}`);
         }
       }
 
@@ -191,7 +197,10 @@ async function startWhatsAppClient(accountId) {
         }
       }
 
-      if (!targetLeadId) return;
+      if (!targetLeadId) {
+        addLog('info', 'INCOMING', `Received message from unmapped number ${phone}: "${incomingText}"`);
+        return;
+      }
 
       // Check if this lead has a pending interaction
       const { data: pendingInt } = await supabase
@@ -204,15 +213,19 @@ async function startWhatsAppClient(accountId) {
         
       if (pendingInt) {
         console.log(`Found pending interaction for lead ${targetLeadId} at node ${pendingInt.node_id}`);
+        addLog('info', 'WORKFLOW', `Resuming workflow [${pendingInt.workflow_id}] from node [${pendingInt.node_id}] for lead ${targetLeadId}`);
         // Delete the memory record so they don't get stuck
         await supabase.from('pending_interactions').delete().eq('id', pendingInt.id);
         
         // Resume the engine
         await resumeWorkflowFromInteractive(pendingInt, incomingText.trim());
+      } else {
+        addLog('info', 'INCOMING', `Received text message from lead (${phone}): "${incomingText}" (no pending interactive prompt)`);
       }
       
     } catch (err) {
       console.error('Error processing incoming message:', err);
+      addLog('error', 'INCOMING', `Error processing incoming message: ${err.message}`);
     }
   });
 }
@@ -276,8 +289,7 @@ app.post('/api/webhook/lead', async (req, res) => {
 async function bootActiveSessions() {
   const { data } = await supabase
     .from('whatsapp_accounts')
-    .select('id, token, expires_at')
-    .eq('worker_status', 'connected');
+    .select('id, token, expires_at, name, worker_status');
     
   if (data) {
     for (const acc of data) {
@@ -291,8 +303,14 @@ async function bootActiveSessions() {
         continue;
       }
       
-      console.log(`Restoring session for ${acc.id}`);
-      startWhatsAppClient(acc.id).catch(console.error);
+      const authFolder = path.join(__dirname, '..', 'auth_info', acc.id);
+      const hasCreds = fs.existsSync(path.join(authFolder, 'creds.json'));
+      
+      if (acc.worker_status === 'connected' || hasCreds) {
+        console.log(`Restoring session for ${acc.name || acc.id}`);
+        addLog('info', 'SYSTEM', `Restoring WhatsApp session on boot for "${acc.name || acc.id}"...`);
+        startWhatsAppClient(acc.id).catch(console.error);
+      }
     }
   }
 }

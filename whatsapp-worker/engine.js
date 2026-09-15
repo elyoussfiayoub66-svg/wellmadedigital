@@ -363,25 +363,47 @@ async function resumeWorkflowFromInteractive(pendingInteraction, selectedOptionT
   
   // Fetch workflow
   const { data: workflow } = await supabase.from('workflows').select('*').eq('id', pendingInteraction.workflow_id).single();
-  if (!workflow) return;
+  if (!workflow) {
+    addLog('error', 'WORKFLOW', `Cannot resume: Workflow ${pendingInteraction.workflow_id} not found in database.`);
+    return;
+  }
   
   // Fetch lead
   const { data: lead } = await supabase.from('leads').select('*').eq('id', pendingInteraction.lead_id).single();
-  if (!lead) return;
+  if (!lead) {
+    addLog('error', 'WORKFLOW', `Cannot resume: Lead ${pendingInteraction.lead_id} not found in database.`);
+    return;
+  }
   
   const node = workflow.nodes?.find(n => n.id === pendingInteraction.node_id);
-  if (!node) return;
+  if (!node) {
+    addLog('error', 'WORKFLOW', `Cannot resume: Node ${pendingInteraction.node_id} not found in workflow.`);
+    return;
+  }
   
-  const btn1Text = node.data?.btn1 || 'Yes';
-  // const btn2Text = node.data?.btn2 || 'No';
+  const btn1Text = (node.data?.btn1 || 'Yes').trim();
+  const btn2Text = (node.data?.btn2 || 'No').trim();
+  const cleanSelected = (selectedOptionText || '').trim();
   
-  // Determine which branch to take based on the exact text of the button they voted for
-  const nextHandle = selectedOptionText === btn1Text ? 'opt1' : 'opt2';
+  // Determine which branch to take based on the text of the button they voted for
+  const isOpt1 = cleanSelected.toLowerCase() === btn1Text.toLowerCase();
+  const nextHandle = isOpt1 ? 'opt1' : 'opt2';
+  const branchName = isOpt1 ? `Option 1 ("${btn1Text}")` : `Option 2 ("${btn2Text}")`;
+  
+  addLog('success', 'POLL_REPLY', `Lead "${lead.full_name || lead.phone}" selected "${cleanSelected}". Resuming along ${branchName}.`, {
+    selected: cleanSelected,
+    branch: nextHandle,
+    nodeId: node.id
+  });
   
   const payload = { lead };
   
   // Find next nodes
   const nextEdges = workflow.edges?.filter(e => e.source === node.id && e.sourceHandle === nextHandle) || [];
+  
+  if (nextEdges.length === 0) {
+    addLog('info', 'WORKFLOW', `No downstream nodes connected to ${branchName} of node [${node.id}]. Workflow complete.`);
+  }
   
   for (const edge of nextEdges) {
     processNode(workflow, edge.target, payload);
