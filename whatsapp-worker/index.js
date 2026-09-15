@@ -119,15 +119,12 @@ async function startWhatsAppClient(accountId) {
       const phone = senderJid.split('@')[0];
       
       let incomingText = '';
-      
-      // Check if this phone number is a lead in our DB
-      const { data: lead } = await supabase.from('leads').select('id').like('phone', `%${phone}%`).single();
-      if (!lead) return;
-      
-      // Extract text from standard message
-      if (msg.message.conversation) incomingText = msg.message.conversation;
-      else if (msg.message.extendedTextMessage?.text) incomingText = msg.message.extendedTextMessage.text;
-      
+      const cleanDigits = phone.replace(/[^0-9]/g, '');
+      const last9 = cleanDigits.slice(-9);
+
+      let targetLeadId = null;
+
+      // 1. Handle Poll Vote
       if (msg.message.pollUpdateMessage) {
         console.log(`Received poll vote from ${phone}, parsing...`);
         const pollCreationMessageKey = msg.message.pollUpdateMessage.pollCreationMessageKey;
@@ -139,40 +136,65 @@ async function startWhatsAppClient(accountId) {
           .eq('message_id', pollCreationMessageKey.id)
           .single();
           
-        if (pollMemory && pollMemory.message_json) {
-          const originalMessage = {
-            key: pollCreationMessageKey,
-            message: pollMemory.message_json
-          };
-          
-          try {
-            // Decrypt the vote!
-            const votes = getAggregateVotesInPollMessage({
-              message: originalMessage,
-              pollUpdates: [msg]
-            });
+        if (pollMemory) {
+          targetLeadId = pollMemory.lead_id;
+
+          if (pollMemory.message_json) {
+            const originalMessage = {
+              key: pollCreationMessageKey,
+              message: pollMemory.message_json
+            };
             
-            // The user could have selected multiple, but we set selectableCount: 1
-            const selectedOption = votes.find(v => v.voters.length > 0);
-            if (selectedOption) {
-              incomingText = selectedOption.name;
-              console.log(`Poll vote decrypted! User selected: ${incomingText}`);
+            try {
+              // Decrypt the vote!
+              const votes = getAggregateVotesInPollMessage({
+                message: originalMessage,
+                pollUpdates: [msg]
+              });
+              
+              const selectedOption = votes.find(v => v.voters.length > 0);
+              if (selectedOption) {
+                incomingText = selectedOption.name;
+                console.log(`Poll vote decrypted! User selected: ${incomingText}`);
+              }
+            } catch (decodeErr) {
+              console.error("Failed to decrypt poll vote:", decodeErr);
             }
-          } catch (decodeErr) {
-            console.error("Failed to decrypt poll vote:", decodeErr);
           }
         }
+      }
+
+      // 2. Extract text from standard message
+      if (!incomingText) {
+        if (msg.message.conversation) incomingText = msg.message.conversation;
+        else if (msg.message.extendedTextMessage?.text) incomingText = msg.message.extendedTextMessage.text;
       }
       
       if (!incomingText) return;
       
       console.log(`Incoming text/vote from ${phone}: ${incomingText}`);
 
-      // Check if this lead has a pending interaction (fallback to text matching if poll vote failed or they typed it)
+      // 3. Find lead if not already found from poll memory
+      if (!targetLeadId) {
+        const { data: leads } = await supabase
+          .from('leads')
+          .select('id')
+          .or(`phone.like.%${cleanDigits}%,phone.like.%${last9}%`)
+          .order('created_at', { ascending: false })
+          .limit(1);
+          
+        if (leads && leads.length > 0) {
+          targetLeadId = leads[0].id;
+        }
+      }
+
+      if (!targetLeadId) return;
+
+      // Check if this lead has a pending interaction
       const { data: pendingInt } = await supabase
         .from('pending_interactions')
         .select('*')
-        .eq('lead_id', lead.id)
+        .eq('lead_id', targetLeadId)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();

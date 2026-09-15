@@ -128,6 +128,36 @@ function resolveTemplate(template, payload) {
     return val !== undefined && val !== null ? val : match;
   });
 }
+  
+function formatPhoneNumber(phone) {
+  if (!phone) return null;
+  let clean = phone.replace(/[^0-9]/g, '');
+  if (clean.startsWith('00')) clean = clean.substring(2);
+  // Moroccan local numbers (e.g. 06..., 07..., 05... -> 10 digits)
+  if (clean.startsWith('0') && clean.length === 10) {
+    clean = '212' + clean.substring(1);
+  } else if ((clean.startsWith('6') || clean.startsWith('7') || clean.startsWith('5')) && clean.length === 9) {
+    clean = '212' + clean;
+  }
+  return clean;
+}
+
+async function resolveJid(sock, rawPhone) {
+  const cleanPhone = formatPhoneNumber(rawPhone);
+  if (!cleanPhone) return null;
+
+  try {
+    const results = await sock.onWhatsApp(cleanPhone);
+    if (results && results[0]?.exists) {
+      console.log(`Resolved verified WhatsApp JID for ${rawPhone} -> ${results[0].jid}`);
+      return results[0].jid;
+    }
+  } catch (err) {
+    console.warn(`onWhatsApp check failed for ${cleanPhone}:`, err.message);
+  }
+
+  return cleanPhone + '@s.whatsapp.net';
+}
 
 async function executeWhatsAppNode(workflow, node, payload) {
   if (!workflow.whatsapp_account_id) {
@@ -164,9 +194,11 @@ async function executeWhatsAppNode(workflow, node, payload) {
     return 'failed';
   }
 
-  // Format phone number to JID
-  const cleanPhone = leadPhone.replace(/[^0-9]/g, '');
-  const jid = cleanPhone + '@s.whatsapp.net';
+  const jid = await resolveJid(sock, leadPhone);
+  if (!jid) {
+    console.error(`Could not resolve valid WhatsApp JID for ${leadPhone}`);
+    return 'failed';
+  }
   
   const messageText = resolveTemplate(node.data?.template, payload);
   
@@ -208,8 +240,11 @@ async function executeInteractiveNode(workflow, node, payload) {
   const leadPhone = payload.lead?.phone;
   if (!leadPhone) return;
 
-  const cleanPhone = leadPhone.replace(/[^0-9]/g, '');
-  const jid = cleanPhone + '@s.whatsapp.net';
+  const jid = await resolveJid(sock, leadPhone);
+  if (!jid) {
+    console.error(`Could not resolve valid WhatsApp JID for ${leadPhone}`);
+    return;
+  }
   
   const messageText = resolveTemplate(node.data?.template, payload);
   const btn1Text = node.data?.btn1 || 'Yes';

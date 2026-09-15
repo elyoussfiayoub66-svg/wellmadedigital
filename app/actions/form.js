@@ -106,7 +106,19 @@ export async function submitLead(formData, visitorId, sessionId, attribution) {
     }
   }
 
-  // 3. Create Lead
+  // 3. Normalize Phone & Create Lead
+  let cleanPhone = formData.phone ? formData.phone.trim() : '';
+  if (cleanPhone) {
+    let digits = cleanPhone.replace(/[^0-9]/g, '');
+    if (digits.startsWith('00')) digits = digits.substring(2);
+    if (digits.startsWith('0') && digits.length === 10) {
+      digits = '212' + digits.substring(1);
+    } else if ((digits.startsWith('6') || digits.startsWith('7') || digits.startsWith('5')) && digits.length === 9) {
+      digits = '212' + digits;
+    }
+    cleanPhone = '+' + digits;
+  }
+
   const { data: lead, error: leadError } = await supabase.from('leads').insert({
     agency_name: formData.agency,
     city: formData.city,
@@ -115,7 +127,7 @@ export async function submitLead(formData, visitorId, sessionId, attribution) {
     main_problem: formData.problem,
     buying_timeline: formData.timeline,
     full_name: formData.name,
-    phone: formData.phone,
+    phone: cleanPhone || formData.phone,
     email: formData.email,
     qualification_score: score,
     campaign_id: campaignId

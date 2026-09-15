@@ -25,10 +25,23 @@ export async function submitCliniqueBooking({ name, phone, businessName, meeting
   // HARDCODED USER ID AS REQUESTED
   const targetUserId = '84c58de0-775c-4e67-87a8-72b545e96a3c';
 
+  // 1. Normalize Phone
+  let cleanPhone = phone ? phone.trim() : '';
+  if (cleanPhone) {
+    let digits = cleanPhone.replace(/[^0-9]/g, '');
+    if (digits.startsWith('00')) digits = digits.substring(2);
+    if (digits.startsWith('0') && digits.length === 10) {
+      digits = '212' + digits.substring(1);
+    } else if ((digits.startsWith('6') || digits.startsWith('7') || digits.startsWith('5')) && digits.length === 9) {
+      digits = '212' + digits;
+    }
+    cleanPhone = '+' + digits;
+  }
+
   // 1. Insert Lead
   const { data: lead, error: leadError } = await supabase.from('leads').insert({
     full_name: name,
-    phone,
+    phone: cleanPhone || phone,
     agency_name: businessName,
     status: 'NEW'
   }).select().single();
