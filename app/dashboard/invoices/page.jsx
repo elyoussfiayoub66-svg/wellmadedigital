@@ -108,8 +108,10 @@ export default function InvoicesPage() {
 
   const generatePDF = async (invoice) => {
     try {
-      const { default: jsPDF } = await import('jspdf');
-      await import('jspdf-autotable');
+      const jsPDFModule = await import('jspdf');
+      const jsPDF = jsPDFModule.jsPDF || jsPDFModule.default;
+      const autoTableModule = await import('jspdf-autotable');
+      const autoTable = autoTableModule.default || autoTableModule;
 
       const doc = new jsPDF();
       
@@ -143,7 +145,7 @@ export default function InvoicesPage() {
       doc.text(invoice.projects?.name || 'Project Name', 120, 67);
 
       // Line items using autoTable
-      doc.autoTable({
+      autoTable(doc, {
         startY: 80,
         head: [['Description', 'Type', 'Total']],
         body: [
@@ -159,7 +161,7 @@ export default function InvoicesPage() {
       });
 
       // Total
-      const finalY = doc.lastAutoTable.finalY || 80;
+      const finalY = doc.lastAutoTable?.finalY || 120;
       doc.setFontSize(12);
       doc.setTextColor(33, 37, 41);
       doc.text(`Total Amount: MAD ${Number(invoice.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}`, 14, finalY + 20);

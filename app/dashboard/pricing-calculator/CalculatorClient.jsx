@@ -54,8 +54,10 @@ export default function CalculatorClient({ initialData }) {
 
   const handleGenerateQuote = async () => {
     try {
-      const { default: jsPDF } = await import('jspdf');
-      await import('jspdf-autotable');
+      const jsPDFModule = await import('jspdf');
+      const jsPDF = jsPDFModule.jsPDF || jsPDFModule.default;
+      const autoTableModule = await import('jspdf-autotable');
+      const autoTable = autoTableModule.default || autoTableModule;
 
       const doc = new jsPDF();
       
@@ -91,7 +93,7 @@ export default function CalculatorClient({ initialData }) {
       const discountTotal = calculation.appliedDiscounts.reduce((sum, d) => sum + d.discountAmount, 0);
 
       // Line items using autoTable
-      doc.autoTable({
+      autoTable(doc, {
         startY: 80,
         head: [['Description', 'Amount']],
         body: [
@@ -105,7 +107,7 @@ export default function CalculatorClient({ initialData }) {
       });
 
       // Footer
-      const finalY = doc.lastAutoTable.finalY || 80;
+      const finalY = doc.lastAutoTable?.finalY || 120;
       doc.setFontSize(10);
       doc.setTextColor(150);
       doc.text('This is an estimate. Prices may vary based on specific requirements and finalized scope.', 14, finalY + 20);
