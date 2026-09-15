@@ -204,7 +204,7 @@ export default function CarAgenciesLP() {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#C2496B]/20 to-[#111112]" />
           <div className="absolute bottom-0 left-0 p-5">
-            <p className="text-xl font-semibold text-white tracking-tight">Formulaire de qualification</p>
+            <p className="text-xl font-semibold text-white tracking-tight">Meeting Reservation</p>
             <p className="text-xs text-white/40 mt-0.5">Réservation pour votre appel de 15 minutes</p>
           </div>
         </div>
