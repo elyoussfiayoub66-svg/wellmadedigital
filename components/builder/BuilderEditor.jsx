@@ -63,7 +63,7 @@ export default function BuilderEditor({ pageId }) {
       e.BlockManager.add('lead-capture-form', {
         label: 'CRM Lead Form',
         category: 'Forms',
-        content: \`
+        content: `
           <form action="/api/capture-lead" method="POST" class="crm-lead-form" data-gjs-type="form" style="padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto;">
             <h3 style="margin-bottom: 15px; color: #333;">Book a Meeting</h3>
             <div style="margin-bottom: 10px;">
@@ -80,7 +80,7 @@ export default function BuilderEditor({ pageId }) {
             </div>
             <button type="submit" style="width: 100%; padding: 12px; background: #C2496B; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Submit Request</button>
           </form>
-        \`,
+        `,
       });
 
       setEditor(e);
@@ -159,7 +159,7 @@ export default function BuilderEditor({ pageId }) {
       {/* GrapesJS Container */}
       <div id="gjs" ref={editorRef} className="flex-1 w-full h-full overflow-hidden"></div>
       
-      <style jsx global>{\`
+      <style jsx global>{`
         /* Custom GrapesJS Theme overrides to match the dark UI */
         .gjs-cv-canvas {
           top: 0;
@@ -206,7 +206,7 @@ export default function BuilderEditor({ pageId }) {
           background-color: #1A1A1B;
           color: #F7F5F0;
         }
-      \`}</style>
+      `}</style>
     </div>
   );
 }
