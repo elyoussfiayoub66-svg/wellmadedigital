@@ -6,15 +6,22 @@ import 'grapesjs/dist/css/grapes.min.css';
 import gjsPresetWebpage from 'grapesjs-preset-webpage';
 import gjsBlocksBasic from 'grapesjs-blocks-basic';
 import gjsPluginForms from 'grapesjs-plugin-forms';
+import gjsCustomCode from 'grapesjs-custom-code';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, Save, Desktop, Smartphone, Monitor } from 'lucide-react';
+import { ArrowLeft, Save, Desktop, Smartphone, Monitor, Code, Layout, Layers } from 'lucide-react';
 
 export default function BuilderEditor({ pageId }) {
   const editorRef = useRef(null);
+  const blocksRef = useRef(null);
+  const stylesRef = useRef(null);
+  
   const [editor, setEditor] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [leftTab, setLeftTab] = useState('blocks'); // 'blocks' or 'layers'
+  const [rightTab, setRightTab] = useState('styles'); // 'styles' or 'settings'
+  
   const supabase = createClient();
   const router = useRouter();
   
@@ -36,19 +43,25 @@ export default function BuilderEditor({ pageId }) {
 
       const e = grapesjs.init({
         container: editorRef.current,
-        height: '100vh',
-        width: 'auto',
+        height: '100%',
+        width: '100%',
         storageManager: {
           type: 'remote',
           stepsBeforeSave: 3,
           autosave: false,
         },
-        plugins: [gjsPresetWebpage, gjsBlocksBasic, gjsPluginForms],
+        plugins: [gjsPresetWebpage, gjsBlocksBasic, gjsPluginForms, gjsCustomCode],
         pluginsOpts: {
           gjsPresetWebpage: {},
           gjsBlocksBasic: {},
-          gjsPluginForms: {}
+          gjsPluginForms: {},
+          gjsCustomCode: {}
         },
+        blockManager: { appendTo: '#blocks-container' },
+        layerManager: { appendTo: '#layers-container' },
+        styleManager: { appendTo: '#styles-container' },
+        traitManager: { appendTo: '#traits-container' },
+        selectorManager: { appendTo: '#styles-container' },
       });
 
       // Load data if exists
@@ -122,100 +135,122 @@ export default function BuilderEditor({ pageId }) {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-brand-bg">
-      {/* Top Navigation */}
-      <div className="h-14 bg-brand-surface border-b border-brand-border flex items-center justify-between px-4 shrink-0 z-50">
-        <div className="flex items-center gap-4">
+    <div className="flex h-screen w-screen overflow-hidden bg-brand-bg text-brand-text">
+      
+      {/* Left Sidebar: Blocks & Layers */}
+      <div className="w-64 flex flex-col shrink-0 bg-brand-surface border-r border-brand-border z-10">
+        <div className="h-14 flex items-center border-b border-brand-border px-2 shrink-0">
           <button 
             onClick={() => router.push('/dashboard/landing-pages')}
-            className="flex items-center justify-center p-2 rounded hover:bg-brand-border/50 text-brand-text transition-colors"
+            className="p-2 rounded-lg hover:bg-brand-border/50 text-brand-muted hover:text-brand-text transition-colors mr-2"
+            title="Back to Dashboard"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </button>
-          <span className="font-bold text-sm text-brand-text">Landing Page Builder</span>
+          
+          <div className="flex bg-brand-bg rounded-lg p-1 w-full">
+            <button 
+              onClick={() => setLeftTab('blocks')}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${leftTab === 'blocks' ? 'bg-brand-surface text-brand-accent shadow-sm' : 'text-brand-muted hover:text-brand-text'}`}
+            >
+              <Layout className="w-3.5 h-3.5" /> Add
+            </button>
+            <button 
+              onClick={() => setLeftTab('layers')}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all flex items-center justify-center gap-2 ${leftTab === 'layers' ? 'bg-brand-surface text-brand-accent shadow-sm' : 'text-brand-muted hover:text-brand-text'}`}
+            >
+              <Layers className="w-3.5 h-3.5" /> Layers
+            </button>
+          </div>
         </div>
-        
-        <div className="flex items-center gap-2">
-          <div className="flex items-center bg-brand-bg rounded-lg border border-brand-border p-1 mr-4">
-            <button onClick={() => editor?.setDevice('Desktop')} className="p-1.5 rounded hover:bg-brand-surface text-brand-muted hover:text-brand-text transition-colors">
+        <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+           <div id="blocks-container" className={`absolute inset-0 p-3 ${leftTab === 'blocks' ? 'block' : 'hidden'}`}></div>
+           <div id="layers-container" className={`absolute inset-0 ${leftTab === 'layers' ? 'block' : 'hidden'}`}></div>
+        </div>
+      </div>
+
+      {/* Center Canvas */}
+      <div className="flex-1 flex flex-col min-w-0 relative">
+        {/* Topbar inside Center */}
+        <div className="h-14 bg-brand-surface border-b border-brand-border flex items-center justify-center px-4 shrink-0 relative z-10">
+          <div className="flex items-center bg-brand-bg rounded-lg border border-brand-border p-1">
+            <button onClick={() => editor?.setDevice('Desktop')} className="p-1.5 rounded-md hover:bg-brand-surface text-brand-muted hover:text-brand-text transition-colors" title="Desktop View">
               <Monitor className="w-4 h-4" />
             </button>
-            <button onClick={() => editor?.setDevice('Mobile portrait')} className="p-1.5 rounded hover:bg-brand-surface text-brand-muted hover:text-brand-text transition-colors">
+            <button onClick={() => editor?.setDevice('Mobile portrait')} className="p-1.5 rounded-md hover:bg-brand-surface text-brand-muted hover:text-brand-text transition-colors" title="Mobile View">
               <Smartphone className="w-4 h-4" />
+            </button>
+            <div className="w-px h-4 bg-brand-border mx-1"></div>
+            <button onClick={() => editor?.runCommand('gjs-open-import-webpage')} className="p-1.5 rounded-md hover:bg-brand-surface text-brand-muted hover:text-brand-text transition-colors" title="Inject HTML/CSS">
+              <Code className="w-4 h-4" />
             </button>
           </div>
           
-          <button 
-            onClick={handleSave}
-            disabled={isSaving}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-accent text-white font-bold text-sm rounded-lg hover:bg-brand-accent/90 disabled:opacity-50 transition-colors"
-          >
-            <Save className="w-4 h-4" />
-            {isSaving ? 'Saving...' : 'Save Page'}
-          </button>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+            <button 
+              onClick={handleSave}
+              disabled={isSaving}
+              className="flex items-center gap-2 px-4 py-2 bg-brand-accent text-white font-bold text-sm rounded-lg hover:bg-brand-accent/90 disabled:opacity-50 transition-colors"
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </div>
+        
+        {/* Canvas */}
+        <div id="gjs" ref={editorRef} className="flex-1 w-full bg-brand-bg"></div>
+      </div>
+
+      {/* Right Sidebar: Styles */}
+      <div className="w-72 flex flex-col shrink-0 bg-brand-surface border-l border-brand-border z-10">
+        <div className="h-14 flex items-center border-b border-brand-border px-2 shrink-0">
+          <div className="flex bg-brand-bg rounded-lg p-1 w-full">
+            <button 
+              onClick={() => setRightTab('styles')}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${rightTab === 'styles' ? 'bg-brand-surface text-brand-accent shadow-sm' : 'text-brand-muted hover:text-brand-text'}`}
+            >
+              Styles
+            </button>
+            <button 
+              onClick={() => setRightTab('settings')}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${rightTab === 'settings' ? 'bg-brand-surface text-brand-accent shadow-sm' : 'text-brand-muted hover:text-brand-text'}`}
+            >
+              Settings
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+           <div id="styles-container" className={`absolute inset-0 p-4 ${rightTab === 'styles' ? 'block' : 'hidden'}`}></div>
+           <div id="traits-container" className={`absolute inset-0 p-4 ${rightTab === 'settings' ? 'block' : 'hidden'}`}></div>
         </div>
       </div>
       
-      {/* GrapesJS Container */}
-      <div id="gjs" ref={editorRef} className="flex-1 w-full h-full overflow-hidden"></div>
-      
       <style jsx global>{`
-        /* ----------------------------------------------------- */
-        /* GrapesJS Modern "Figma/Webflow" Dark Theme Overrides  */
-        /* ----------------------------------------------------- */
+        /* Hide Default Preset Panels entirely to use our custom React layout */
+        .gjs-pn-panels { display: none !important; }
         
         /* 1. Canvas Area */
         .gjs-cv-canvas {
           top: 0;
           width: 100%;
           height: 100%;
-          /* Dotted background pattern */
           background-color: #0E0E0F !important;
           background-image: radial-gradient(#2A2A2B 1px, transparent 1px) !important;
           background-size: 24px 24px !important;
         }
 
-        /* 2. Base Colors */
-        .gjs-one-bg { background-color: #1A1A1B !important; }
+        /* Base colors override */
+        .gjs-one-bg { background-color: transparent !important; }
         .gjs-two-color { color: #F7F5F0 !important; }
         .gjs-three-bg { background-color: #C2496B !important; color: white !important; }
         .gjs-four-color, .gjs-four-color-h:hover { color: #C2496B !important; }
         
-        /* 3. Panels & Top Bar */
-        .gjs-pn-panel {
-          background-color: #1A1A1B !important;
-          border-color: #2A2A2B !important;
-        }
-        .gjs-pn-views-container {
-          box-shadow: -4px 0 15px rgba(0,0,0,0.2);
-          border-left: 1px solid #2A2A2B !important;
-          background-color: #1A1A1B !important;
-        }
-        .gjs-pn-views {
-          border-bottom: 1px solid #2A2A2B !important;
-          background-color: #1A1A1B !important;
-        }
-        .gjs-pn-btn {
-          color: #F7F5F0 !important;
-          opacity: 0.5;
-          transition: all 0.2s ease;
-        }
-        .gjs-pn-btn:hover {
-          opacity: 1;
-        }
-        .gjs-pn-active {
-          color: #C2496B !important;
-          opacity: 1;
-          box-shadow: none !important;
-          border-bottom: 2px solid #C2496B;
-        }
-        
-        /* 4. Blocks (Drag & Drop components) */
+        /* Blocks */
         .gjs-blocks-c {
-          padding: 16px !important;
-          gap: 12px !important;
           display: grid !important;
           grid-template-columns: 1fr 1fr;
+          gap: 12px !important;
         }
         .gjs-block {
           border-radius: 12px !important;
@@ -244,29 +279,23 @@ export default function BuilderEditor({ pageId }) {
           text-transform: capitalize !important;
         }
 
-        /* 5. Style Manager (Right Sidebar) */
+        /* Style Manager */
         .gjs-sm-sector {
           border-bottom: 1px solid #2A2A2B !important;
+          margin-bottom: 16px;
         }
         .gjs-sm-title {
-          background-color: #1A1A1B !important;
           color: #F7F5F0 !important;
           font-weight: 600 !important;
-          text-transform: uppercase !important;
-          font-size: 11px !important;
-          letter-spacing: 0.5px !important;
-          padding: 16px !important;
-          border-bottom: 1px solid #2A2A2B !important;
+          font-size: 12px !important;
+          padding: 0 0 12px 0 !important;
+          background: transparent !important;
+          border: none !important;
         }
         .gjs-sm-properties {
-          background-color: #1A1A1B !important;
-          padding: 12px !important;
+          padding: 0 0 16px 0 !important;
+          background: transparent !important;
         }
-        .gjs-sm-property {
-          margin-bottom: 12px !important;
-        }
-        
-        /* Form fields inside style manager */
         .gjs-field {
           background-color: #0E0E0F !important;
           border: 1px solid #2A2A2B !important;
@@ -278,7 +307,7 @@ export default function BuilderEditor({ pageId }) {
           border-color: #C2496B !important;
         }
         
-        /* 6. Layers / DOM elements */
+        /* Layers */
         .gjs-layer {
           border-bottom: 1px solid #2A2A2B !important;
         }
@@ -290,26 +319,20 @@ export default function BuilderEditor({ pageId }) {
           background-color: rgba(194, 73, 107, 0.1) !important;
           border-left: 3px solid #C2496B !important;
         }
-        .gjs-layer-title:hover {
-          background-color: #2A2A2B !important;
-        }
         
-        /* 7. Scrollbars */
-        .gjs-pn-views-container::-webkit-scrollbar,
-        .gjs-blocks-c::-webkit-scrollbar {
+        /* Scrollbars */
+        ::-webkit-scrollbar {
           width: 6px;
+          height: 6px;
         }
-        .gjs-pn-views-container::-webkit-scrollbar-track,
-        .gjs-blocks-c::-webkit-scrollbar-track {
+        ::-webkit-scrollbar-track {
           background: #1A1A1B;
         }
-        .gjs-pn-views-container::-webkit-scrollbar-thumb,
-        .gjs-blocks-c::-webkit-scrollbar-thumb {
+        ::-webkit-scrollbar-thumb {
           background: #2A2A2B;
           border-radius: 4px;
         }
-        .gjs-pn-views-container::-webkit-scrollbar-thumb:hover,
-        .gjs-blocks-c::-webkit-scrollbar-thumb:hover {
+        ::-webkit-scrollbar-thumb:hover {
           background: #3A3A3B;
         }
       `}</style>

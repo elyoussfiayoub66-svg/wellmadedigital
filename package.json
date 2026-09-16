@@ -19,6 +19,7 @@
     "framer-motion": "^13.1.1",
     "grapesjs": "^0.23.6",
     "grapesjs-blocks-basic": "^1.0.2",
+    "grapesjs-custom-code": "^1.0.2",
     "grapesjs-plugin-forms": "^2.0.6",
     "grapesjs-preset-webpage": "^1.0.3",
     "jose": "^6.2.8",
