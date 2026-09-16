@@ -22,6 +22,11 @@ export default function BuilderEditor({ pageId }) {
   const [leftTab, setLeftTab] = useState('blocks'); // 'blocks' or 'layers'
   const [rightTab, setRightTab] = useState('styles'); // 'styles' or 'settings'
   
+  // Custom Code Modal State
+  const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
+  const [customHtml, setCustomHtml] = useState('');
+  const [customCss, setCustomCss] = useState('');
+  
   const supabase = createClient();
   const router = useRouter();
   
@@ -134,6 +139,22 @@ export default function BuilderEditor({ pageId }) {
     }
   };
 
+  const openCodeModal = () => {
+    if (!editor) return;
+    setCustomHtml(editor.getHtml());
+    setCustomCss(editor.getCss());
+    setIsCodeModalOpen(true);
+  };
+
+  const applyCustomCode = () => {
+    if (!editor) return;
+    // Inject components and styles
+    editor.setComponents(customHtml);
+    editor.setStyle(customCss);
+    setIsCodeModalOpen(false);
+    toast.success("Code injected successfully!");
+  };
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-brand-bg text-brand-text">
       
@@ -181,7 +202,7 @@ export default function BuilderEditor({ pageId }) {
               <Smartphone className="w-4 h-4" />
             </button>
             <div className="w-px h-4 bg-brand-border mx-1"></div>
-            <button onClick={() => editor?.runCommand('gjs-open-import-webpage')} className="p-1.5 rounded-md hover:bg-brand-surface text-brand-muted hover:text-brand-text transition-colors" title="Inject HTML/CSS">
+            <button onClick={openCodeModal} className="p-1.5 rounded-md hover:bg-brand-surface text-brand-muted hover:text-brand-text transition-colors" title="Inject HTML/CSS">
               <Code className="w-4 h-4" />
             </button>
           </div>
@@ -226,6 +247,60 @@ export default function BuilderEditor({ pageId }) {
         </div>
       </div>
       
+      {/* Code Injection Modal */}
+      {isCodeModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-brand-surface w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border border-brand-border shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-brand-border flex items-center justify-between bg-brand-surface shrink-0">
+              <div>
+                <h2 className="text-lg font-bold text-brand-text">Inject HTML & CSS</h2>
+                <p className="text-xs text-brand-muted mt-1">Paste your custom code below. It will replace the current page design.</p>
+              </div>
+              <button onClick={() => setIsCodeModalOpen(false)} className="p-2 text-brand-muted hover:text-white bg-brand-bg rounded-lg">
+                ✕
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-hidden flex flex-col md:flex-row gap-4 p-4 bg-brand-bg min-h-[400px]">
+              <div className="flex-1 flex flex-col">
+                <label className="text-xs font-bold uppercase tracking-wider text-brand-muted mb-2">HTML Code</label>
+                <textarea
+                  value={customHtml}
+                  onChange={(e) => setCustomHtml(e.target.value)}
+                  className="flex-1 w-full bg-brand-surface border border-brand-border rounded-xl p-4 text-brand-text font-mono text-sm focus:border-brand-accent focus:outline-none focus:ring-1 focus:ring-brand-accent resize-none custom-scrollbar"
+                  spellCheck={false}
+                />
+              </div>
+              <div className="flex-1 flex flex-col">
+                <label className="text-xs font-bold uppercase tracking-wider text-brand-muted mb-2">CSS Code</label>
+                <textarea
+                  value={customCss}
+                  onChange={(e) => setCustomCss(e.target.value)}
+                  className="flex-1 w-full bg-brand-surface border border-brand-border rounded-xl p-4 text-brand-text font-mono text-sm focus:border-brand-accent focus:outline-none focus:ring-1 focus:ring-brand-accent resize-none custom-scrollbar"
+                  spellCheck={false}
+                />
+              </div>
+            </div>
+            
+            <div className="p-4 border-t border-brand-border bg-brand-surface flex justify-end gap-3 shrink-0">
+              <button
+                onClick={() => setIsCodeModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl text-sm font-bold text-brand-text bg-brand-bg hover:bg-brand-border/50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={applyCustomCode}
+                className="px-6 py-2.5 rounded-xl bg-brand-accent text-sm font-bold text-white hover:bg-brand-accent/90 transition-colors flex items-center gap-2 shadow-lg shadow-brand-accent/20"
+              >
+                <Code className="w-4 h-4" />
+                Inject Code
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style jsx global>{`
         /* Hide Default Preset Panels entirely to use our custom React layout */
         .gjs-pn-panels { display: none !important; }
