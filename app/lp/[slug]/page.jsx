@@ -36,10 +36,22 @@ export default async function CustomLandingPage({ params }) {
     notFound();
   }
 
+  let pureHtml = page.html_content || '';
+  let pureJs = '';
+
+  if (pureHtml.includes('<!--GJS_JS_START-->')) {
+    const parts = pureHtml.split('<!--GJS_JS_START-->');
+    pureHtml = parts[0];
+    if (parts[1]) {
+      pureJs = parts[1].split('<!--GJS_JS_END-->')[0];
+    }
+  }
+
   return (
     <div className="grapesjs-page">
       <style dangerouslySetInnerHTML={{ __html: page.css_content || '' }} />
-      <div dangerouslySetInnerHTML={{ __html: page.html_content || '' }} />
+      <div dangerouslySetInnerHTML={{ __html: pureHtml }} />
+      {pureJs && <script dangerouslySetInnerHTML={{ __html: pureJs }} />}
     </div>
   );
 }

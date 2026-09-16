@@ -121,7 +121,10 @@ export default function BuilderEditor({ pageId }) {
       const js = editor.getJs();
       const projectData = editor.getProjectData();
       
-      const bundledHtml = js && js.trim() ? `${html}\n<script>\n${js}\n</script>` : html;
+      // Safely bundle JS without using raw <script> tags inside HTML
+      const bundledHtml = js && js.trim() 
+        ? `${html}\n<!--GJS_JS_START-->\n${js}\n<!--GJS_JS_END-->` 
+        : html;
 
       const { error } = await supabase
         .from('landing_pages')
@@ -147,20 +150,27 @@ export default function BuilderEditor({ pageId }) {
     if (!editor) return;
     setCustomHtml(editor.getHtml());
     setCustomCss(editor.getCss());
-    setCustomJs(editor.getJs() || '');
+    // Get the page-level custom script stored on the wrapper
+    const wrapperScript = editor.getWrapper().get('script') || '';
+    setCustomJs(typeof wrapperScript === 'function' ? '' : wrapperScript);
     setIsCodeModalOpen(true);
   };
 
   const applyCustomCode = () => {
     if (!editor) return;
     
-    // Inject components and scripts
-    const finalHtml = customJs.trim() 
-      ? `${customHtml}\n<script>${customJs}</script>` 
-      : customHtml;
-      
-    editor.setComponents(finalHtml);
+    // Inject HTML components
+    editor.setComponents(customHtml);
+    // Inject CSS styles
     editor.setStyle(customCss);
+    
+    // Attach custom JS safely to the root wrapper so GrapesJS manages it
+    const wrapper = editor.getWrapper();
+    if (customJs.trim()) {
+      wrapper.set('script', customJs);
+    } else {
+      wrapper.set('script', '');
+    }
     
     setIsCodeModalOpen(false);
     toast.success("Code injected successfully!");
