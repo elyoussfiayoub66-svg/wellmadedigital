@@ -10,10 +10,11 @@ const supabase = createClient(
 export const revalidate = 60; // Revalidate every minute if using ISR
 
 export async function generateMetadata({ params }) {
+  const resolvedParams = await params;
   const { data } = await supabase
     .from('landing_pages')
     .select('title')
-    .eq('slug', params.slug)
+    .eq('slug', resolvedParams.slug)
     .single();
     
   return {
@@ -22,7 +23,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function CustomLandingPage({ params }) {
-  const { slug } = params;
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
 
   const { data: page, error } = await supabase
     .from('landing_pages')

@@ -6,6 +6,9 @@ const BuilderEditor = dynamic(() => import('@/components/builder/BuilderEditor')
   ssr: false,
 });
 
+import { use } from 'react';
+
 export default function BuilderPage({ params }) {
-  return <BuilderEditor pageId={params.id} />;
+  const resolvedParams = use(params);
+  return <BuilderEditor pageId={resolvedParams.id} />;
 }
