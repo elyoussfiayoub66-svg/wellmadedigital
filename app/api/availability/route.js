@@ -24,17 +24,72 @@ export async function GET(request) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const allPossibleSlots = [];
-    for (let hour = 10; hour < 18; hour++) {
-      allPossibleSlots.push(`${hour.toString().padStart(2, '0')}:00`);
-      allPossibleSlots.push(`${hour.toString().padStart(2, '0')}:30`);
+    // Fetch user's profile to get custom availability settings
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('availability')
+      .eq('id', targetUserId)
+      .single();
+
+    if (profileError) {
+      console.error('Failed to fetch profile availability:', profileError);
+      return NextResponse.json({ error: 'Failed to fetch availability profile' }, { status: 500 });
     }
+
+    const availabilityConfig = profile?.availability || {
+      monday: { active: true, start: "09:00", end: "17:00" },
+      tuesday: { active: true, start: "09:00", end: "17:00" },
+      wednesday: { active: true, start: "09:00", end: "17:00" },
+      thursday: { active: true, start: "09:00", end: "17:00" },
+      friday: { active: true, start: "09:00", end: "17:00" },
+      saturday: { active: false, start: "09:00", end: "17:00" },
+      sunday: { active: false, start: "09:00", end: "17:00" },
+    };
 
     const startDate = new Date(`${dateStr}T00:00:00.000Z`);
     const endDate = new Date(`${dateStr}T23:59:59.999Z`);
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       return NextResponse.json({ error: `Invalid date format: ${dateStr}` }, { status: 400 });
+    }
+
+    // Determine day of week
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayOfWeek = days[startDate.getUTCDay()];
+    const dayConfig = availabilityConfig[dayOfWeek];
+
+    if (!dayConfig || !dayConfig.active) {
+      return NextResponse.json({ date: dateStr, availableSlots: [] });
+    }
+
+    // Generate possible slots based on start/end time and break times
+    const allPossibleSlots = [];
+    const parseTime = (timeStr) => {
+      const [h, m] = timeStr.split(':').map(Number);
+      return h * 60 + m; // Convert to minutes
+    };
+    const formatTime = (totalMins) => {
+      const h = Math.floor(totalMins / 60).toString().padStart(2, '0');
+      const m = (totalMins % 60).toString().padStart(2, '0');
+      return `${h}:${m}`;
+    };
+
+    const startMins = parseTime(dayConfig.start || "09:00");
+    const endMins = parseTime(dayConfig.end || "17:00");
+    
+    let breakStartMins = -1;
+    let breakEndMins = -1;
+    if (dayConfig.hasBreak && dayConfig.breakStart && dayConfig.breakEnd) {
+      breakStartMins = parseTime(dayConfig.breakStart);
+      breakEndMins = parseTime(dayConfig.breakEnd);
+    }
+
+    for (let m = startMins; m < endMins; m += 30) {
+      // If the slot falls inside a break, skip it
+      if (dayConfig.hasBreak && m >= breakStartMins && m < breakEndMins) {
+        continue;
+      }
+      allPossibleSlots.push(formatTime(m));
     }
 
     // Only query appointments for this specific user that are NOT canceled
@@ -63,16 +118,11 @@ export async function GET(request) {
     
     // Real-time check: Do not allow past times if the date is today
     const now = new Date();
-    // Assuming clinic timezone is UTC for math, or local. Let's compare timestamps.
     const isToday = now.toISOString().split('T')[0] === dateStr;
 
     allPossibleSlots.forEach(slot => {
       if (!bookedSlots.has(slot)) {
         if (isToday) {
-          const [slotH, slotM] = slot.split(':').map(Number);
-          // Compare with current UTC time (if appointments are saved in UTC). 
-          // If the landing page assumes local time, we should compare against local time.
-          // To be safe, we parse the exact slot time today and check if it's in the past.
           const slotTime = new Date(`${dateStr}T${slot}:00.000Z`);
           if (slotTime.getTime() > now.getTime()) {
              freeSlots.push(slot);

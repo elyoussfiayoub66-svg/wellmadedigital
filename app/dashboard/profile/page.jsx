@@ -16,13 +16,13 @@ export default function ProfilePage() {
   
   // Availability State
   const defaultAvailability = {
-    monday: { active: true, start: "09:00", end: "17:00" },
-    tuesday: { active: true, start: "09:00", end: "17:00" },
-    wednesday: { active: true, start: "09:00", end: "17:00" },
-    thursday: { active: true, start: "09:00", end: "17:00" },
-    friday: { active: true, start: "09:00", end: "17:00" },
-    saturday: { active: false, start: "09:00", end: "17:00" },
-    sunday: { active: false, start: "09:00", end: "17:00" },
+    monday: { active: true, start: "09:00", end: "17:00", hasBreak: false, breakStart: "12:00", breakEnd: "13:00" },
+    tuesday: { active: true, start: "09:00", end: "17:00", hasBreak: false, breakStart: "12:00", breakEnd: "13:00" },
+    wednesday: { active: true, start: "09:00", end: "17:00", hasBreak: false, breakStart: "12:00", breakEnd: "13:00" },
+    thursday: { active: true, start: "09:00", end: "17:00", hasBreak: false, breakStart: "12:00", breakEnd: "13:00" },
+    friday: { active: true, start: "09:00", end: "17:00", hasBreak: false, breakStart: "12:00", breakEnd: "13:00" },
+    saturday: { active: false, start: "09:00", end: "17:00", hasBreak: false, breakStart: "12:00", breakEnd: "13:00" },
+    sunday: { active: false, start: "09:00", end: "17:00", hasBreak: false, breakStart: "12:00", breakEnd: "13:00" },
   };
   const [availability, setAvailability] = useState(defaultAvailability);
   
@@ -280,55 +280,99 @@ export default function ProfilePage() {
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div>
                   <h2 className="text-2xl font-bold text-brand-text">Availability Settings</h2>
-                  <p className="text-sm text-brand-text/50 mt-1">Set your standard hours for meetings. This defines when you can be booked.</p>
+                  <p className="text-sm text-brand-text/50 mt-1">Set your standard hours for meetings and your rest times (e.g., lunch breaks).</p>
                 </div>
 
                 <form onSubmit={handleUpdateAvailability} className="space-y-6">
                   <div className="space-y-4">
                     {Object.keys(availability).map(day => (
-                      <div key={day} className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border transition-colors ${availability[day].active ? 'border-brand-accent/50 bg-brand-surface' : 'border-brand-border bg-brand-bg/30 opacity-60'}`}>
-                        <div className="flex items-center gap-3 min-w-[120px]">
-                          <input 
-                            type="checkbox"
-                            checked={availability[day].active}
-                            onChange={(e) => setAvailability(prev => ({
-                              ...prev,
-                              [day]: { ...prev[day], active: e.target.checked }
-                            }))}
-                            className="w-5 h-5 rounded border-brand-border text-brand-accent focus:ring-brand-accent/20 bg-brand-dark/20"
-                          />
-                          <span className="font-semibold capitalize text-brand-text">{day}</span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 flex-1 sm:justify-end">
-                          <div className="relative">
-                            <Clock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-brand-text/50" />
+                      <div key={day} className={`flex flex-col p-4 rounded-xl border transition-colors ${availability[day].active ? 'border-brand-accent/50 bg-brand-surface' : 'border-brand-border bg-brand-bg/30 opacity-60'}`}>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex items-center gap-3 min-w-[120px]">
                             <input 
-                              type="time" 
-                              disabled={!availability[day].active}
-                              value={availability[day].start}
+                              type="checkbox"
+                              checked={availability[day].active}
                               onChange={(e) => setAvailability(prev => ({
                                 ...prev,
-                                [day]: { ...prev[day], start: e.target.value }
+                                [day]: { ...prev[day], active: e.target.checked }
                               }))}
-                              className="pl-9 pr-3 py-2 rounded-lg border border-brand-border bg-brand-bg/50 text-sm font-medium focus:border-brand-accent focus:outline-none disabled:opacity-50"
+                              className="w-5 h-5 rounded border-brand-border text-brand-accent focus:ring-brand-accent/20 bg-brand-dark/20"
                             />
+                            <span className="font-semibold capitalize text-brand-text">{day}</span>
                           </div>
-                          <span className="text-brand-text/50 font-medium px-2">to</span>
-                          <div className="relative">
-                            <Clock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-brand-text/50" />
-                            <input 
-                              type="time" 
-                              disabled={!availability[day].active}
-                              value={availability[day].end}
-                              onChange={(e) => setAvailability(prev => ({
-                                ...prev,
-                                [day]: { ...prev[day], end: e.target.value }
-                              }))}
-                              className="pl-9 pr-3 py-2 rounded-lg border border-brand-border bg-brand-bg/50 text-sm font-medium focus:border-brand-accent focus:outline-none disabled:opacity-50"
-                            />
+                          
+                          <div className="flex items-center gap-2 flex-1 sm:justify-end">
+                            <div className="relative">
+                              <Clock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-brand-text/50" />
+                              <input 
+                                type="time" 
+                                disabled={!availability[day].active}
+                                value={availability[day].start || '09:00'}
+                                onChange={(e) => setAvailability(prev => ({
+                                  ...prev,
+                                  [day]: { ...prev[day], start: e.target.value }
+                                }))}
+                                className="pl-9 pr-3 py-2 rounded-lg border border-brand-border bg-brand-bg/50 text-sm font-medium focus:border-brand-accent focus:outline-none disabled:opacity-50"
+                              />
+                            </div>
+                            <span className="text-brand-text/50 font-medium px-2">to</span>
+                            <div className="relative">
+                              <Clock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-brand-text/50" />
+                              <input 
+                                type="time" 
+                                disabled={!availability[day].active}
+                                value={availability[day].end || '17:00'}
+                                onChange={(e) => setAvailability(prev => ({
+                                  ...prev,
+                                  [day]: { ...prev[day], end: e.target.value }
+                                }))}
+                                className="pl-9 pr-3 py-2 rounded-lg border border-brand-border bg-brand-bg/50 text-sm font-medium focus:border-brand-accent focus:outline-none disabled:opacity-50"
+                              />
+                            </div>
                           </div>
                         </div>
+
+                        {/* Break / Rest Time Section */}
+                        {availability[day].active && (
+                          <div className="mt-4 pt-4 border-t border-brand-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input 
+                                type="checkbox"
+                                checked={availability[day].hasBreak || false}
+                                onChange={(e) => setAvailability(prev => ({
+                                  ...prev,
+                                  [day]: { ...prev[day], hasBreak: e.target.checked }
+                                }))}
+                                className="w-4 h-4 rounded border-brand-border text-brand-accent focus:ring-brand-accent/20 bg-brand-dark/20"
+                              />
+                              <span className="text-sm font-medium text-brand-text/70">Add a rest time (break)</span>
+                            </label>
+                            
+                            {availability[day].hasBreak && (
+                              <div className="flex items-center gap-2">
+                                <input 
+                                  type="time" 
+                                  value={availability[day].breakStart || '12:00'}
+                                  onChange={(e) => setAvailability(prev => ({
+                                    ...prev,
+                                    [day]: { ...prev[day], breakStart: e.target.value }
+                                  }))}
+                                  className="px-3 py-1.5 rounded-lg border border-brand-border bg-brand-bg/50 text-xs font-medium focus:border-brand-accent focus:outline-none"
+                                />
+                                <span className="text-brand-text/50 font-medium px-1 text-xs">to</span>
+                                <input 
+                                  type="time" 
+                                  value={availability[day].breakEnd || '13:00'}
+                                  onChange={(e) => setAvailability(prev => ({
+                                    ...prev,
+                                    [day]: { ...prev[day], breakEnd: e.target.value }
+                                  }))}
+                                  className="px-3 py-1.5 rounded-lg border border-brand-border bg-brand-bg/50 text-xs font-medium focus:border-brand-accent focus:outline-none"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
