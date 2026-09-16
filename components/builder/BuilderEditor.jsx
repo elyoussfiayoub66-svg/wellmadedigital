@@ -160,51 +160,157 @@ export default function BuilderEditor({ pageId }) {
       <div id="gjs" ref={editorRef} className="flex-1 w-full h-full overflow-hidden"></div>
       
       <style jsx global>{`
-        /* Custom GrapesJS Theme overrides to match the dark UI */
+        /* ----------------------------------------------------- */
+        /* GrapesJS Modern "Figma/Webflow" Dark Theme Overrides  */
+        /* ----------------------------------------------------- */
+        
+        /* 1. Canvas Area */
         .gjs-cv-canvas {
           top: 0;
           width: 100%;
           height: 100%;
-          background-color: #f4f5f6; /* Lighter background for canvas */
+          /* Dotted background pattern */
+          background-color: #0E0E0F !important;
+          background-image: radial-gradient(#2A2A2B 1px, transparent 1px) !important;
+          background-size: 24px 24px !important;
         }
-        .gjs-one-bg { background-color: #0E0E0F; }
-        .gjs-two-color { color: #C2496B; }
-        .gjs-three-bg { background-color: #C2496B; color: white; }
-        .gjs-four-color, .gjs-four-color-h:hover { color: #C2496B; }
+
+        /* 2. Base Colors */
+        .gjs-one-bg { background-color: #1A1A1B !important; }
+        .gjs-two-color { color: #F7F5F0 !important; }
+        .gjs-three-bg { background-color: #C2496B !important; color: white !important; }
+        .gjs-four-color, .gjs-four-color-h:hover { color: #C2496B !important; }
         
-        /* Make panels look modern */
+        /* 3. Panels & Top Bar */
         .gjs-pn-panel {
-          background-color: #1A1A1B;
-          border-color: #2A2A2B;
+          background-color: #1A1A1B !important;
+          border-color: #2A2A2B !important;
+        }
+        .gjs-pn-views-container {
+          box-shadow: -4px 0 15px rgba(0,0,0,0.2);
+          border-left: 1px solid #2A2A2B !important;
+          background-color: #1A1A1B !important;
+        }
+        .gjs-pn-views {
+          border-bottom: 1px solid #2A2A2B !important;
+          background-color: #1A1A1B !important;
         }
         .gjs-pn-btn {
-          color: #F7F5F0;
+          color: #F7F5F0 !important;
+          opacity: 0.5;
+          transition: all 0.2s ease;
+        }
+        .gjs-pn-btn:hover {
+          opacity: 1;
         }
         .gjs-pn-active {
-          background-color: #C2496B;
-          color: white;
-          box-shadow: none;
+          color: #C2496B !important;
+          opacity: 1;
+          box-shadow: none !important;
+          border-bottom: 2px solid #C2496B;
         }
-        /* Right sidebar */
-        .gjs-sm-sector .gjs-sm-title {
-          background-color: #1A1A1B;
-          color: #F7F5F0;
-          border-bottom: 1px solid #2A2A2B;
-        }
-        .gjs-sm-properties {
-          background-color: #1A1A1B;
+        
+        /* 4. Blocks (Drag & Drop components) */
+        .gjs-blocks-c {
+          padding: 16px !important;
+          gap: 12px !important;
+          display: grid !important;
+          grid-template-columns: 1fr 1fr;
         }
         .gjs-block {
-          border-color: #2A2A2B;
-          color: #F7F5F0;
+          border-radius: 12px !important;
+          background-color: #0E0E0F !important;
+          border: 1px solid #2A2A2B !important;
+          color: #F7F5F0 !important;
+          padding: 16px 12px !important;
+          transition: all 0.2s ease !important;
+          box-shadow: none !important;
+          width: 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 8px !important;
         }
         .gjs-block:hover {
-          border-color: #C2496B;
-          color: #C2496B;
+          border-color: #C2496B !important;
+          color: #C2496B !important;
+          background-color: rgba(194, 73, 107, 0.05) !important;
+          transform: translateY(-2px);
         }
-        .gjs-clm-tags .gjs-sm-title, .gjs-clm-tags .gjs-sm-field {
-          background-color: #1A1A1B;
-          color: #F7F5F0;
+        .gjs-block-label {
+          font-weight: 600 !important;
+          font-size: 11px !important;
+          text-transform: capitalize !important;
+        }
+
+        /* 5. Style Manager (Right Sidebar) */
+        .gjs-sm-sector {
+          border-bottom: 1px solid #2A2A2B !important;
+        }
+        .gjs-sm-title {
+          background-color: #1A1A1B !important;
+          color: #F7F5F0 !important;
+          font-weight: 600 !important;
+          text-transform: uppercase !important;
+          font-size: 11px !important;
+          letter-spacing: 0.5px !important;
+          padding: 16px !important;
+          border-bottom: 1px solid #2A2A2B !important;
+        }
+        .gjs-sm-properties {
+          background-color: #1A1A1B !important;
+          padding: 12px !important;
+        }
+        .gjs-sm-property {
+          margin-bottom: 12px !important;
+        }
+        
+        /* Form fields inside style manager */
+        .gjs-field {
+          background-color: #0E0E0F !important;
+          border: 1px solid #2A2A2B !important;
+          border-radius: 6px !important;
+          color: #F7F5F0 !important;
+          box-shadow: none !important;
+        }
+        .gjs-field:hover, .gjs-field:focus-within {
+          border-color: #C2496B !important;
+        }
+        
+        /* 6. Layers / DOM elements */
+        .gjs-layer {
+          border-bottom: 1px solid #2A2A2B !important;
+        }
+        .gjs-layer-name {
+          color: #F7F5F0 !important;
+          font-size: 12px !important;
+        }
+        .gjs-layer-active {
+          background-color: rgba(194, 73, 107, 0.1) !important;
+          border-left: 3px solid #C2496B !important;
+        }
+        .gjs-layer-title:hover {
+          background-color: #2A2A2B !important;
+        }
+        
+        /* 7. Scrollbars */
+        .gjs-pn-views-container::-webkit-scrollbar,
+        .gjs-blocks-c::-webkit-scrollbar {
+          width: 6px;
+        }
+        .gjs-pn-views-container::-webkit-scrollbar-track,
+        .gjs-blocks-c::-webkit-scrollbar-track {
+          background: #1A1A1B;
+        }
+        .gjs-pn-views-container::-webkit-scrollbar-thumb,
+        .gjs-blocks-c::-webkit-scrollbar-thumb {
+          background: #2A2A2B;
+          border-radius: 4px;
+        }
+        .gjs-pn-views-container::-webkit-scrollbar-thumb:hover,
+        .gjs-blocks-c::-webkit-scrollbar-thumb:hover {
+          background: #3A3A3B;
         }
       `}</style>
     </div>
