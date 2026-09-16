@@ -26,6 +26,7 @@ export default function BuilderEditor({ pageId }) {
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [customHtml, setCustomHtml] = useState('');
   const [customCss, setCustomCss] = useState('');
+  const [customJs, setCustomJs] = useState('');
   
   const supabase = createClient();
   const router = useRouter();
@@ -117,12 +118,15 @@ export default function BuilderEditor({ pageId }) {
     try {
       const html = editor.getHtml();
       const css = editor.getCss();
+      const js = editor.getJs();
       const projectData = editor.getProjectData();
+      
+      const bundledHtml = js && js.trim() ? `${html}\n<script>\n${js}\n</script>` : html;
 
       const { error } = await supabase
         .from('landing_pages')
         .update({
-          html_content: html,
+          html_content: bundledHtml,
           css_content: css,
           grapesjs_data: projectData,
           updated_at: new Date().toISOString()
@@ -143,14 +147,21 @@ export default function BuilderEditor({ pageId }) {
     if (!editor) return;
     setCustomHtml(editor.getHtml());
     setCustomCss(editor.getCss());
+    setCustomJs(editor.getJs() || '');
     setIsCodeModalOpen(true);
   };
 
   const applyCustomCode = () => {
     if (!editor) return;
-    // Inject components and styles
-    editor.setComponents(customHtml);
+    
+    // Inject components and scripts
+    const finalHtml = customJs.trim() 
+      ? `${customHtml}\n<script>${customJs}</script>` 
+      : customHtml;
+      
+    editor.setComponents(finalHtml);
     editor.setStyle(customCss);
+    
     setIsCodeModalOpen(false);
     toast.success("Code injected successfully!");
   };
@@ -250,7 +261,7 @@ export default function BuilderEditor({ pageId }) {
       {/* Code Injection Modal */}
       {isCodeModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-brand-surface w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border border-brand-border shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-brand-surface w-full max-w-6xl max-h-[90vh] flex flex-col rounded-2xl border border-brand-border shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-4 border-b border-brand-border flex items-center justify-between bg-brand-surface shrink-0">
               <div>
                 <h2 className="text-lg font-bold text-brand-text">Inject HTML & CSS</h2>
@@ -278,6 +289,16 @@ export default function BuilderEditor({ pageId }) {
                   onChange={(e) => setCustomCss(e.target.value)}
                   className="flex-1 w-full bg-brand-surface border border-brand-border rounded-xl p-4 text-brand-text font-mono text-sm focus:border-brand-accent focus:outline-none focus:ring-1 focus:ring-brand-accent resize-none custom-scrollbar"
                   spellCheck={false}
+                />
+              </div>
+              <div className="flex-1 flex flex-col">
+                <label className="text-xs font-bold uppercase tracking-wider text-brand-muted mb-2">JS Code</label>
+                <textarea
+                  value={customJs}
+                  onChange={(e) => setCustomJs(e.target.value)}
+                  className="flex-1 w-full bg-brand-surface border border-brand-border rounded-xl p-4 text-brand-text font-mono text-sm focus:border-brand-accent focus:outline-none focus:ring-1 focus:ring-brand-accent resize-none custom-scrollbar"
+                  spellCheck={false}
+                  placeholder="console.log('Hello World');"
                 />
               </div>
             </div>
