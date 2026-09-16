@@ -10,6 +10,12 @@ import { useRouter } from 'next/navigation';
 export default function LandingPages() {
   const [pages, setPages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newPageTitle, setNewPageTitle] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+
   const router = useRouter();
   const supabase = createClient();
 
@@ -35,18 +41,24 @@ export default function LandingPages() {
     }
   };
 
-  const handleCreatePage = async () => {
-    const title = prompt("Enter a title for your landing page:");
-    if (!title) return;
+  const openCreateModal = () => {
+    setNewPageTitle('');
+    setIsModalOpen(true);
+  };
 
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+  const handleCreatePage = async (e) => {
+    e.preventDefault();
+    if (!newPageTitle.trim()) return;
+
+    setIsCreating(true);
+    const slug = newPageTitle.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from('landing_pages')
         .insert([{ 
-          title, 
+          title: newPageTitle.trim(), 
           slug, 
           assigned_user_id: user?.id 
         }])
@@ -56,10 +68,13 @@ export default function LandingPages() {
       if (error) throw error;
       
       toast.success('Landing page created!');
+      setIsModalOpen(false);
       router.push(`/builder/${data.id}`);
     } catch (err) {
       console.error(err);
       toast.error('Failed to create landing page (Slug might already exist)');
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -84,7 +99,7 @@ export default function LandingPages() {
           <p className="text-brand-muted text-sm mt-1">Design custom pages to capture leads.</p>
         </div>
         <button
-          onClick={handleCreatePage}
+          onClick={openCreateModal}
           className="flex items-center gap-2 rounded-xl bg-brand-accent px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-brand-accent/90"
         >
           <Plus className="h-4 w-4" />
@@ -106,7 +121,7 @@ export default function LandingPages() {
             Create your first drag-and-drop landing page to start capturing custom leads.
           </p>
           <button
-            onClick={handleCreatePage}
+            onClick={openCreateModal}
             className="flex items-center gap-2 rounded-xl bg-brand-dark px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-brand-dark/90"
           >
             <Plus className="h-4 w-4" />
@@ -147,6 +162,54 @@ export default function LandingPages() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Create Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-brand-surface w-full max-w-md rounded-2xl border border-brand-border shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-brand-text mb-2">Create New Landing Page</h2>
+              <p className="text-brand-muted text-sm mb-6">Enter a title for your landing page. This will be used to generate the URL.</p>
+              
+              <form onSubmit={handleCreatePage}>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-brand-muted mb-2">Page Title</label>
+                    <input
+                      type="text"
+                      autoFocus
+                      required
+                      placeholder="e.g. Summer Campaign 2026"
+                      value={newPageTitle}
+                      onChange={(e) => setNewPageTitle(e.target.value)}
+                      className="w-full rounded-xl border border-brand-border bg-brand-bg/50 px-4 py-3 text-brand-text font-medium focus:border-brand-accent focus:bg-brand-surface focus:outline-none focus:ring-2 focus:ring-brand-accent/20 transition-all"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-end gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      disabled={isCreating}
+                      className="px-4 py-2.5 rounded-xl text-sm font-bold text-brand-muted hover:text-brand-text hover:bg-brand-border/50 transition-colors disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isCreating || !newPageTitle.trim()}
+                      className="px-6 py-2.5 rounded-xl bg-brand-accent text-sm font-bold text-white hover:bg-brand-accent/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {isCreating && <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />}
+                      {isCreating ? 'Creating...' : 'Create Page'}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
     </div>
