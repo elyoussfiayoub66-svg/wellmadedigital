@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { User, Lock, Save } from 'lucide-react';
+import { User, Lock, Save, Calendar, Clock } from 'lucide-react';
 import { toast, Toaster } from 'react-hot-toast';
 
 export default function ProfilePage() {
@@ -13,6 +13,18 @@ export default function ProfilePage() {
   // Profile State
   const [fullName, setFullName] = useState('');
   const [expertise, setExpertise] = useState([]);
+  
+  // Availability State
+  const defaultAvailability = {
+    monday: { active: true, start: "09:00", end: "17:00" },
+    tuesday: { active: true, start: "09:00", end: "17:00" },
+    wednesday: { active: true, start: "09:00", end: "17:00" },
+    thursday: { active: true, start: "09:00", end: "17:00" },
+    friday: { active: true, start: "09:00", end: "17:00" },
+    saturday: { active: false, start: "09:00", end: "17:00" },
+    sunday: { active: false, start: "09:00", end: "17:00" },
+  };
+  const [availability, setAvailability] = useState(defaultAvailability);
   
   // Password State
   const [passwordForm, setPasswordForm] = useState({
@@ -29,15 +41,20 @@ export default function ProfilePage() {
         setUser(session.user);
         setFullName(session.user.user_metadata?.full_name || '');
         
-        // Fetch extended profile data (including expertise)
+        // Fetch extended profile data (including expertise and availability)
         const { data: profile } = await supabase
           .from('profiles')
-          .select('expertise')
+          .select('expertise, availability')
           .eq('id', session.user.id)
           .single();
           
         if (profile?.expertise) {
           setExpertise(profile.expertise);
+        }
+        
+        if (profile?.availability) {
+          // Merge with default in case of missing days
+          setAvailability(prev => ({ ...prev, ...profile.availability }));
         }
       }
     };
@@ -103,9 +120,29 @@ export default function ProfilePage() {
       setIsSaving(false);
     }
   };
+  const handleUpdateAvailability = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      if (user) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ availability })
+          .eq('id', user.id);
+        if (error) throw error;
+        toast.success("Availability updated successfully!");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Failed to update availability");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const tabs = [
     { id: 'personal', label: 'Personal Info', icon: User },
+    { id: 'availability', label: 'Availability', icon: Calendar },
     { id: 'security', label: 'Security', icon: Lock },
   ];
 
@@ -232,6 +269,78 @@ export default function ProfilePage() {
                     >
                       {isSaving ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Save className="h-4 w-4" />}
                       Save Profile
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Availability Tab */}
+            {activeTab === 'availability' && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div>
+                  <h2 className="text-2xl font-bold text-brand-text">Availability Settings</h2>
+                  <p className="text-sm text-brand-text/50 mt-1">Set your standard hours for meetings. This defines when you can be booked.</p>
+                </div>
+
+                <form onSubmit={handleUpdateAvailability} className="space-y-6">
+                  <div className="space-y-4">
+                    {Object.keys(availability).map(day => (
+                      <div key={day} className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border transition-colors ${availability[day].active ? 'border-brand-accent/50 bg-brand-surface' : 'border-brand-border bg-brand-bg/30 opacity-60'}`}>
+                        <div className="flex items-center gap-3 min-w-[120px]">
+                          <input 
+                            type="checkbox"
+                            checked={availability[day].active}
+                            onChange={(e) => setAvailability(prev => ({
+                              ...prev,
+                              [day]: { ...prev[day], active: e.target.checked }
+                            }))}
+                            className="w-5 h-5 rounded border-brand-border text-brand-accent focus:ring-brand-accent/20 bg-brand-dark/20"
+                          />
+                          <span className="font-semibold capitalize text-brand-text">{day}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 flex-1 sm:justify-end">
+                          <div className="relative">
+                            <Clock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-brand-text/50" />
+                            <input 
+                              type="time" 
+                              disabled={!availability[day].active}
+                              value={availability[day].start}
+                              onChange={(e) => setAvailability(prev => ({
+                                ...prev,
+                                [day]: { ...prev[day], start: e.target.value }
+                              }))}
+                              className="pl-9 pr-3 py-2 rounded-lg border border-brand-border bg-brand-bg/50 text-sm font-medium focus:border-brand-accent focus:outline-none disabled:opacity-50"
+                            />
+                          </div>
+                          <span className="text-brand-text/50 font-medium px-2">to</span>
+                          <div className="relative">
+                            <Clock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-brand-text/50" />
+                            <input 
+                              type="time" 
+                              disabled={!availability[day].active}
+                              value={availability[day].end}
+                              onChange={(e) => setAvailability(prev => ({
+                                ...prev,
+                                [day]: { ...prev[day], end: e.target.value }
+                              }))}
+                              className="pl-9 pr-3 py-2 rounded-lg border border-brand-border bg-brand-bg/50 text-sm font-medium focus:border-brand-accent focus:outline-none disabled:opacity-50"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-4 border-t border-brand-border">
+                    <button 
+                      type="submit"
+                      disabled={isSaving}
+                      className="flex items-center gap-2 rounded-xl bg-brand-dark px-6 py-3.5 text-sm font-bold text-white transition-all hover:bg-brand-dark/90 hover: disabled:opacity-70"
+                    >
+                      {isSaving ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Save className="h-4 w-4" />}
+                      Save Availability
                     </button>
                   </div>
                 </form>
