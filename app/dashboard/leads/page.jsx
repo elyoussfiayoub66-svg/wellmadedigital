@@ -150,16 +150,15 @@ export default function LeadsPage() {
   const updateLeadStatus = async (newStatus) => {
     if (!selectedLead) return;
     try {
-      const supabase = createClient();
-      const updated_at = new Date().toISOString();
-      const { error } = await supabase
-        .from('leads')
-        .update({ status: newStatus, updated_at })
-        .eq('id', selectedLead.id);
+      // Import dynamically to avoid loading it on initial client render if possible, 
+      // or just import at the top. Let's do dynamic import since it's an action.
+      const { updateLeadStatusAction } = await import('@/app/actions/update-lead-status');
+      
+      const result = await updateLeadStatusAction(selectedLead.id, newStatus);
+      
+      if (!result.success) throw new Error(result.error);
 
-      if (error) throw error;
-
-      const updatedLead = { ...selectedLead, status: newStatus, updated_at };
+      const updatedLead = result.updatedLead;
       setSelectedLead(updatedLead);
       setLeads(prev => prev.map(l => l.id === selectedLead.id ? updatedLead : l));
     } catch (err) {

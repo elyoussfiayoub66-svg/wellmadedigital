@@ -2,6 +2,7 @@
 
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { sendCapiEvent } from '@/lib/meta-capi';
 
 async function createClient() {
   const cookieStore = await cookies();
@@ -53,6 +54,11 @@ export async function submitCarsBooking({ name, phone, fleetSize, lostReservatio
   if (leadError || !lead) {
     console.error('Cars Lead insertion error:', leadError);
     return { success: false, error: leadError?.message || 'Failed to create lead' };
+  }
+
+  // Trigger Meta CAPI Event for new lead
+  if (lead) {
+    await sendCapiEvent('Lead', lead);
   }
 
   // 3. Insert Appointment

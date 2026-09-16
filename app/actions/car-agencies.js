@@ -55,6 +55,12 @@ export async function submitCarAgencyBooking({ name, phone, businessName, fleetS
     return { success: false, error: leadError?.message || 'Failed to create lead' };
   }
 
+  // Trigger Meta CAPI Event for new lead
+  if (lead) {
+    const { sendCapiEvent } = await import('@/lib/meta-capi');
+    await sendCapiEvent('Lead', lead);
+  }
+
   // 3. Insert Appointment
   const dateTimeStr = `${meetingDate}T${meetingTime}:00.000Z`;
   const { error: apptError } = await supabase.from('appointments').insert({
