@@ -108,71 +108,57 @@ export default function InvoicesPage() {
 
   const generatePDF = async (invoice) => {
     try {
-      const jsPDFModule = await import('jspdf');
-      const jsPDF = jsPDFModule.jsPDF || jsPDFModule.default;
-      const autoTableModule = await import('jspdf-autotable');
-      const autoTable = autoTableModule.default || autoTableModule;
-
-      const doc = new jsPDF();
+      const supabase = createClient();
+      const { data } = await supabase.from('crm_settings').select('agency_address, agency_email, agency_phone').single();
       
-      // Header
-      doc.setFontSize(20);
-      doc.setTextColor(33, 37, 41);
-      doc.text('INVOICE', 14, 22);
+      let agencySettings = {
+        address: 'Casablanca, Morocco',
+        bank_name: 'CIH Bank',
+        rib: '000000000000000000000000',
+        email: data?.agency_email || 'hello@wellmadedigital.com',
+        phone: data?.agency_phone || '+212 600 000 000'
+      };
       
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text(`Invoice Number: ${invoice.invoice_number}`, 14, 30);
-      doc.text(`Date: ${new Date(invoice.created_at).toLocaleDateString()}`, 14, 35);
-      doc.text(`Status: ${invoice.status}`, 14, 40);
+      if (data?.agency_address && data.agency_address.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(data.agency_address);
+          agencySettings.address = parsed.address || agencySettings.address;
+          agencySettings.bank_name = parsed.bank_name || agencySettings.bank_name;
+          agencySettings.rib = parsed.rib || agencySettings.rib;
+        } catch(e) {}
+      }
 
-      // Agency details (Left)
-      doc.setFontSize(12);
-      doc.setTextColor(33, 37, 41);
-      doc.text('Billed From:', 14, 55);
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text('Wellmade Digital', 14, 62);
-      doc.text('contact@wellmadedigital.com', 14, 67);
+      const { generateStyledPDF } = await import('@/lib/pdfGenerator');
 
-      // Client details (Right)
-      doc.setFontSize(12);
-      doc.setTextColor(33, 37, 41);
-      doc.text('Billed To:', 120, 55);
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text(invoice.leads?.agency_name || invoice.leads?.full_name || 'Client', 120, 62);
-      doc.text(invoice.projects?.name || 'Project Name', 120, 67);
+      const amount = Number(invoice.amount);
 
-      // Line items using autoTable
-      autoTable(doc, {
-        startY: 80,
-        head: [['Description', 'Type', 'Total']],
-        body: [
-          [
-            `Web Development - ${invoice.projects?.name || 'Project'}`,
-            invoice.type || 'Deposit',
-            `MAD ${Number(invoice.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
-          ]
+      await generateStyledPDF({
+        title: 'INVOICE',
+        reference: invoice.invoice_number,
+        date: new Date(invoice.created_at).toLocaleDateString(),
+        dueDate: 'Upon Receipt',
+        status: invoice.status,
+        items: [
+          {
+            desc: `Web Development - ${invoice.projects?.name || 'Project'}`,
+            qty: 1,
+            rate: amount,
+            discount: 0,
+            total: amount
+          }
         ],
-        theme: 'striped',
-        headStyles: { fillColor: [194, 73, 107] }, // brand color
-        margin: { top: 80 }
+        subtotal: amount,
+        discount: 0,
+        finalPrice: amount,
+        clientName: invoice.leads?.agency_name || invoice.leads?.full_name || 'Client',
+        clientAddress: '',
+        agencyName: 'Wellmade Digital',
+        agencyEmail: agencySettings.email,
+        agencyPhone: agencySettings.phone,
+        agencyAddress: agencySettings.address,
+        bankName: agencySettings.bank_name,
+        rib: agencySettings.rib
       });
-
-      // Total
-      const finalY = doc.lastAutoTable?.finalY || 120;
-      doc.setFontSize(12);
-      doc.setTextColor(33, 37, 41);
-      doc.text(`Total Amount: MAD ${Number(invoice.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}`, 14, finalY + 20);
-
-      // Footer
-      doc.setFontSize(10);
-      doc.setTextColor(150);
-      doc.text('Thank you for your business.', 14, finalY + 40);
-
-      // Save
-      doc.save(`invoice_${invoice.invoice_number}.pdf`);
       toast.success("PDF Downloaded");
     } catch (err) {
       console.error(err);

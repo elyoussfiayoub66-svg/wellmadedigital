@@ -54,66 +54,59 @@ export default function CalculatorClient({ initialData }) {
 
   const handleGenerateQuote = async () => {
     try {
-      const jsPDFModule = await import('jspdf');
-      const jsPDF = jsPDFModule.jsPDF || jsPDFModule.default;
-      const autoTableModule = await import('jspdf-autotable');
-      const autoTable = autoTableModule.default || autoTableModule;
-
-      const doc = new jsPDF();
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data } = await supabase.from('crm_settings').select('agency_address, agency_email, agency_phone').single();
       
-      // Header
-      doc.setFontSize(20);
-      doc.setTextColor(33, 37, 41);
-      doc.text('PROJECT ESTIMATE', 14, 22);
+      let agencySettings = {
+        address: 'Casablanca, Morocco',
+        bank_name: 'CIH Bank',
+        rib: '000000000000000000000000',
+        email: data?.agency_email || 'hello@wellmadedigital.com',
+        phone: data?.agency_phone || '+212 600 000 000'
+      };
       
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text(`Reference: EST-${Math.floor(1000 + Math.random() * 9000)}`, 14, 30);
-      doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 35);
-      doc.text(`Status: Estimate`, 14, 40);
+      if (data?.agency_address && data.agency_address.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(data.agency_address);
+          agencySettings.address = parsed.address || agencySettings.address;
+          agencySettings.bank_name = parsed.bank_name || agencySettings.bank_name;
+          agencySettings.rib = parsed.rib || agencySettings.rib;
+        } catch(e) {}
+      }
 
-      // Agency details (Left)
-      doc.setFontSize(12);
-      doc.setTextColor(33, 37, 41);
-      doc.text('From:', 14, 55);
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text('Wellmade Digital', 14, 62);
-      doc.text('contact@wellmadedigital.com', 14, 67);
-
-      // Client details (Right)
-      doc.setFontSize(12);
-      doc.setTextColor(33, 37, 41);
-      doc.text('To:', 120, 55);
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text('Client', 120, 62);
-      doc.text('Pending Project', 120, 67);
-
+      const { generateStyledPDF } = await import('@/lib/pdfGenerator');
+      
       const discountTotal = calculation.appliedDiscounts.reduce((sum, d) => sum + d.discountAmount, 0);
 
-      // Line items using autoTable
-      autoTable(doc, {
-        startY: 80,
-        head: [['Description', 'Amount']],
-        body: [
-          ['Subtotal', `MAD ${calculation.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`],
-          ...(discountTotal > 0 ? [['Group Discount', `- MAD ${discountTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`]] : []),
-          ['Final Investment', `MAD ${calculation.finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}`]
+      await generateStyledPDF({
+        title: 'PROJECT ESTIMATE',
+        reference: `EST-${Math.floor(1000 + Math.random() * 9000)}`,
+        date: new Date().toLocaleDateString(),
+        dueDate: 'Validity: 30 Days',
+        status: 'Estimate',
+        // Calculator quote requested only totals, no items, but to keep the layout pretty we can pass one summary item.
+        items: [
+          {
+            desc: 'Website Design & Development Services',
+            qty: 1,
+            rate: calculation.subtotal,
+            discount: discountTotal,
+            total: calculation.finalPrice
+          }
         ],
-        theme: 'striped',
-        headStyles: { fillColor: [194, 73, 107] }, // brand color
-        margin: { top: 80 }
+        subtotal: calculation.subtotal,
+        discount: discountTotal,
+        finalPrice: calculation.finalPrice,
+        clientName: 'Client',
+        clientAddress: 'Pending Project Scope',
+        agencyName: 'Wellmade Digital',
+        agencyEmail: agencySettings.email,
+        agencyPhone: agencySettings.phone,
+        agencyAddress: agencySettings.address,
+        bankName: agencySettings.bank_name,
+        rib: agencySettings.rib
       });
-
-      // Footer
-      const finalY = doc.lastAutoTable?.finalY || 120;
-      doc.setFontSize(10);
-      doc.setTextColor(150);
-      doc.text('This is an estimate. Prices may vary based on specific requirements and finalized scope.', 14, finalY + 20);
-
-      // Save
-      doc.save(`Quote_Estimate.pdf`);
     } catch (err) {
       console.error(err);
       alert("Failed to generate PDF quote.");

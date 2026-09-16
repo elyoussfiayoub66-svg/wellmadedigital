@@ -15,7 +15,8 @@ import {
   ChevronRight,
   Sparkles,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  CreditCard
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -56,12 +57,26 @@ export default function SettingsPage() {
       if (error && error.code !== 'PGRST116') throw error;
       
       if (data) {
+        let addressObj = { address: data.agency_address || "", bank_name: "", rib: "" };
+        try {
+          if (data.agency_address && data.agency_address.startsWith('{')) {
+            const parsed = JSON.parse(data.agency_address);
+            addressObj = {
+              address: parsed.address || "",
+              bank_name: parsed.bank_name || "",
+              rib: parsed.rib || ""
+            };
+          }
+        } catch(e){}
+
         setSettings({
           id: data.id,
           agency_name: data.agency_name || "",
           agency_email: data.agency_email || "",
           agency_phone: data.agency_phone || "",
-          agency_address: data.agency_address || "",
+          agency_address: addressObj.address,
+          bank_name: addressObj.bank_name,
+          rib: addressObj.rib,
           default_commission_rate: data.default_commission_rate || 0,
           lead_statuses: data.lead_statuses || ["New", "Contacted", "Qualified", "Lost", "Won"],
           alert_preferences: data.alert_preferences || {
@@ -87,7 +102,11 @@ export default function SettingsPage() {
         agency_name: settings.agency_name,
         agency_email: settings.agency_email,
         agency_phone: settings.agency_phone,
-        agency_address: settings.agency_address,
+        agency_address: JSON.stringify({
+          address: settings.agency_address || "",
+          bank_name: settings.bank_name || "",
+          rib: settings.rib || ""
+        }),
         default_commission_rate: parseFloat(settings.default_commission_rate),
         lead_statuses: settings.lead_statuses,
         alert_preferences: settings.alert_preferences,
@@ -167,6 +186,7 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: "general", label: "General", icon: Building2, desc: "Basic agency info" },
+    { id: "invoicing", label: "Invoicing", icon: CreditCard, desc: "Billing & bank info" },
     { id: "commissions", label: "Commissions", icon: DollarSign, desc: "Default payouts" },
     { id: "pipeline", label: "Pipeline", icon: Kanban, desc: "Deal stages" },
     { id: "notifications", label: "Alerts", icon: Bell, desc: "In-app notifications" },
@@ -310,6 +330,42 @@ export default function SettingsPage() {
                       rows={3}
                       className="w-full rounded-xl border border-brand-border bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-brand-surface focus:outline-none focus:ring-4 focus:ring-brand-accent/10 resize-none"
                       placeholder="Casablanca, Morocco"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Invoicing Tab */}
+            {activeTab === "invoicing" && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div>
+                  <h2 className="text-2xl font-bold text-brand-text">Billing & Payment Info</h2>
+                  <p className="text-sm text-brand-text/50 mt-1">This information will be displayed on PDF invoices and quotes, and encoded in the QR Code.</p>
+                </div>
+                
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-brand-text/50">Bank Name</label>
+                    <input
+                      type="text"
+                      name="bank_name"
+                      value={settings.bank_name || ""}
+                      onChange={handleGeneralChange}
+                      className="w-full rounded-xl border border-brand-border bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-brand-surface focus:outline-none focus:ring-4 focus:ring-brand-accent/10"
+                      placeholder="e.g. CIH Bank, Attijariwafa, etc."
+                    />
+                  </div>
+                  
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-brand-text/50">RIB / Account Number (IBAN)</label>
+                    <input
+                      type="text"
+                      name="rib"
+                      value={settings.rib || ""}
+                      onChange={handleGeneralChange}
+                      className="w-full rounded-xl border border-brand-border bg-brand-bg/50 px-4 py-3.5 text-brand-text font-medium transition-all focus:border-brand-accent focus:bg-brand-surface focus:outline-none focus:ring-4 focus:ring-brand-accent/10"
+                      placeholder="e.g. 123456789012345678901234"
                     />
                   </div>
                 </div>
