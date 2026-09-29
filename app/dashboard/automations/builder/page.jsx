@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, Database, UploadCloud, Save, Play, Clock, MessageSquare, ChevronRight, Check } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -25,18 +26,45 @@ export default function AutomationBuilderPage() {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSave = (status) => {
+  const handleSave = async (status) => {
     if (!formData.name.trim()) return toast.error('Please provide an automation name.');
     if (!formData.message.trim()) return toast.error('Please define a message.');
     
     setSaving(true);
+    const supabase = createClient();
     
-    // Simulate API call
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      const { error } = await supabase.from('dm_automations').insert([{
+        name: formData.name,
+        status: status,
+        source: formData.source === 'db' ? 'Database' : 'CSV',
+        scheduled: formData.source === 'db' ? formData.dbQuantity : 0,
+        sent: 0,
+        nextExecution: 'Pending',
+        delay_between_dms: formData.delayBetweenDms,
+        delay_after_batch: formData.delayAfterBatch,
+        message_template: formData.message,
+        pipeline_status_filter: formData.source === 'db' ? formData.dbPipelineStatus : null,
+        outreach_status_filter: formData.source === 'db' ? formData.dbOutreachStatus : null
+      }]);
+      
+      if (error) {
+        if (error.code === '42P01') {
+           toast.error('The dm_automations table does not exist in Supabase yet.');
+        } else {
+           throw error;
+        }
+        return;
+      }
+      
       toast.success(`Automation ${status === 'active' ? 'Activated' : 'Saved to Archive'}!`);
-      setTimeout(() => router.push('/dashboard/automations'), 1000);
-    }, 1000);
+      router.push('/dashboard/automations');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to create automation');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const pipelineOptions = ["not contacted", "contacted", "meeting scheduled", "discovery call completed", "negotiation", "closed", "lost"];

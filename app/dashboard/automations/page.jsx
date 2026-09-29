@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { Plus, Settings, Activity, Play, Pause, Archive, BarChart2, CheckCircle2, AlertCircle, Link as LinkIcon, Trash2 } from 'lucide-react';
 
 const Instagram = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>);
@@ -10,15 +11,33 @@ import toast, { Toaster } from 'react-hot-toast';
 export default function AutomationsPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('automations');
-  const [igAccounts, setIgAccounts] = useState([
-    { id: '1', handle: '@wellmade.agency', status: 'active', connectedAt: '2023-10-15' },
-    { id: '2', handle: '@ayoub.founder', status: 'error', connectedAt: '2023-11-02' }
-  ]);
-  
-  const [automations, setAutomations] = useState([
-    { id: '1', name: 'Cold Outreach - Plumbers', status: 'active', source: 'Database', sent: 145, scheduled: 200, nextExecution: 'In 5 mins' },
-    { id: '2', name: 'Follow up - Opened Email', status: 'paused', source: 'CSV', sent: 45, scheduled: 50, nextExecution: '-' },
-  ]);
+  const [igAccounts, setIgAccounts] = useState([]);
+  const [automations, setAutomations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchRealData = async () => {
+    setLoading(true);
+    const supabase = createClient();
+    try {
+      const { data: accountsData, error: accountsError } = await supabase.from('ig_accounts').select('*');
+      if (!accountsError && accountsData) {
+        setIgAccounts(accountsData);
+      }
+      
+      const { data: automationsData, error: autoError } = await supabase.from('dm_automations').select('*').order('created_at', { ascending: false });
+      if (!autoError && automationsData) {
+        setAutomations(automationsData);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRealData();
+  }, []);
 
   const handleNewAutomation = () => {
     const hasActiveAccount = igAccounts.some(acc => acc.status === 'active');
@@ -73,7 +92,11 @@ export default function AutomationsPage() {
           </button>
         </div>
         
-        {igAccounts.length === 0 ? (
+        {loading ? (
+          <div className="p-6 text-center border border-brand-border rounded-xl bg-brand-bg/50">
+            <p className="text-sm text-brand-text/50">Loading accounts...</p>
+          </div>
+        ) : igAccounts.length === 0 ? (
           <div className="p-6 text-center border border-dashed border-brand-border rounded-xl bg-brand-bg/50">
             <Instagram className="w-8 h-8 text-brand-text/30 mx-auto mb-3" />
             <p className="text-sm text-brand-text/70 mb-4">No accounts connected yet. Connect your Instagram account to start sending DMs.</p>
@@ -135,7 +158,13 @@ export default function AutomationsPage() {
                 </tr>
               </thead>
               <tbody>
-                {automations.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan="6" className="p-12 text-center text-brand-text/50">
+                      Loading automations...
+                    </td>
+                  </tr>
+                ) : automations.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="p-12 text-center text-brand-text/50">
                       No automations created yet. Click &quot;New Automation&quot; to get started.
