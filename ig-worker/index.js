@@ -34,24 +34,18 @@ async function initIgClient(accountId, username, password) {
   try {
     logger.info(`Launching visual browser for ${username}...`);
     const browser = await puppeteer.launch({ 
-      headless: false, // You will literally see the browser open!
+      headless: false,
       defaultViewport: null,
       args: ['--start-maximized', '--disable-notifications']
     });
     const page = await browser.newPage();
     
-    // Go to Instagram login
     await page.goto('https://www.instagram.com/accounts/login/', { waitUntil: 'networkidle2' });
     
-    // Wait for the login form to render
-    await page.waitForSelector('input[name="username"]', { timeout: 15000 });
-    
-    // Wait generously for the login form to appear
-    await page.waitForSelector('input[name="username"]', { timeout: 60000 });
+    await page.waitForSelector('input', { timeout: 60000 });
 
-    // Check if there is a cookie banner and click it (optional, depends on region)
     try {
-      const cookieBtns = await page.$('button');
+      const cookieBtns = await page.$$('button');
       for (let btn of cookieBtns) {
         const text = await page.evaluate(el => el.textContent, btn);
         if (text && text.toLowerCase().includes('allow')) {
@@ -61,25 +55,41 @@ async function initIgClient(accountId, username, password) {
       }
     } catch(e) {}
 
-    // Type credentials like a human
-    await page.type('input[name="username"]', username, { delay: 100 });
-    await page.type('input[name="password"]', password, { delay: 100 });
+    const inputs = await page.$$('input');
+    let userTyped = false;
+    let passTyped = false;
+    for (let input of inputs) {
+      const type = await page.evaluate(el => el.type, input);
+      const name = await page.evaluate(el => el.name, input);
+      
+      if (!userTyped && (type === 'text' || name === 'username' || name === 'email')) {
+        await input.type(username, { delay: 100 });
+        userTyped = true;
+      } else if (!passTyped && (type === 'password' || name === 'password' || name === 'pass')) {
+        await input.type(password, { delay: 100 });
+        passTyped = true;
+      }
+    }
     
-    // Click Log In
-    await page.click('button[type="submit"]');
+    if (!userTyped || !passTyped) {
+       throw new Error("Could not find username or password inputs on the login page!");
+    }
     
-    // Wait 10 seconds for the login to process (SPA transition or popup)
+    const loginBtns = await page.$$('button[type="submit"]');
+    if (loginBtns.length > 0) {
+       await loginBtns[0].click();
+    } else {
+       await page.keyboard.press('Enter');
+    }
+    
     await new Promise(r => setTimeout(r, 10000));
     
-    // Verify login by checking if URL changed or if we see a specific element
     const currentUrl = page.url();
     if (currentUrl.includes('login')) {
-      // Still on login page, might be incorrect password or 2FA
       throw new Error("Failed to log in. Check credentials, 2FA, or Instagram blocked the IP.");
     }
     
     logger.info(`Successfully logged into ${username} via Puppeteer Browser`);
-    
     igClients.set(accountId, { browser, page });
   } catch (err) {
     logger.error(`Failed to login ${username}: ${err.message}`);
