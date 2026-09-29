@@ -253,7 +253,7 @@ const handleConnectSubmit = async (e) => {
                               <Play className="w-4 h-4" />
                             </button>
                           )}
-                          <button onClick={() => toast.success('Settings page coming soon!')} className="p-1.5 text-brand-text/50 hover:text-brand-text hover:bg-brand-bg rounded-md transition-colors" title="Settings">
+                          <button onClick={() => router.push(`/dashboard/automations/builder?id=${auto.id}`)} className="p-1.5 text-brand-text/50 hover:text-brand-text hover:bg-brand-bg rounded-md transition-colors" title="Settings">
                             <Settings className="w-4 h-4" />
                           </button>
                           <button onClick={() => handleDelete(auto.id)} className="p-1.5 text-brand-text/50 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors" title="Delete">

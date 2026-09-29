@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, Database, UploadCloud, Save, Play, Clock, MessageSquare, ChevronRight, Check } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function AutomationBuilderPage() {
-  const router = useRouter();
+    const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('id');
+  const [isLoading, setIsLoading] = useState(!!editId);
   
   const [formData, setFormData] = useState({
     name: 'New Automation - ' + new Date().toLocaleDateString(),
@@ -21,6 +24,38 @@ export default function AutomationBuilderPage() {
     delayAfterBatchMax: 60,
     message: 'Hey {first_name}, loved your recent post! We help agencies scale, open to a quick chat?'
   });
+
+  useEffect(() => {
+    if (!editId) return;
+    const fetchAutomation = async () => {
+      const supabase = createClient();
+      try {
+        const { data, error } = await supabase.from('dm_automations').select('*').eq('id', editId).single();
+        if (error) throw error;
+        
+        if (data) {
+          setFormData({
+            name: data.name || '',
+            source: data.source === 'CSV' ? 'csv' : 'db',
+            dbQuantity: data.scheduled || 100,
+            dbPipelineStatus: data.pipeline_status_filter || 'not contacted',
+            dbOutreachStatus: data.outreach_status_filter || 'not called',
+            delayBetweenDmsMin: data.delay_between_dms_min || 5,
+            delayBetweenDmsMax: data.delay_between_dms_max || 10,
+            delayAfterBatchMin: data.delay_after_batch_min || 30,
+            delayAfterBatchMax: data.delay_after_batch_max || 60,
+            message: data.message_template || ''
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load automation for editing.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAutomation();
+  }, [editId]);
 
   const [saving, setSaving] = useState(false);
 
@@ -36,13 +71,12 @@ export default function AutomationBuilderPage() {
     const supabase = createClient();
     
     try {
-      const { error } = await supabase.from('dm_automations').insert([{
+      
+      const payload = {
         name: formData.name,
         status: status,
         source: formData.source === 'db' ? 'Database' : 'CSV',
         scheduled: formData.source === 'db' ? formData.dbQuantity : 0,
-        sent: 0,
-        nextexecution: 'Pending',
         delay_between_dms_min: formData.delayBetweenDmsMin,
         delay_between_dms_max: formData.delayBetweenDmsMax,
         delay_after_batch_min: formData.delayAfterBatchMin,
@@ -50,7 +84,20 @@ export default function AutomationBuilderPage() {
         message_template: formData.message,
         pipeline_status_filter: formData.source === 'db' ? formData.dbPipelineStatus : null,
         outreach_status_filter: formData.source === 'db' ? formData.dbOutreachStatus : null
-      }]);
+      };
+
+      let error;
+      if (editId) {
+        const { error: updateError } = await supabase.from('dm_automations').update(payload).eq('id', editId);
+        error = updateError;
+      } else {
+        const { error: insertError } = await supabase.from('dm_automations').insert([{
+          ...payload,
+          sent: 0,
+          nextexecution: 'Pending'
+        }]);
+        error = insertError;
+      }
       
       if (error) {
         if (error.code === '42P01') {
@@ -61,7 +108,7 @@ export default function AutomationBuilderPage() {
         return;
       }
       
-      toast.success(`Automation ${status === 'active' ? 'Activated' : 'Saved to Archive'}!`);
+      toast.success(editId ? 'Automation Updated successfully!' : `Automation ${status === 'active' ? 'Activated' : 'Saved to Archive'}!`);
       router.push('/dashboard/automations');
     } catch (err) {
       console.error(err);
@@ -78,12 +125,21 @@ export default function AutomationBuilderPage() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-brand-dark">
+      {isLoading && (
+        <div className="absolute inset-0 z-[100] bg-brand-dark/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="text-brand-text font-medium flex items-center gap-2">
+            <svg className="animate-spin h-5 w-5 text-brand-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            Loading automation...
+          </div>
+        </div>
+      )}
       {/* Top Bar */}
       <div className="flex items-center justify-between p-4 border-b border-brand-border bg-brand-surface shrink-0">
         <div className="flex items-center gap-4">
           <button onClick={() => router.push('/dashboard/automations')} className="p-2 text-brand-text/50 hover:text-brand-text rounded-lg hover:bg-brand-bg transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
+          {editId && <span className="bg-brand-accent/20 text-brand-accent text-xs font-bold uppercase tracking-wider px-2 py-1 rounded">Edit Mode</span>}
           <input 
             type="text" 
             value={formData.name}
