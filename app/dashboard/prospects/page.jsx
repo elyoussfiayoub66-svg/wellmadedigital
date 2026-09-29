@@ -691,6 +691,64 @@ export default function ProspectsPage() {
     XLSX.writeFile(workbook, "Prospects_Export.xlsx");
   };
 
+
+  const handleBulkMarkUncontacted = async () => {
+    if (selectedRows.length === 0) return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from('prospects')
+        .update({ pipeline_status: 'not contacted' })
+        .in('id', selectedRows);
+
+      if (error) throw error;
+      toast.success(`Marked ${selectedRows.length} prospects as uncontacted`);
+      setProspects(prev => prev.map(p => selectedRows.includes(p.id) ? { ...p, pipeline_status: 'not contacted' } : p));
+      setSelectedRows([]);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to update prospects');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedRows.length === 0) return;
+    const confirmed = window.confirm(`Are you sure you want to permanently delete ${selectedRows.length} prospects?`);
+    if (!confirmed) return;
+    
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from('prospects').delete().in('id', selectedRows);
+
+      if (error) throw error;
+      toast.success(`Deleted ${selectedRows.length} prospects`);
+      setProspects(prev => prev.filter(p => !selectedRows.includes(p.id)));
+      if (selectedProspect && selectedRows.includes(selectedProspect.id)) {
+        setSelectedProspect(null);
+      }
+      setSelectedRows([]);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to delete prospects');
+    }
+  };
+
+  const handleBulkSelectAction = (e) => {
+    const val = e.target.value;
+    if (!val) return;
+    
+    if (val === 'clear') {
+      setSelectedRows([]);
+    } else if (val === 'all') {
+      setSelectedRows(displayedProspects.map(p => p.id));
+    } else {
+      const count = parseInt(val, 10);
+      setSelectedRows(displayedProspects.slice(0, count).map(p => p.id));
+    }
+    
+    // Reset the select dropdown
+    e.target.value = "";
+  };
+
   const handleBulkMarkContacted = async () => {
     if (selectedRows.length === 0) return;
     try {
@@ -748,6 +806,16 @@ export default function ProspectsPage() {
             {outreachOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
           </select>
 
+          
+          {/* Bulk Select Filter */}
+          <select onChange={handleBulkSelectAction} value="" className={`${customSelectClass} min-w-[140px]`}>
+            <option value="" disabled>Bulk Select...</option>
+            <option value="100">Select 100</option>
+            <option value="200">Select 200</option>
+            <option value="all">Select All</option>
+            {selectedRows.length > 0 && <option value="clear">Clear Selection</option>}
+          </select>
+          
           <div className="relative flex-1 sm:w-64">
             <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-brand-text/40" />
             <input 
@@ -766,16 +834,25 @@ export default function ProspectsPage() {
           
 
           {selectedRows.length > 0 && (
-            <>
-              <button onClick={handleBulkMarkContacted} className="flex items-center gap-2 bg-brand-surface border border-brand-border text-brand-text px-4 py-2.5 rounded-lg hover:border-brand-accent hover:text-brand-accent transition-colors font-medium text-sm whitespace-nowrap">
-                <Users className="w-4 h-4" />
-                Mark Contacted ({selectedRows.length})
+            <div className="flex items-center gap-2 bg-brand-accent/10 border border-brand-accent/20 p-1 rounded-lg">
+              <span className="text-xs font-semibold text-brand-accent px-2">{selectedRows.length} Selected:</span>
+              <button onClick={handleBulkMarkContacted} className="flex items-center gap-1.5 bg-brand-surface border border-brand-border text-brand-text px-3 py-1.5 rounded hover:border-brand-accent hover:text-brand-accent transition-colors font-medium text-xs whitespace-nowrap shadow-sm">
+                <Users className="w-3.5 h-3.5" />
+                Contacted
               </button>
-              <button onClick={handleExportExcel} className="flex items-center gap-2 bg-brand-surface border border-brand-border text-brand-text px-4 py-2.5 rounded-lg hover:border-brand-accent hover:text-brand-accent transition-colors font-medium text-sm whitespace-nowrap">
-                <Download className="w-4 h-4" />
-                Export ({selectedRows.length})
+              <button onClick={handleBulkMarkUncontacted} className="flex items-center gap-1.5 bg-brand-surface border border-brand-border text-brand-text px-3 py-1.5 rounded hover:border-brand-accent hover:text-brand-accent transition-colors font-medium text-xs whitespace-nowrap shadow-sm">
+                <AlertCircle className="w-3.5 h-3.5" />
+                Uncontacted
               </button>
-            </>
+              <button onClick={handleExportExcel} className="flex items-center gap-1.5 bg-brand-surface border border-brand-border text-brand-text px-3 py-1.5 rounded hover:border-brand-accent hover:text-brand-accent transition-colors font-medium text-xs whitespace-nowrap shadow-sm">
+                <Download className="w-3.5 h-3.5" />
+                Export
+              </button>
+              <button onClick={handleBulkDelete} className="flex items-center gap-1.5 bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1.5 rounded hover:bg-red-500 hover:text-white transition-colors font-medium text-xs whitespace-nowrap shadow-sm">
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete
+              </button>
+            </div>
           )}
           <button onClick={() => {setIsImportModalOpen(true); setImportResults(null);}} className="flex items-center gap-2 bg-brand-surface border border-brand-border text-brand-text px-4 py-2.5 rounded-lg hover:border-brand-accent hover:text-brand-accent transition-colors font-medium text-sm whitespace-nowrap">
 
@@ -852,55 +929,26 @@ export default function ProspectsPage() {
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="border-b border-brand-border bg-brand-bg/50 sticky top-0 z-10 shadow-sm">
-                  <th className="p-4 w-12 text-center relative">
-                    <button 
-                      onClick={() => setIsSelectMenuOpen(!isSelectMenuOpen)}
-                      className="relative flex items-center justify-center p-1 hover:bg-brand-bg rounded-lg transition-colors group mx-auto"
-                      title="Selection Options"
-                    >
-                      <div className={`w-5 h-5 rounded-[6px] border-2 border-brand-border bg-brand-surface transition-all duration-300 flex items-center justify-center shadow-sm group-hover:border-brand-accent group-hover:shadow-brand-accent/20 ${selectedRows.length > 0 ? 'bg-brand-accent border-brand-accent' : ''}`}>
+                  <th className="p-4 w-12 text-center">
+                    <label className="relative flex items-center justify-center cursor-pointer group p-1" title="Select All">
+                      <input 
+                        type="checkbox"
+                        className="peer sr-only"
+                        checked={displayedProspects.length > 0 && selectedRows.length === displayedProspects.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedRows(displayedProspects.map(p => p.id));
+                          } else {
+                            setSelectedRows([]);
+                          }
+                        }}
+                      />
+                      <div className={`w-5 h-5 rounded-[6px] border-2 border-brand-border bg-brand-surface transition-all duration-300 flex items-center justify-center shadow-sm group-hover:border-brand-accent group-hover:shadow-brand-accent/20 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-accent/50 ${selectedRows.length > 0 ? 'bg-brand-accent border-brand-accent' : ''}`}>
                         <svg className={`w-3.5 h-3.5 text-white transition-all duration-300 ${selectedRows.length > 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                           <path strokeLinecap="round" strokeLinejoin="round" d={selectedRows.length > 0 && selectedRows.length < displayedProspects.length ? "M18 12H6" : "M5 13l4 4L19 7"} />
                         </svg>
                       </div>
-                      <svg className="w-3.5 h-3.5 ml-1.5 text-brand-text/40 group-hover:text-brand-accent transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-
-                    {isSelectMenuOpen && (
-                      <div className="absolute top-full left-4 mt-2 w-40 bg-brand-surface border border-brand-border rounded-xl shadow-2xl z-[60] py-1.5 text-left overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                        {selectedRows.length > 0 && (
-                          <>
-                            <button 
-                              onClick={() => { setSelectedRows([]); setIsSelectMenuOpen(false); }}
-                              className="w-full text-left px-4 py-2 text-sm text-brand-text hover:bg-brand-bg hover:text-brand-accent transition-colors font-medium flex items-center gap-2"
-                            >
-                              <X className="w-4 h-4" /> Clear Selection
-                            </button>
-                            <div className="h-px bg-brand-border my-1"></div>
-                          </>
-                        )}
-                        <button 
-                          onClick={() => handleBulkSelect(100)}
-                          className="w-full text-left px-4 py-2 text-sm text-brand-text hover:bg-brand-bg hover:text-brand-accent transition-colors font-medium flex items-center justify-between"
-                        >
-                          Select 100 <span className="text-xs text-brand-text/40">rows</span>
-                        </button>
-                        <button 
-                          onClick={() => handleBulkSelect(200)}
-                          className="w-full text-left px-4 py-2 text-sm text-brand-text hover:bg-brand-bg hover:text-brand-accent transition-colors font-medium flex items-center justify-between"
-                        >
-                          Select 200 <span className="text-xs text-brand-text/40">rows</span>
-                        </button>
-                        <button 
-                          onClick={() => handleBulkSelect('all')}
-                          className="w-full text-left px-4 py-2 text-sm text-brand-text hover:bg-brand-bg hover:text-brand-accent transition-colors font-medium flex items-center justify-between"
-                        >
-                          Select All <span className="text-xs text-brand-text/40">rows</span>
-                        </button>
-                      </div>
-                    )}
+                    </label>
                   </th>
                   <th className="p-4 font-medium text-brand-text/70 text-sm">Business Info</th>
                   <th className="p-4 font-medium text-brand-text/70 text-sm">Contact Details</th>
