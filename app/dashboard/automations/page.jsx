@@ -109,9 +109,20 @@ const handleConnectSubmit = async (e) => {
     }
   };
 
-  const removeAccount = (id) => {
-    setIgAccounts(prev => prev.filter(a => a.id !== id));
-    toast.success('Account disconnected');
+  const removeAccount = async (id) => {
+    if (!window.confirm("Are you sure you want to disconnect this Instagram account?")) return;
+    
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from('ig_accounts').delete().eq('id', id);
+      if (error) throw error;
+      
+      setIgAccounts(prev => prev.filter(a => a.id !== id));
+      toast.success('Account disconnected');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to disconnect account');
+    }
   };
 
   const getStatusBadge = (status) => {
