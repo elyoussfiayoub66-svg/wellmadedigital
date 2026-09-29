@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Edit2, Trash2, X, Search, CalendarPlus, Plus, ChevronLeft, ChevronRight, MapPin, AlignLeft, Users, AtSign, Megaphone, AlertCircle, Send } from 'lucide-react';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
+import { Edit2, Trash2, X, Search, CalendarPlus, Plus, ChevronLeft, ChevronRight, MapPin, AlignLeft, Users, AtSign, Megaphone, AlertCircle, Send, UploadCloud, Download } from 'lucide-react';
 import ConfirmModal from '@/components/ConfirmModal';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -23,6 +25,12 @@ export default function ProspectsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+
+  // Import Modal State
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResults, setImportResults] = useState(null);
+  const fileInputRef = useRef(null);
 
   const [teamMembers, setTeamMembers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -140,6 +148,158 @@ export default function ProspectsPage() {
     setPhoneError('');
     setIsModalOpen(true);
   };
+
+  const downloadTemplate = () => {
+    const csvContent = "business_name,owner_name,email,phone,ig_handle,niche\n";
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "prospects_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processFile(file);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    processFile(file);
+  };
+
+  const processFile = (file) => {
+    setImporting(true);
+    setImportResults(null);
+    
+    const isCsv = file.name.endsWith('.csv');
+    const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+
+    if (isCsv) {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          uploadParsedData(results.data);
+        },
+        error: (err) => {
+          setImportResults({ total: 0, success: 0, failed: 0, errors: ['Failed to parse CSV'] });
+          setImporting(false);
+        }
+      });
+    } else if (isExcel) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+        uploadParsedData(jsonData);
+      };
+      reader.onerror = () => {
+        setImportResults({ total: 0, success: 0, failed: 0, errors: ['Failed to read Excel file'] });
+        setImporting(false);
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      setImportResults({ total: 0, success: 0, failed: 0, errors: ['Unsupported file type. Use CSV or Excel.'] });
+      setImporting(false);
+    }
+  };
+
+  const uploadParsedData = async (data) => {
+    if (!data || data.length === 0) {
+      setImportResults({ total: 0, success: 0, failed: 0, errors: ['File is empty or invalid'] });
+      setImporting(false);
+      return;
+    }
+
+    const supabase = createClient();
+    let successCount = 0;
+    let failedCount = 0;
+    const errors = [];
+    
+    const existingPhones = new Set(prospects.map(p => p.phone).filter(Boolean));
+    const processedPhones = new Set();
+    
+    const validRows = [];
+
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const rowNum = i + 1;
+      
+      const bName = row.business_name || row['Business Name'] || row.BusinessName || '';
+      const oName = row.owner_name || row['Owner Name'] || row.OwnerName || '';
+      const email = row.email || row.Email || '';
+      const phone = (row.phone || row.Phone || '')?.toString().trim();
+      const ig = row.ig_handle || row['IG Handle'] || row.ig || '';
+      const niche = row.niche || row.Niche || '';
+
+      if (!bName) {
+        failedCount++;
+        errors.push(`Row ${rowNum}: Missing business_name`);
+        continue;
+      }
+      
+      if (phone && phone.length > 4) {
+        if (existingPhones.has(phone) || processedPhones.has(phone)) {
+          failedCount++;
+          errors.push(`Row ${rowNum}: Duplicate phone number (${phone})`);
+          continue;
+        }
+        processedPhones.add(phone);
+      }
+      
+      validRows.push({
+        business_name: bName,
+        owner_name: oName,
+        email: email,
+        phone: phone,
+        ig_handle: ig,
+        niche: niche,
+        pipeline_status: 'not contacted',
+        outreach_status: 'not called',
+        followup_status: '',
+        created_by: currentUser?.id
+      });
+    }
+
+    if (validRows.length > 0) {
+      const chunkSize = 100;
+      for (let i = 0; i < validRows.length; i += chunkSize) {
+        const chunk = validRows.slice(i, i + chunkSize);
+        const { error } = await supabase.from('prospects').insert(chunk);
+        
+        if (error) {
+           failedCount += chunk.length;
+           errors.push(`Failed to insert batch starting at row ${i + 1}: ${error.message}`);
+        } else {
+           successCount += chunk.length;
+        }
+      }
+    }
+
+    setImportResults({
+      total: data.length,
+      success: successCount,
+      failed: failedCount,
+      errors: errors.slice(0, 10)
+    });
+    
+    setImporting(false);
+    
+    if (successCount > 0) {
+      toast.success(`Imported ${successCount} prospects`);
+      fetchProspectsAndAnnouncements();
+    }
+  };
+
 
   const openEditModal = (prospect, e) => {
     if (e) e.stopPropagation();
@@ -533,6 +693,11 @@ export default function ProspectsPage() {
             Announcement
           </button>
           
+          <button onClick={() => {setIsImportModalOpen(true); setImportResults(null);}} className="flex items-center gap-2 bg-brand-surface border border-brand-border text-brand-text px-4 py-2.5 rounded-lg hover:border-brand-accent hover:text-brand-accent transition-colors font-medium text-sm whitespace-nowrap">
+            <UploadCloud className="w-4 h-4" />
+            Import
+          </button>
+
           <button onClick={openAddModal} className="flex items-center gap-2 bg-brand-accent text-white px-4 py-2.5 rounded-lg hover:opacity-90 transition-opacity font-medium text-sm whitespace-nowrap">
             <Plus className="w-4 h-4" />
             Add Prospect
@@ -1048,7 +1213,114 @@ export default function ProspectsPage() {
         </div>
       )}
 
+      {/* Import Prospects Modal */}
+      {isImportModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-dark/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-brand-surface w-full max-w-lg rounded-2xl overflow-hidden border border-brand-border flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-5 border-b border-brand-border shrink-0">
+              <h2 className="text-lg font-medium text-brand-text flex items-center gap-2">
+                <UploadCloud className="w-5 h-5 text-brand-accent" /> Import Prospects
+              </h2>
+              <button onClick={() => setIsImportModalOpen(false)} className="text-brand-text/50 hover:text-brand-text p-1 rounded-full hover:bg-brand-bg transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-5 overflow-y-auto custom-scrollbar flex-1">
+              {!importResults ? (
+                <>
+                  <div className="mb-6 bg-brand-bg/50 border border-brand-border rounded-lg p-4">
+                    <h3 className="text-sm font-semibold text-brand-text mb-2">Expected Format</h3>
+                    <p className="text-xs text-brand-text/70 mb-3">Your CSV or Excel file should contain the following columns. <strong>business_name</strong> is required.</p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className="px-2 py-1 bg-brand-surface border border-brand-border rounded text-xs text-brand-text font-mono">business_name*</span>
+                      <span className="px-2 py-1 bg-brand-surface border border-brand-border rounded text-xs text-brand-text font-mono">owner_name</span>
+                      <span className="px-2 py-1 bg-brand-surface border border-brand-border rounded text-xs text-brand-text font-mono">email</span>
+                      <span className="px-2 py-1 bg-brand-surface border border-brand-border rounded text-xs text-brand-text font-mono">phone</span>
+                      <span className="px-2 py-1 bg-brand-surface border border-brand-border rounded text-xs text-brand-text font-mono">ig_handle</span>
+                      <span className="px-2 py-1 bg-brand-surface border border-brand-border rounded text-xs text-brand-text font-mono">niche</span>
+                    </div>
+                    <button onClick={downloadTemplate} className="text-sm text-brand-accent hover:underline flex items-center gap-1 font-medium">
+                      <Download className="w-3.5 h-3.5" /> Download Template
+                    </button>
+                  </div>
+
+                  <div 
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={handleDrop}
+                    className="border-2 border-dashed border-brand-border rounded-xl p-8 text-center hover:border-brand-accent transition-colors bg-brand-bg/30 relative"
+                  >
+                    <input 
+                      type="file" 
+                      accept=".csv, .xlsx, .xls"
+                      onChange={handleFileUpload}
+                      ref={fileInputRef}
+                      className="hidden"
+                    />
+                    <UploadCloud className="w-10 h-10 text-brand-text/30 mx-auto mb-3" />
+                    <h3 className="text-brand-text font-medium mb-1">Drag and drop file here</h3>
+                    <p className="text-brand-text/50 text-xs mb-4">Supports .CSV, .XLSX</p>
+                    <button 
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={importing}
+                      className="bg-brand-surface border border-brand-border text-brand-text px-4 py-2 rounded-lg text-sm font-medium hover:border-brand-accent transition-colors disabled:opacity-50"
+                    >
+                      {importing ? 'Processing...' : 'Browse Files'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-brand-bg border border-brand-border rounded-xl p-6 text-center">
+                    <div className="text-4xl mb-2">{importResults.failed === 0 && importResults.success > 0 ? '🎉' : importResults.success > 0 ? '⚠️' : '❌'}</div>
+                    <h3 className="text-lg font-semibold text-brand-text mb-1">Import Complete</h3>
+                    <div className="flex items-center justify-center gap-6 mt-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-500">{importResults.success}</div>
+                        <div className="text-xs text-brand-text/60 uppercase tracking-wider font-medium">Added</div>
+                      </div>
+                      <div className="w-px h-8 bg-brand-border"></div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-red-500">{importResults.failed}</div>
+                        <div className="text-xs text-brand-text/60 uppercase tracking-wider font-medium">Failed</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {importResults.errors.length > 0 && (
+                    <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4">
+                      <h4 className="text-sm font-semibold text-red-400 mb-2 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" /> Errors
+                      </h4>
+                      <ul className="space-y-1">
+                        {importResults.errors.map((err, idx) => (
+                          <li key={idx} className="text-xs text-red-400/80">• {err}</li>
+                        ))}
+                        {importResults.failed > 10 && (
+                          <li className="text-xs text-brand-text/50 italic mt-2">...and {importResults.failed - 10} more errors</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="p-5 border-t border-brand-border bg-brand-bg/50 flex justify-end shrink-0">
+              <button 
+                type="button" 
+                onClick={() => setIsImportModalOpen(false)} 
+                className={`${importResults ? 'bg-brand-accent text-white border-transparent' : 'bg-brand-surface border-brand-border text-brand-text'} border px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 transition-all`}
+              >
+                {importResults ? 'Done' : 'Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ConfirmModal 
+
         isOpen={!!deleteTarget} 
         onClose={() => setDeleteTarget(null)} 
         onConfirm={handleConfirmDelete} 
