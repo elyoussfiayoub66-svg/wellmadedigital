@@ -23,6 +23,7 @@ export default function ProspectsPage() {
   
   // Selection
   const [selectedRows, setSelectedRows] = useState([]);
+  const [isSelectMenuOpen, setIsSelectMenuOpen] = useState(false);
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -643,6 +644,16 @@ export default function ProspectsPage() {
 
 
   // Select All Logic
+
+  const handleBulkSelect = (count) => {
+    if (count === 'all') {
+      setSelectedRows(displayedProspects.map(p => p.id));
+    } else {
+      setSelectedRows(displayedProspects.slice(0, count).map(p => p.id));
+    }
+    setIsSelectMenuOpen(false);
+  };
+
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       setSelectedRows(displayedProspects.map(p => p.id));
@@ -841,20 +852,55 @@ export default function ProspectsPage() {
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="border-b border-brand-border bg-brand-bg/50 sticky top-0 z-10 shadow-sm">
-                  <th className="p-4 w-12 text-center">
-                    <label className="relative flex items-center justify-center cursor-pointer group p-1" title="Select All">
-                      <input 
-                        type="checkbox"
-                        className="peer sr-only"
-                        checked={displayedProspects.length > 0 && selectedRows.length === displayedProspects.length}
-                        onChange={handleSelectAll}
-                      />
-                      <div className="w-5 h-5 rounded-[6px] border-2 border-brand-border bg-brand-surface peer-checked:bg-brand-accent peer-checked:border-brand-accent transition-all duration-200 flex items-center justify-center group-hover:border-brand-accent/50 shadow-sm">
-                        <svg className="w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity duration-200 scale-50 peer-checked:scale-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  <th className="p-4 w-12 text-center relative">
+                    <button 
+                      onClick={() => setIsSelectMenuOpen(!isSelectMenuOpen)}
+                      className="relative flex items-center justify-center p-1 hover:bg-brand-bg rounded-lg transition-colors group mx-auto"
+                      title="Selection Options"
+                    >
+                      <div className={`w-5 h-5 rounded-[6px] border-2 border-brand-border bg-brand-surface transition-all duration-300 flex items-center justify-center shadow-sm group-hover:border-brand-accent group-hover:shadow-brand-accent/20 ${selectedRows.length > 0 ? 'bg-brand-accent border-brand-accent' : ''}`}>
+                        <svg className={`w-3.5 h-3.5 text-white transition-all duration-300 ${selectedRows.length > 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d={selectedRows.length > 0 && selectedRows.length < displayedProspects.length ? "M18 12H6" : "M5 13l4 4L19 7"} />
                         </svg>
                       </div>
-                    </label>
+                      <svg className="w-3.5 h-3.5 ml-1.5 text-brand-text/40 group-hover:text-brand-accent transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {isSelectMenuOpen && (
+                      <div className="absolute top-full left-4 mt-2 w-40 bg-brand-surface border border-brand-border rounded-xl shadow-2xl z-[60] py-1.5 text-left overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                        {selectedRows.length > 0 && (
+                          <>
+                            <button 
+                              onClick={() => { setSelectedRows([]); setIsSelectMenuOpen(false); }}
+                              className="w-full text-left px-4 py-2 text-sm text-brand-text hover:bg-brand-bg hover:text-brand-accent transition-colors font-medium flex items-center gap-2"
+                            >
+                              <X className="w-4 h-4" /> Clear Selection
+                            </button>
+                            <div className="h-px bg-brand-border my-1"></div>
+                          </>
+                        )}
+                        <button 
+                          onClick={() => handleBulkSelect(100)}
+                          className="w-full text-left px-4 py-2 text-sm text-brand-text hover:bg-brand-bg hover:text-brand-accent transition-colors font-medium flex items-center justify-between"
+                        >
+                          Select 100 <span className="text-xs text-brand-text/40">rows</span>
+                        </button>
+                        <button 
+                          onClick={() => handleBulkSelect(200)}
+                          className="w-full text-left px-4 py-2 text-sm text-brand-text hover:bg-brand-bg hover:text-brand-accent transition-colors font-medium flex items-center justify-between"
+                        >
+                          Select 200 <span className="text-xs text-brand-text/40">rows</span>
+                        </button>
+                        <button 
+                          onClick={() => handleBulkSelect('all')}
+                          className="w-full text-left px-4 py-2 text-sm text-brand-text hover:bg-brand-bg hover:text-brand-accent transition-colors font-medium flex items-center justify-between"
+                        >
+                          Select All <span className="text-xs text-brand-text/40">rows</span>
+                        </button>
+                      </div>
+                    )}
                   </th>
                   <th className="p-4 font-medium text-brand-text/70 text-sm">Business Info</th>
                   <th className="p-4 font-medium text-brand-text/70 text-sm">Contact Details</th>
@@ -890,8 +936,8 @@ export default function ProspectsPage() {
                             checked={selectedRows.includes(prospect.id)}
                             onChange={(e) => toggleRowSelection(prospect.id, e)}
                           />
-                          <div className="w-5 h-5 rounded-[6px] border-2 border-brand-border bg-brand-surface peer-checked:bg-brand-accent peer-checked:border-brand-accent transition-all duration-200 flex items-center justify-center group-hover:border-brand-accent/50 shadow-sm">
-                            <svg className="w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity duration-200 scale-50 peer-checked:scale-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                          <div className="w-5 h-5 rounded-[6px] border-2 border-brand-border bg-brand-surface peer-checked:bg-brand-accent peer-checked:border-brand-accent transition-all duration-300 flex items-center justify-center shadow-sm group-hover:border-brand-accent group-hover:shadow-brand-accent/30 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-accent/50">
+                            <svg className="w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-all duration-300 scale-50 peer-checked:scale-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                           </div>
