@@ -1,0 +1,16 @@
+{
+  "name": "ig-worker",
+  "version": "1.0.0",
+  "description": "Instagram DM Automation Worker",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "instagram-private-api": "^1.45.3",
+    "pino": "^9.0.0"
+  }
+}
