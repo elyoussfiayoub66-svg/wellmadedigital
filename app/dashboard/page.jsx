@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { 
-  TrendingUp, Wallet, Users, FolderGit2, AlertCircle, TrendingDown, Award, Search, Calendar, PhoneCall 
+  TrendingUp, Wallet, Users, FolderGit2, AlertCircle, TrendingDown, Award, Search, Calendar, PhoneCall, MessageSquare 
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -172,7 +172,7 @@ export default function DashboardOverview() {
 
         const monthlyOutreach = {};
         last6Months.forEach(m => {
-            monthlyOutreach[m] = { month: m, 'Calls Made': 0, 'Meetings Booked': 0, 'Clients Closed': 0 };
+            monthlyOutreach[m] = { month: m, 'Calls Made': 0, 'DMs Sent': 0, 'Meetings Booked': 0, 'Clients Closed': 0 };
         });
 
         prospects?.forEach(p => {
