@@ -14,6 +14,9 @@ export default function AutomationsPage() {
   const [igAccounts, setIgAccounts] = useState([]);
   const [automations, setAutomations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [igCredentials, setIgCredentials] = useState({ handle: '', password: '' });
+  const [connectingIg, setConnectingIg] = useState(false);
 
   const fetchRealData = async () => {
     setLoading(true);
@@ -49,7 +52,34 @@ export default function AutomationsPage() {
   };
 
   const connectIgAccount = () => {
-    toast.success('Instagram authentication flow would start here.');
+    setIgCredentials({ handle: '', password: '' });
+    setIsConnectModalOpen(true);
+  };
+
+  const handleConnectSubmit = async (e) => {
+    e.preventDefault();
+    if (!igCredentials.handle || !igCredentials.password) return toast.error("Please enter both username and password");
+    
+    setConnectingIg(true);
+    const supabase = createClient();
+    try {
+      const { data, error } = await supabase.from('ig_accounts').insert([{
+        handle: igCredentials.handle.startsWith('@') ? igCredentials.handle : '@' + igCredentials.handle,
+        password_hash: igCredentials.password, // Stored directly for MVP worker access
+        status: 'active'
+      }]).select().single();
+      
+      if (error) throw error;
+      
+      toast.success("Instagram account connected successfully!");
+      setIgAccounts(prev => [...prev, data]);
+      setIsConnectModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to connect account");
+    } finally {
+      setConnectingIg(false);
+    }
   };
 
   const removeAccount = (id) => {
@@ -244,6 +274,69 @@ export default function AutomationsPage() {
         )}
       </div>
       
+      
+      {/* Connect IG Account Modal */}
+      {isConnectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-dark/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-brand-surface w-full max-w-md rounded-2xl overflow-hidden border border-brand-border flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between p-5 border-b border-brand-border bg-brand-bg/50">
+              <h2 className="text-lg font-semibold text-brand-text flex items-center gap-2">
+                <Instagram className="w-5 h-5 text-pink-500" /> Connect Instagram
+              </h2>
+              <button onClick={() => setIsConnectModalOpen(false)} className="text-brand-text/50 hover:text-brand-text p-1 rounded-lg hover:bg-brand-bg transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <form onSubmit={handleConnectSubmit} className="p-6 space-y-4">
+              <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 p-3 rounded-lg text-xs mb-4">
+                Your credentials are required so the backend worker can authenticate on your behalf to send DMs automatically.
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-brand-text">Instagram Username</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-text/40 font-medium">@</span>
+                  <input 
+                    required 
+                    type="text" 
+                    placeholder="username"
+                    value={igCredentials.handle} 
+                    onChange={e => setIgCredentials(prev => ({ ...prev, handle: e.target.value.replace('@', '') }))} 
+                    className="w-full bg-brand-bg border border-brand-border rounded-lg pl-8 pr-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" 
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-brand-text">Password</label>
+                <input 
+                  required 
+                  type="password" 
+                  placeholder="••••••••"
+                  value={igCredentials.password} 
+                  onChange={e => setIgCredentials(prev => ({ ...prev, password: e.target.value }))} 
+                  className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" 
+                />
+              </div>
+
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-brand-border mt-6">
+                <button type="button" onClick={() => setIsConnectModalOpen(false)} className="text-brand-text/70 hover:text-brand-text text-sm font-medium px-4 py-2 transition-colors">
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={connectingIg}
+                  className="bg-brand-accent text-white px-6 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-70 flex items-center gap-2"
+                >
+                  {connectingIg ? 'Connecting...' : 'Securely Connect'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <Toaster position="top-right" />
     </div>
   );
