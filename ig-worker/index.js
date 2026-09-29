@@ -4,13 +4,13 @@ const { IgApiClient } = require('instagram-private-api');
 const { createClient } = require('@supabase/supabase-js');
 const pino = require('pino');
 
-const logger = pino({ transport: { target: 'pino-pretty' } });
+const logger = pino();
 const app = express();
 app.use(express.json());
 
 const supabase = createClient(
-  process.env.SUPABASE_URL || 'https://placeholder.supabase.co',
-  process.env.SUPABASE_KEY || 'placeholder'
+  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://placeholder.supabase.co',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || 'placeholder'
 );
 
 // In-memory store of active IG clients
@@ -165,7 +165,7 @@ app.post('/api/connect', async (req, res) => {
 });
 
 // Run engine periodically (e.g. every minute)
-setInterval(processAutomations, 60000);
+setInterval(processAutomations, 10000); // 10 seconds for testing
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
