@@ -46,6 +46,12 @@ async function initIgClient(accountId, username, password) {
     // Wait for the login form to render
     await page.waitForSelector('input[name="username"]', { timeout: 15000 });
     
+    // Check if there is a cookie banner and click it (optional, depends on region)
+    try {
+      const cookieBtn = await page.$('button:contains("Allow")');
+      if (cookieBtn) await cookieBtn.click();
+    } catch(e) {}
+
     // Type credentials like a human
     await page.type('input[name="username"]', username, { delay: 100 });
     await page.type('input[name="password"]', password, { delay: 100 });
@@ -53,10 +59,16 @@ async function initIgClient(accountId, username, password) {
     // Click Log In
     await page.click('button[type="submit"]');
     
-    // Wait for login to complete (checking if we reach the feed or see a 'Not Now' prompt)
-    await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {});
+    // Wait 10 seconds for the login to process (SPA transition or popup)
+    await new Promise(r => setTimeout(r, 10000));
     
-    // Sometimes IG asks to save login info or turn on notifications. We just ignore it and proceed.
+    // Verify login by checking if URL changed or if we see a specific element
+    const currentUrl = page.url();
+    if (currentUrl.includes('login')) {
+      // Still on login page, might be incorrect password or 2FA
+      throw new Error("Failed to log in. Check credentials, 2FA, or Instagram blocked the IP.");
+    }
+    
     logger.info(`Successfully logged into ${username} via Puppeteer Browser`);
     
     igClients.set(accountId, { browser, page });
