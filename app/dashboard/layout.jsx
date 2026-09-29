@@ -133,6 +133,7 @@ export default function DashboardLayout({ children }) {
     { name: 'Leads',        href: '/dashboard/leads',        icon: Users },
     { name: 'Workflows',    href: '/dashboard/workflows',    icon: FolderGit2 },
     { name: 'Prospects',    href: '/dashboard/prospects',    icon: Search },
+    { name: 'Automations',  href: '/dashboard/automations',  icon: MessageSquare },
     { name: 'Projects',     href: '/dashboard/projects',     icon: FolderGit2 },
     { name: 'Chat',         href: '/dashboard/chat',         icon: MessageSquare },
     { name: 'Tasks',        href: '/dashboard/tasks',        icon: CheckSquare },
