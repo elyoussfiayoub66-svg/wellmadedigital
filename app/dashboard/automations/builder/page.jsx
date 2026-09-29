@@ -42,7 +42,7 @@ export default function AutomationBuilderPage() {
         source: formData.source === 'db' ? 'Database' : 'CSV',
         scheduled: formData.source === 'db' ? formData.dbQuantity : 0,
         sent: 0,
-        nextExecution: 'Pending',
+        nextexecution: 'Pending',
         delay_between_dms_min: formData.delayBetweenDmsMin,
         delay_between_dms_max: formData.delayBetweenDmsMax,
         delay_after_batch_min: formData.delayAfterBatchMin,

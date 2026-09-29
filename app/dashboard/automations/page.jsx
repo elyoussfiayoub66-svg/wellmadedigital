@@ -214,7 +214,7 @@ export default function AutomationsPage() {
                           <div className="h-full bg-brand-accent rounded-full" style={{ width: `${(auto.sent / auto.scheduled) * 100}%` }}></div>
                         </div>
                       </td>
-                      <td className="p-4 text-sm text-brand-text/80">{auto.nextExecution}</td>
+                      <td className="p-4 text-sm text-brand-text/80">{auto.nextexecution}</td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {auto.status === 'active' ? (
