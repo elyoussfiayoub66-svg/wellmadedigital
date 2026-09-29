@@ -56,7 +56,34 @@ export default function AutomationsPage() {
     setIsConnectModalOpen(true);
   };
 
-  const handleConnectSubmit = async (e) => {
+    const handleUpdateStatus = async (id, newStatus) => {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from('dm_automations').update({ status: newStatus }).eq('id', id);
+      if (error) throw error;
+      setAutomations(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
+      toast.success(`Automation ${newStatus}`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to update status');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to permanently delete this automation?")) return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from('dm_automations').delete().eq('id', id);
+      if (error) throw error;
+      setAutomations(prev => prev.filter(a => a.id !== id));
+      toast.success("Automation deleted");
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to delete automation');
+    }
+  };
+
+const handleConnectSubmit = async (e) => {
     e.preventDefault();
     if (!igCredentials.handle || !igCredentials.password) return toast.error("Please enter both username and password");
     
@@ -218,19 +245,19 @@ export default function AutomationsPage() {
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {auto.status === 'active' ? (
-                            <button className="p-1.5 text-brand-text/50 hover:text-yellow-500 hover:bg-yellow-500/10 rounded-md transition-colors" title="Pause">
+                            <button onClick={() => handleUpdateStatus(auto.id, 'paused')} className="p-1.5 text-brand-text/50 hover:text-yellow-500 hover:bg-yellow-500/10 rounded-md transition-colors" title="Pause">
                               <Pause className="w-4 h-4" />
                             </button>
                           ) : (
-                            <button className="p-1.5 text-brand-text/50 hover:text-green-500 hover:bg-green-500/10 rounded-md transition-colors" title="Start">
+                            <button onClick={() => handleUpdateStatus(auto.id, 'active')} className="p-1.5 text-brand-text/50 hover:text-green-500 hover:bg-green-500/10 rounded-md transition-colors" title="Start">
                               <Play className="w-4 h-4" />
                             </button>
                           )}
-                          <button className="p-1.5 text-brand-text/50 hover:text-brand-text hover:bg-brand-bg rounded-md transition-colors" title="Settings">
+                          <button onClick={() => toast.success('Settings page coming soon!')} className="p-1.5 text-brand-text/50 hover:text-brand-text hover:bg-brand-bg rounded-md transition-colors" title="Settings">
                             <Settings className="w-4 h-4" />
                           </button>
-                          <button className="p-1.5 text-brand-text/50 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors" title="Archive">
-                            <Archive className="w-4 h-4" />
+                          <button onClick={() => handleDelete(auto.id)} className="p-1.5 text-brand-text/50 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors" title="Delete">
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
