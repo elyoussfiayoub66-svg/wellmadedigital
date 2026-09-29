@@ -241,7 +241,17 @@ const handleConnectSubmit = async (e) => {
                           <div className="h-full bg-brand-accent rounded-full" style={{ width: `${(auto.sent / auto.scheduled) * 100}%` }}></div>
                         </div>
                       </td>
-                      <td className="p-4 text-sm text-brand-text/80">{auto.nextexecution}</td>
+                      <td className="p-4 text-sm text-brand-text/80">
+                        {(() => {
+                          if (!auto.nextexecution || auto.nextexecution === 'Pending' || auto.nextexecution === 'Completed' || auto.nextexecution === 'No Leads') return auto.nextexecution;
+                          const date = new Date(auto.nextexecution);
+                          if (isNaN(date.getTime())) return auto.nextexecution; // fallback
+                          const now = new Date();
+                          const diffMins = Math.round((date - now) / 60000);
+                          if (diffMins <= 0) return 'Executing soon...';
+                          return `In ${diffMins} min${diffMins !== 1 ? 's' : ''}`;
+                        })()}
+                      </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           {auto.status === 'active' ? (

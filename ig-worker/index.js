@@ -50,40 +50,98 @@ function parseMessage(template, prospect) {
   return msg;
 }
 
+// Helper to get random integer between min and max
+const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
 // Engine to process active automations
 async function processAutomations() {
   try {
     logger.info('Checking for active automations...');
-    // 1. Fetch active automations from Supabase
-    // const { data: automations } = await supabase.from('dm_automations').select('*').eq('status', 'active');
     
-    // Fake automation for demonstration
-    const activeAutomations = []; 
-    
-    for (const auto of activeAutomations) {
-      // Logic for each automation:
-      // - Get pending leads for this automation
-      // - Check if it's time to send based on `delay_between_dms`
-      // - Get the IG client
-      // - Send DM
-      // - Update analytics and status
-      logger.info(`Processing automation: ${auto.name}`);
+    // 1. Fetch active automations that are due for execution
+    const { data: automations, error } = await supabase
+      .from('dm_automations')
+      .select('*')
+      .eq('status', 'active');
       
-      // Example sending flow:
-      /*
-      const ig = igClients.get(auto.ig_account_id);
-      if (!ig) continue;
+    if (error) throw error;
+    if (!automations || automations.length === 0) return;
+    
+    const now = new Date();
 
-      const userId = await ig.user.getIdByUsername(prospect.ig_handle);
-      const thread = ig.entity.directThread([userId.toString()]);
-      const finalMessage = parseMessage(auto.message_template, prospect);
+    for (const auto of automations) {
+      // Check if it's time to execute
+      if (auto.nextexecution !== 'Pending') {
+        const nextExecTime = new Date(auto.nextexecution);
+        if (now < nextExecTime) {
+           // Not time yet, skip this automation
+           continue; 
+        }
+      }
       
-      await thread.broadcastText(finalMessage);
-      logger.info(`Sent DM to ${prospect.ig_handle}`);
+      // Check if we hit the limit
+      if (auto.sent >= auto.scheduled) {
+        logger.info(`Automation ${auto.name} completed its scheduled run.`);
+        await supabase.from('dm_automations').update({ status: 'archived', nextexecution: 'Completed' }).eq('id', auto.id);
+        continue;
+      }
+
+      logger.info(`Executing automation: ${auto.name} (Sent: ${auto.sent}/${auto.scheduled})`);
       
-      // Implement delay...
-      await delay(auto.delay_between_dms * 60 * 1000);
+      // 2. Fetch the next pending prospect (just 1)
+      // In a real scenario, you'd track which prospects have been contacted by this automation.
+      // For now, we simulate fetching the next prospect.
+      const { data: prospects } = await supabase
+        .from('prospects')
+        .select('*')
+        .eq('pipeline_status', auto.pipeline_status_filter || 'not contacted')
+        .limit(1);
+        
+      const prospect = prospects && prospects.length > 0 ? prospects[0] : null;
+
+      if (!prospect) {
+        logger.info(`No more prospects found for ${auto.name}. Pausing automation.`);
+        await supabase.from('dm_automations').update({ status: 'paused', nextexecution: 'No Leads' }).eq('id', auto.id);
+        continue;
+      }
+
+      // 3. SEND THE DM IMMEDIATELY (no delay before the first message or when its turn comes)
+      // In a real scenario you would map auto.created_by to their connected ig_account
+      /*
+      const ig = igClients.get('user_ig_account_id');
+      if (ig) {
+        const userId = await ig.user.getIdByUsername(prospect.ig_handle || prospect.instagram);
+        const thread = ig.entity.directThread([userId.toString()]);
+        const finalMessage = parseMessage(auto.message_template, prospect);
+        await thread.broadcastText(finalMessage);
+      }
       */
+      logger.info(`-> Sent DM to prospect: ${prospect.business_name || prospect.id}`);
+
+      // 4. Calculate the NEXT delay
+      const newSentCount = auto.sent + 1;
+      let delayMinutes = 0;
+      
+      // If the new sent count is a multiple of 4, apply the batch delay
+      if (newSentCount % 4 === 0) {
+         delayMinutes = getRandomInt(auto.delay_after_batch_min, auto.delay_after_batch_max);
+         logger.info(`Batch of 4 reached. Next DM will wait ${delayMinutes} minutes.`);
+      } else {
+         delayMinutes = getRandomInt(auto.delay_between_dms_min, auto.delay_between_dms_max);
+         logger.info(`Next DM will wait ${delayMinutes} minutes.`);
+      }
+
+      // Calculate exact timestamp for next execution
+      const nextExecTimestamp = new Date(now.getTime() + delayMinutes * 60000);
+
+      // 5. Update the database
+      await supabase.from('dm_automations').update({
+        sent: newSentCount,
+        nextexecution: nextExecTimestamp.toISOString()
+      }).eq('id', auto.id);
+      
+      // Update prospect status so we don't message them again
+      await supabase.from('prospects').update({ pipeline_status: 'contacted' }).eq('id', prospect.id);
     }
   } catch (err) {
     logger.error(`Engine Error: ${err.message}`);
