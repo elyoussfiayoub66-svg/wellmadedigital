@@ -116,7 +116,10 @@ async function loadIgAccounts() {
   }
 }
 
+let isProcessing = false;
 async function processAutomations() {
+  if (isProcessing) return;
+  isProcessing = true;
   try {
     await loadIgAccounts();
     logger.info('Checking for active automations...');
@@ -237,6 +240,8 @@ async function processAutomations() {
     }
   } catch (err) {
     logger.error(`Engine Error: ${err.message}`);
+  } finally {
+    isProcessing = false;
   }
 }
 
