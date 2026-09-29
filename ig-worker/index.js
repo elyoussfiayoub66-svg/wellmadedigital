@@ -37,6 +37,27 @@ async function initIgClient(accountId, username, password) {
   }
 }
 
+// Fetch and initialize all active IG accounts
+async function loadIgAccounts() {
+  const { data: accounts, error } = await supabase.from('ig_accounts').select('*').eq('status', 'active');
+  if (error) {
+    logger.error('Failed to fetch IG accounts:', error);
+    return;
+  }
+  
+  for (const acc of accounts) {
+    if (!igClients.has(acc.id)) {
+      try {
+        const username = acc.handle.replace('@', '').trim();
+        await initIgClient(acc.id, username, acc.password_hash);
+      } catch (err) {
+        // Mark as error if failed
+        await supabase.from('ig_accounts').update({ status: 'error' }).eq('id', acc.id);
+      }
+    }
+  }
+}
+
 // Basic delay helper
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -56,6 +77,7 @@ const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) +
 // Engine to process active automations
 async function processAutomations() {
   try {
+    await loadIgAccounts();
     logger.info('Checking for active automations...');
     
     // 1. Fetch active automations that are due for execution
@@ -105,18 +127,37 @@ async function processAutomations() {
         continue;
       }
 
-      // 3. SEND THE DM IMMEDIATELY (no delay before the first message or when its turn comes)
-      // In a real scenario you would map auto.created_by to their connected ig_account
-      /*
-      const ig = igClients.get('user_ig_account_id');
-      if (ig) {
-        const userId = await ig.user.getIdByUsername(prospect.ig_handle || prospect.instagram);
+      // 3. SEND THE DM IMMEDIATELY
+      // We grab the first available connected IG client (for MVP)
+      const activeIgKeys = Array.from(igClients.keys());
+      if (activeIgKeys.length === 0) {
+        logger.warn('No active IG clients connected! Cannot send DM.');
+        continue; // Skip execution until an account is connected
+      }
+      
+      const ig = igClients.get(activeIgKeys[0]); // Just pick the first one
+      const prospectHandle = (prospect.ig_handle || prospect.instagram || '').replace('@', '').trim();
+      
+      if (!prospectHandle) {
+        logger.warn(`Prospect ${prospect.id} has no IG handle. Skipping.`);
+        await supabase.from('prospects').update({ pipeline_status: 'wrong contact' }).eq('id', prospect.id);
+        continue;
+      }
+
+      try {
+        logger.info(`Preparing to send real DM to @${prospectHandle}...`);
+        const userId = await ig.user.getIdByUsername(prospectHandle);
         const thread = ig.entity.directThread([userId.toString()]);
         const finalMessage = parseMessage(auto.message_template, prospect);
+        
         await thread.broadcastText(finalMessage);
+        logger.info(`-> Successfully sent REAL DM to @${prospectHandle}`);
+      } catch (sendErr) {
+        logger.error(`Failed to send DM to @${prospectHandle}: ${sendErr.message}`);
+        // We will pause the automation to prevent spamming errors
+        await supabase.from('dm_automations').update({ status: 'error' }).eq('id', auto.id);
+        continue; 
       }
-      */
-      logger.info(`-> Sent DM to prospect: ${prospect.business_name || prospect.id}`);
 
       // 4. Calculate the NEXT delay
       const newSentCount = auto.sent + 1;
