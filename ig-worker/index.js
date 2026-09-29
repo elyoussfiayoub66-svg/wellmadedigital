@@ -46,10 +46,19 @@ async function initIgClient(accountId, username, password) {
     // Wait for the login form to render
     await page.waitForSelector('input[name="username"]', { timeout: 15000 });
     
+    // Wait generously for the login form to appear
+    await page.waitForSelector('input[name="username"]', { timeout: 60000 });
+
     // Check if there is a cookie banner and click it (optional, depends on region)
     try {
-      const cookieBtn = await page.$('button:contains("Allow")');
-      if (cookieBtn) await cookieBtn.click();
+      const cookieBtns = await page.$('button');
+      for (let btn of cookieBtns) {
+        const text = await page.evaluate(el => el.textContent, btn);
+        if (text && text.toLowerCase().includes('allow')) {
+          await btn.click();
+          break;
+        }
+      }
     } catch(e) {}
 
     // Type credentials like a human
