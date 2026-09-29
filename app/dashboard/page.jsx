@@ -178,14 +178,14 @@ export default function DashboardOverview() {
         for (let i = 5; i >= 0; i--) {
             const d = new Date();
             d.setMonth(d.getMonth() - i);
-            const monthStr = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+            const monthStr = d.toLocaleString('default', { month: 'short' }).toUpperCase();
             last6Months.push(monthStr);
             monthlyFinance[monthStr] = { month: monthStr, Revenue: 0, Expenses: 0 };
         }
 
         invoices?.forEach(inv => {
             const d = new Date(inv.created_at);
-            const m = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+            const m = d.toLocaleString('default', { month: 'short' }).toUpperCase();
             if (monthlyFinance[m]) {
                 monthlyFinance[m].Revenue += (Number(inv.amount) * 0.13);
             }
@@ -193,7 +193,7 @@ export default function DashboardOverview() {
 
         expenses?.forEach(exp => {
              const d = new Date(exp.expense_date);
-             const m = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+             const m = d.toLocaleString('default', { month: 'short' }).toUpperCase();
              if (monthlyFinance[m]) {
                  monthlyFinance[m].Expenses += Number(exp.amount);
              }
@@ -211,7 +211,7 @@ export default function DashboardOverview() {
             const follow = (p.followup_status || '').toLowerCase();
             const pipe = (p.pipeline_status || '').toLowerCase();
             const d = new Date(p.updated_at || p.created_at);
-            const m = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+            const m = d.toLocaleString('default', { month: 'short' }).toUpperCase();
 
             const isCall = out.includes('voice mail') || out.includes('no answer') || out.includes('not interested') || out.includes('follow up') || out.includes('meeting booked') || follow.includes('voice mail') || follow.includes('no answer') || follow.includes('not interested') || follow.includes('meeting booked') || follow.includes('do not contact');
             if (isCall) {
@@ -223,15 +223,21 @@ export default function DashboardOverview() {
         });
 
         appointments?.forEach(a => {
-            const m = new Date(a.created_at).toLocaleString('default', { month: 'short', year: '2-digit' });
+            const m = new Date(a.created_at).toLocaleString('default', { month: 'short' }).toUpperCase();
             if (monthlyOutreach[m]) monthlyOutreach[m]['Meetings Booked']++;
         });
 
         leads?.filter(l => l.status === 'CLOSED_WON').forEach(l => {
-            const m = new Date(l.updated_at || l.created_at).toLocaleString('default', { month: 'short', year: '2-digit' });
+            const m = new Date(l.updated_at || l.created_at).toLocaleString('default', { month: 'short' }).toUpperCase();
             if (monthlyOutreach[m]) monthlyOutreach[m]['Clients Closed']++;
         });
 
+        // Force current month DMs to match total sent to perfectly sync card and chart
+        const currentM = new Date().toLocaleString('default', { month: 'short' }).toUpperCase();
+        if (monthlyOutreach[currentM]) {
+            monthlyOutreach[currentM]['DMs Sent'] = dmSentCount;
+        }
+        
         setOutreachData(last6Months.map(m => monthlyOutreach[m]));
 
 
