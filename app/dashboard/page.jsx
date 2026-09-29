@@ -21,7 +21,11 @@ export default function DashboardOverview() {
     meetingsBooked: 0,
     responseRate: 0,
     dmsSent: 0,
-    replyRate: 0
+    replyRate: 0,
+    cac: 0,
+    arpc: 0,
+    closeRate: 0,
+    roas: 0
   });
   
   const [recentActivity, setRecentActivity] = useState([]);
@@ -99,6 +103,13 @@ export default function DashboardOverview() {
         const responseRate = callsMadeCount > 0 ? (responsesCount / callsMadeCount) * 100 : 0;
         const replyRate = dmSentCount > 0 ? (dmRepliedCount / dmSentCount) * 100 : 0;
         
+        const attendedMeetings = (appointments || []).filter(a => ['COMPLETED', 'ATTENDED', 'HELD'].includes((a.status || '').toUpperCase())).length;
+        const closeRateVal = attendedMeetings > 0 ? (wonLeads.length / attendedMeetings) * 100 : 0;
+        
+        const cacVal = wonLeads.length > 0 ? totalExpenses / wonLeads.length : 0;
+        const arpcVal = wonLeads.length > 0 ? agencyRevenue / wonLeads.length : 0;
+        const roasVal = totalExpenses > 0 ? agencyRevenue / totalExpenses : 0;
+        
         setMetrics({
           netProfit: agencyRevenue - totalExpenses,
           pipelineValue,
@@ -108,7 +119,11 @@ export default function DashboardOverview() {
           meetingsBooked: appointments?.length || 0,
           responseRate,
           dmsSent: dmSentCount,
-          replyRate
+          replyRate,
+          cac: cacVal,
+          arpc: arpcVal,
+          closeRate: closeRateVal,
+          roas: roasVal
         });
 
 
@@ -364,6 +379,29 @@ export default function DashboardOverview() {
           <h3 className="text-sm font-semibold text-brand-text/70 mb-2 uppercase tracking-wider">Active Projects</h3>
           <div className="text-3xl font-black text-brand-text">{metrics.activeProjects}</div>
           <div className="text-xs text-brand-text/50 mt-2 font-medium">Currently in progress</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-border relative overflow-hidden group hover:border-red-500/50 transition-colors">
+          <h3 className="text-sm font-semibold text-brand-text/70 mb-2 uppercase tracking-wider">CAC</h3>
+          <div className="text-3xl font-black text-brand-text">MAD {metrics.cac.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+          <div className="text-xs text-brand-text/50 mt-2 font-medium">Acquisition Cost</div>
+        </div>
+        <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-border relative overflow-hidden group hover:border-green-500/50 transition-colors">
+          <h3 className="text-sm font-semibold text-brand-text/70 mb-2 uppercase tracking-wider">Rev / Client</h3>
+          <div className="text-3xl font-black text-brand-text">MAD {metrics.arpc.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+          <div className="text-xs text-brand-text/50 mt-2 font-medium">Average Revenue</div>
+        </div>
+        <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-border relative overflow-hidden group hover:border-amber-500/50 transition-colors">
+          <h3 className="text-sm font-semibold text-brand-text/70 mb-2 uppercase tracking-wider">Close Rate</h3>
+          <div className="text-3xl font-black text-brand-text">{metrics.closeRate.toFixed(1)}%</div>
+          <div className="text-xs text-brand-text/50 mt-2 font-medium">From Attended Meetings</div>
+        </div>
+        <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-border relative overflow-hidden group hover:border-blue-500/50 transition-colors">
+          <h3 className="text-sm font-semibold text-brand-text/70 mb-2 uppercase tracking-wider">ROAS</h3>
+          <div className="text-3xl font-black text-brand-text">{metrics.roas.toFixed(2)}x</div>
+          <div className="text-xs text-brand-text/50 mt-2 font-medium">Return on Ad Spend</div>
         </div>
       </div>
 
