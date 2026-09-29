@@ -21,6 +21,9 @@ export default function ProspectsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   
+  // Selection
+  const [selectedRows, setSelectedRows] = useState([]);
+  
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -638,6 +641,63 @@ export default function ProspectsPage() {
     return out.includes('no answer') || out.includes('voice mail') || out.includes('follow up') || follow !== '';
   });
 
+
+  // Select All Logic
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedRows(displayedProspects.map(p => p.id));
+    } else {
+      setSelectedRows([]);
+    }
+  };
+
+  const toggleRowSelection = (id, e) => {
+    e.stopPropagation();
+    setSelectedRows(prev => prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]);
+  };
+
+  const handleExportExcel = () => {
+    if (selectedRows.length === 0) {
+      toast.error('Please select at least one prospect to export.');
+      return;
+    }
+    const dataToExport = prospects.filter(p => selectedRows.includes(p.id)).map(p => ({
+      'Business Name': p.business_name || '',
+      'Owner Name': p.owner_name || '',
+      'Email': p.email || '',
+      'Phone': p.phone || '',
+      'IG Handle': p.ig_handle || '',
+      'Niche': p.niche || '',
+      'Pipeline Status': p.pipeline_status || '',
+      'Outreach Status': p.outreach_status || '',
+      'City': p.city || '',
+      'Notes': p.notes || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Selected Prospects");
+    XLSX.writeFile(workbook, "Prospects_Export.xlsx");
+  };
+
+  const handleBulkMarkContacted = async () => {
+    if (selectedRows.length === 0) return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from('prospects')
+        .update({ pipeline_status: 'contacted' })
+        .in('id', selectedRows);
+
+      if (error) throw error;
+      toast.success(`Marked ${selectedRows.length} prospects as contacted`);
+      setProspects(prev => prev.map(p => selectedRows.includes(p.id) ? { ...p, pipeline_status: 'contacted' } : p));
+      setSelectedRows([]);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to update prospects');
+    }
+  };
+
   const totalPages = Math.ceil(displayedProspects.length / rowsPerPage);
   const paginatedProspects = displayedProspects.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
@@ -693,7 +753,21 @@ export default function ProspectsPage() {
             Announcement
           </button>
           
+
+          {selectedRows.length > 0 && (
+            <>
+              <button onClick={handleBulkMarkContacted} className="flex items-center gap-2 bg-brand-surface border border-brand-border text-brand-text px-4 py-2.5 rounded-lg hover:border-brand-accent hover:text-brand-accent transition-colors font-medium text-sm whitespace-nowrap">
+                <Users className="w-4 h-4" />
+                Mark Contacted ({selectedRows.length})
+              </button>
+              <button onClick={handleExportExcel} className="flex items-center gap-2 bg-brand-surface border border-brand-border text-brand-text px-4 py-2.5 rounded-lg hover:border-brand-accent hover:text-brand-accent transition-colors font-medium text-sm whitespace-nowrap">
+                <Download className="w-4 h-4" />
+                Export ({selectedRows.length})
+              </button>
+            </>
+          )}
           <button onClick={() => {setIsImportModalOpen(true); setImportResults(null);}} className="flex items-center gap-2 bg-brand-surface border border-brand-border text-brand-text px-4 py-2.5 rounded-lg hover:border-brand-accent hover:text-brand-accent transition-colors font-medium text-sm whitespace-nowrap">
+
             <UploadCloud className="w-4 h-4" />
             Import
           </button>
@@ -767,6 +841,14 @@ export default function ProspectsPage() {
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="border-b border-brand-border bg-brand-bg/50 sticky top-0 z-10 shadow-sm">
+                  <th className="p-4 w-12 text-center">
+                    <input 
+                      type="checkbox"
+                      className="rounded border-brand-border text-brand-accent focus:ring-brand-accent cursor-pointer"
+                      checked={displayedProspects.length > 0 && selectedRows.length === displayedProspects.length}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
                   <th className="p-4 font-medium text-brand-text/70 text-sm">Business Info</th>
                   <th className="p-4 font-medium text-brand-text/70 text-sm">Contact Details</th>
                   <th className="p-4 font-medium text-brand-text/70 text-sm">Pipeline Status</th>
@@ -780,19 +862,27 @@ export default function ProspectsPage() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={activeTab === 'followups' ? 6 : 5} className="p-8 text-center text-brand-text/50">Loading prospects...</td>
+                    <td colSpan={activeTab === 'followups' ? 7 : 6} className="p-8 text-center text-brand-text/50">Loading prospects...</td>
                   </tr>
                 ) : paginatedProspects.length === 0 ? (
                   <tr>
-                    <td colSpan={activeTab === 'followups' ? 6 : 5} className="p-8 text-center text-brand-text/50">No prospects found.</td>
+                    <td colSpan={activeTab === 'followups' ? 7 : 6} className="p-8 text-center text-brand-text/50">No prospects found.</td>
                   </tr>
                 ) : (
                   paginatedProspects.map((prospect) => (
                     <tr 
                       key={prospect.id} 
                       onClick={() => openProspectPanel(prospect)}
-                      className={`border-b border-brand-border hover:bg-brand-bg/50 transition-colors cursor-pointer group ${selectedProspect?.id === prospect.id ? 'bg-brand-bg/50 border-l-4 border-l-brand-accent' : 'border-l-4 border-l-transparent'}`}
+                      className={`border-b border-brand-border hover:bg-brand-bg/50 transition-colors cursor-pointer group ${selectedProspect?.id === prospect.id ? 'bg-brand-bg/50 border-l-4 border-l-brand-accent' : 'border-l-4 border-l-transparent'} ${selectedRows.includes(prospect.id) ? 'bg-brand-bg/30' : ''}`}
                     >
+                      <td className="p-4 w-12 text-center" onClick={e => e.stopPropagation()}>
+                        <input 
+                          type="checkbox"
+                          className="rounded border-brand-border text-brand-accent focus:ring-brand-accent cursor-pointer"
+                          checked={selectedRows.includes(prospect.id)}
+                          onChange={(e) => toggleRowSelection(prospect.id, e)}
+                        />
+                      </td>
                       <td className="p-4">
                         <div className="font-medium text-brand-text group-hover:text-brand-accent transition-colors">{prospect.business_name}</div>
                         <div className="text-xs text-brand-text/60 mt-0.5">{prospect.owner_name || 'No owner listed'} • {prospect.niche || 'No niche'}</div>
