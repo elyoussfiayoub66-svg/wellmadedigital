@@ -15,8 +15,10 @@ export default function AutomationBuilderPage() {
     dbQuantity: 100,
     dbPipelineStatus: 'not contacted',
     dbOutreachStatus: 'not called',
-    delayBetweenDms: 5, // minutes
-    delayAfterBatch: 60, // minutes (wait between 4 dms)
+    delayBetweenDmsMin: 5, // minutes
+    delayBetweenDmsMax: 10,
+    delayAfterBatchMin: 30,
+    delayAfterBatchMax: 60,
     message: 'Hey {first_name}, loved your recent post! We help agencies scale, open to a quick chat?'
   });
 
@@ -41,8 +43,10 @@ export default function AutomationBuilderPage() {
         scheduled: formData.source === 'db' ? formData.dbQuantity : 0,
         sent: 0,
         nextExecution: 'Pending',
-        delay_between_dms: formData.delayBetweenDms,
-        delay_after_batch: formData.delayAfterBatch,
+        delay_between_dms_min: formData.delayBetweenDmsMin,
+        delay_between_dms_max: formData.delayBetweenDmsMax,
+        delay_after_batch_min: formData.delayAfterBatchMin,
+        delay_after_batch_max: formData.delayAfterBatchMax,
         message_template: formData.message,
         pipeline_status_filter: formData.source === 'db' ? formData.dbPipelineStatus : null,
         outreach_status_filter: formData.source === 'db' ? formData.dbOutreachStatus : null
@@ -179,32 +183,58 @@ export default function AutomationBuilderPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-2 bg-brand-bg/50 p-5 rounded-xl border border-brand-border">
-                <label className="text-sm font-medium text-brand-text block mb-1">Delay between each DM (Minutes)</label>
-                <p className="text-xs text-brand-text/50 mb-4">Time to wait before sending the next message to avoid spam filters.</p>
-                <div className="flex items-center gap-3">
-                  <input 
-                    type="range" 
-                    min="1" max="30" 
-                    value={formData.delayBetweenDms} 
-                    onChange={e => updateForm('delayBetweenDms', Number(e.target.value))}
-                    className="flex-1 accent-brand-accent"
-                  />
-                  <span className="w-12 text-center font-semibold text-brand-text bg-brand-surface py-1 rounded border border-brand-border">{formData.delayBetweenDms}m</span>
+                <label className="text-sm font-medium text-brand-text block mb-1">Delay between each DM</label>
+                <p className="text-xs text-brand-text/50 mb-4">Randomized interval to wait before sending the next message to avoid spam filters.</p>
+                <div className="flex items-center gap-3 mt-4">
+                  <div className="flex flex-col flex-1">
+                    <span className="text-[10px] uppercase font-semibold text-brand-text/50 mb-1">Min Minutes</span>
+                    <input 
+                      type="number" 
+                      min="1" max="60" 
+                      value={formData.delayBetweenDmsMin} 
+                      onChange={e => updateForm('delayBetweenDmsMin', Number(e.target.value))}
+                      className="w-full bg-brand-surface border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent"
+                    />
+                  </div>
+                  <span className="text-brand-text/50 font-medium mt-4">to</span>
+                  <div className="flex flex-col flex-1">
+                    <span className="text-[10px] uppercase font-semibold text-brand-text/50 mb-1">Max Minutes</span>
+                    <input 
+                      type="number" 
+                      min="1" max="60" 
+                      value={formData.delayBetweenDmsMax} 
+                      onChange={e => updateForm('delayBetweenDmsMax', Number(e.target.value))}
+                      className="w-full bg-brand-surface border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent"
+                    />
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-2 bg-brand-bg/50 p-5 rounded-xl border border-brand-border">
-                <label className="text-sm font-medium text-brand-text block mb-1">Batch Delay (Minutes)</label>
-                <p className="text-xs text-brand-text/50 mb-4">Time to wait after sending a batch of 4 DMs.</p>
-                <div className="flex items-center gap-3">
-                  <input 
-                    type="range" 
-                    min="10" max="120" step="5"
-                    value={formData.delayAfterBatch} 
-                    onChange={e => updateForm('delayAfterBatch', Number(e.target.value))}
-                    className="flex-1 accent-brand-accent"
-                  />
-                  <span className="w-12 text-center font-semibold text-brand-text bg-brand-surface py-1 rounded border border-brand-border">{formData.delayAfterBatch}m</span>
+                <label className="text-sm font-medium text-brand-text block mb-1">Batch Delay (Wait after 4 DMs)</label>
+                <p className="text-xs text-brand-text/50 mb-4">Randomized interval to cool down after sending a batch of 4 messages.</p>
+                <div className="flex items-center gap-3 mt-4">
+                  <div className="flex flex-col flex-1">
+                    <span className="text-[10px] uppercase font-semibold text-brand-text/50 mb-1">Min Minutes</span>
+                    <input 
+                      type="number" 
+                      min="5" max="300" 
+                      value={formData.delayAfterBatchMin} 
+                      onChange={e => updateForm('delayAfterBatchMin', Number(e.target.value))}
+                      className="w-full bg-brand-surface border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent"
+                    />
+                  </div>
+                  <span className="text-brand-text/50 font-medium mt-4">to</span>
+                  <div className="flex flex-col flex-1">
+                    <span className="text-[10px] uppercase font-semibold text-brand-text/50 mb-1">Max Minutes</span>
+                    <input 
+                      type="number" 
+                      min="5" max="300" 
+                      value={formData.delayAfterBatchMax} 
+                      onChange={e => updateForm('delayAfterBatchMax', Number(e.target.value))}
+                      className="w-full bg-brand-surface border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
