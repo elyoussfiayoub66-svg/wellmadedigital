@@ -19,7 +19,9 @@ export default function DashboardOverview() {
     activeProjects: 0,
     totalProspects: 0,
     meetingsBooked: 0,
-    responseRate: 0
+    responseRate: 0,
+    dmsSent: 0,
+    replyRate: 0
   });
   
   const [recentActivity, setRecentActivity] = useState([]);
@@ -68,9 +70,16 @@ export default function DashboardOverview() {
         let responsesCount = 0;
         let pMeetingsBooked = 0;
         
+        let dmSentCount = 0;
+        let dmRepliedCount = 0;
+        
+        const { data: automations } = await supabase.from('dm_automations').select('sent');
+        dmSentCount = (automations || []).reduce((sum, a) => sum + (a.sent || 0), 0);
+        
         (prospects || []).forEach(p => {
           const out = (p.outreach_status || '').toLowerCase();
           const follow = (p.followup_status || '').toLowerCase();
+          const pipe = (p.pipeline_status || '').toLowerCase();
           
           const isNoAnswer = out.includes('voice mail') || out.includes('no answer') || follow.includes('voice mail') || follow.includes('no answer');
           const isResponded = out.includes('not interested') || out.includes('follow up') || out.includes('meeting booked') || follow.includes('not interested') || follow.includes('meeting booked') || follow.includes('do not contact');
@@ -81,9 +90,14 @@ export default function DashboardOverview() {
           if (isResponded) {
             responsesCount++;
           }
+          
+          if (['replied', 'booked', 'closed'].includes(pipe)) {
+            dmRepliedCount++;
+          }
         });
         
         const responseRate = callsMadeCount > 0 ? (responsesCount / callsMadeCount) * 100 : 0;
+        const replyRate = dmSentCount > 0 ? (dmRepliedCount / dmSentCount) * 100 : 0;
         
         setMetrics({
           netProfit: agencyRevenue - totalExpenses,
@@ -92,7 +106,9 @@ export default function DashboardOverview() {
           activeProjects: activeProjects.length,
           totalProspects: prospects?.length || 0,
           meetingsBooked: appointments?.length || 0,
-          responseRate
+          responseRate,
+          dmsSent: dmSentCount,
+          replyRate
         });
 
 
@@ -178,11 +194,16 @@ export default function DashboardOverview() {
         prospects?.forEach(p => {
             const out = (p.outreach_status || '').toLowerCase();
             const follow = (p.followup_status || '').toLowerCase();
+            const pipe = (p.pipeline_status || '').toLowerCase();
+            const d = new Date(p.updated_at || p.created_at);
+            const m = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+
             const isCall = out.includes('voice mail') || out.includes('no answer') || out.includes('not interested') || out.includes('follow up') || out.includes('meeting booked') || follow.includes('voice mail') || follow.includes('no answer') || follow.includes('not interested') || follow.includes('meeting booked') || follow.includes('do not contact');
             if (isCall) {
-                const d = new Date(p.updated_at || p.created_at);
-                const m = d.toLocaleString('default', { month: 'short', year: '2-digit' });
                 if (monthlyOutreach[m]) monthlyOutreach[m]['Calls Made']++;
+            }
+            if (['contacted', 'replied', 'booked', 'closed', 'wrong contact', 'error'].includes(pipe)) {
+                if (monthlyOutreach[m]) monthlyOutreach[m]['DMs Sent'] = (monthlyOutreach[m]['DMs Sent'] || 0) + 1;
             }
         });
 
@@ -258,7 +279,25 @@ export default function DashboardOverview() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+        <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-border relative overflow-hidden group hover:border-emerald-500/50 transition-colors">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <MessageSquare className="w-16 h-16 text-emerald-500" />
+          </div>
+          <h3 className="text-sm font-semibold text-brand-text/70 mb-2 uppercase tracking-wider">DMs Sent</h3>
+          <div className="text-3xl font-black text-brand-text">{metrics.dmsSent}</div>
+          <div className="text-xs text-brand-text/50 mt-2 font-medium">Automated Outreach</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-border relative overflow-hidden group hover:border-emerald-500/50 transition-colors">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <TrendingUp className="w-16 h-16 text-emerald-500" />
+          </div>
+          <h3 className="text-sm font-semibold text-brand-text/70 mb-2 uppercase tracking-wider">DM Reply Rate</h3>
+          <div className="text-3xl font-black text-brand-text">{metrics.replyRate.toFixed(1)}%</div>
+          <div className="text-xs text-brand-text/50 mt-2 font-medium">From total DMs sent</div>
+        </div>
+
         <div className="bg-gradient-to-br from-brand-surface to-brand-surface/50 p-6 rounded-2xl border border-brand-border relative overflow-hidden group hover:border-indigo-500/50 transition-colors">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <Search className="w-16 h-16 text-indigo-500" />
@@ -338,6 +377,10 @@ export default function DashboardOverview() {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={outreachData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
+                  <linearGradient id="colorDMs" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
                   <linearGradient id="colorCalls" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4}/>
                     <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
@@ -359,6 +402,7 @@ export default function DashboardOverview() {
                    labelStyle={{ fontWeight: 'bold', marginBottom: '8px' }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                <Area type="monotone" dataKey="DMs Sent" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorDMs)" />
                 <Area type="monotone" dataKey="Calls Made" stroke="#06b6d4" strokeWidth={3} fillOpacity={1} fill="url(#colorCalls)" />
                 <Area type="monotone" dataKey="Meetings Booked" stroke="#d946ef" strokeWidth={3} fillOpacity={1} fill="url(#colorMeetings)" />
                 <Area type="monotone" dataKey="Clients Closed" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#colorClients)" />
