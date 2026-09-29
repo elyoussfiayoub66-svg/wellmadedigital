@@ -34,7 +34,7 @@ export default function AutomationBuilderPage() {
     // Simulate API call
     setTimeout(() => {
       setSaving(false);
-      toast.success(\`Automation \${status === 'active' ? 'Activated' : 'Saved to Archive'}!\`);
+      toast.success(`Automation ${status === 'active' ? 'Activated' : 'Saved to Archive'}!`);
       setTimeout(() => router.push('/dashboard/automations'), 1000);
     }, 1000);
   };
@@ -92,16 +92,16 @@ export default function AutomationBuilderPage() {
             <div className="grid grid-cols-2 gap-4 mb-6">
               <button 
                 onClick={() => updateForm('source', 'db')}
-                className={\`flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 transition-all \${formData.source === 'db' ? 'border-brand-accent bg-brand-accent/5' : 'border-brand-border bg-brand-bg/50 hover:border-brand-text/30'}\`}
+                className={`flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 transition-all ${formData.source === 'db' ? 'border-brand-accent bg-brand-accent/5' : 'border-brand-border bg-brand-bg/50 hover:border-brand-text/30'}`}
               >
-                <Database className={\`w-8 h-8 \${formData.source === 'db' ? 'text-brand-accent' : 'text-brand-text/50'}\`} />
+                <Database className={`w-8 h-8 ${formData.source === 'db' ? 'text-brand-accent' : 'text-brand-text/50'}`} />
                 <span className="font-medium text-brand-text">Fetch from Database</span>
               </button>
               <button 
                 onClick={() => updateForm('source', 'csv')}
-                className={\`flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 transition-all \${formData.source === 'csv' ? 'border-brand-accent bg-brand-accent/5' : 'border-brand-border bg-brand-bg/50 hover:border-brand-text/30'}\`}
+                className={`flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 transition-all ${formData.source === 'csv' ? 'border-brand-accent bg-brand-accent/5' : 'border-brand-border bg-brand-bg/50 hover:border-brand-text/30'}`}
               >
-                <UploadCloud className={\`w-8 h-8 \${formData.source === 'csv' ? 'text-brand-accent' : 'text-brand-text/50'}\`} />
+                <UploadCloud className={`w-8 h-8 ${formData.source === 'csv' ? 'text-brand-accent' : 'text-brand-text/50'}`} />
                 <span className="font-medium text-brand-text">Import Custom CSV</span>
               </button>
             </div>
@@ -120,13 +120,13 @@ export default function AutomationBuilderPage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-brand-text/80">Pipeline Status</label>
-                  <select value={formData.dbPipelineStatus} onChange={e => updateForm('dbPipelineStatus', e.target.value)} className={\`\${customSelectClass} w-full\`}>
+                  <select value={formData.dbPipelineStatus} onChange={e => updateForm('dbPipelineStatus', e.target.value)} className={`${customSelectClass} w-full`}>
                     {pipelineOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                   </select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-brand-text/80">Outreach Status</label>
-                  <select value={formData.dbOutreachStatus} onChange={e => updateForm('dbOutreachStatus', e.target.value)} className={\`\${customSelectClass} w-full\`}>
+                  <select value={formData.dbOutreachStatus} onChange={e => updateForm('dbOutreachStatus', e.target.value)} className={`${customSelectClass} w-full`}>
                     {outreachOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                   </select>
                 </div>

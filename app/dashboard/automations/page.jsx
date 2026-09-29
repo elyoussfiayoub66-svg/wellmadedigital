@@ -106,13 +106,13 @@ export default function AutomationsPage() {
       <div className="flex border-b border-brand-border mb-6 shrink-0">
         <button
           onClick={() => setActiveTab('automations')}
-          className={\`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 \${activeTab === 'automations' ? 'border-brand-accent text-brand-accent' : 'border-transparent text-brand-text/60 hover:text-brand-text'}\`}
+          className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'automations' ? 'border-brand-accent text-brand-accent' : 'border-transparent text-brand-text/60 hover:text-brand-text'}`}
         >
           <Activity className="w-4 h-4" /> Automations
         </button>
         <button
           onClick={() => setActiveTab('analytics')}
-          className={\`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 \${activeTab === 'analytics' ? 'border-brand-accent text-brand-accent' : 'border-transparent text-brand-text/60 hover:text-brand-text'}\`}
+          className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'analytics' ? 'border-brand-accent text-brand-accent' : 'border-transparent text-brand-text/60 hover:text-brand-text'}`}
         >
           <BarChart2 className="w-4 h-4" /> Analytics
         </button>
@@ -136,7 +136,7 @@ export default function AutomationsPage() {
                 {automations.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="p-12 text-center text-brand-text/50">
-                      No automations created yet. Click "New Automation" to get started.
+                      No automations created yet. Click &quot;New Automation&quot; to get started.
                     </td>
                   </tr>
                 ) : (
@@ -150,7 +150,7 @@ export default function AutomationsPage() {
                           <span className="font-semibold text-brand-text">{auto.sent}</span> / {auto.scheduled}
                         </div>
                         <div className="w-32 h-1.5 bg-brand-bg rounded-full mt-1.5 overflow-hidden">
-                          <div className="h-full bg-brand-accent rounded-full" style={{ width: \`\${(auto.sent / auto.scheduled) * 100}%\` }}></div>
+                          <div className="h-full bg-brand-accent rounded-full" style={{ width: `${(auto.sent / auto.scheduled) * 100}%` }}></div>
                         </div>
                       </td>
                       <td className="p-4 text-sm text-brand-text/80">{auto.nextExecution}</td>
