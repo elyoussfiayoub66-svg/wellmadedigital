@@ -217,7 +217,7 @@ export default function DashboardOverview() {
             if (isCall) {
                 if (monthlyOutreach[m]) monthlyOutreach[m]['Calls Made']++;
             }
-            if (['contacted', 'replied', 'booked', 'closed', 'wrong contact', 'error'].includes(pipe)) {
+            if (['contacted', 'replied', 'booked', 'closed'].includes(pipe)) {
                 if (monthlyOutreach[m]) monthlyOutreach[m]['DMs Sent'] = (monthlyOutreach[m]['DMs Sent'] || 0) + 1;
             }
         });
