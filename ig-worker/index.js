@@ -239,7 +239,10 @@ async function processAutomations() {
         nextexecution: nextExecTimestamp.toISOString()
       }).eq('id', auto.id);
       
-      await supabase.from('prospects').update({ pipeline_status: 'contacted' }).eq('id', prospect.id);
+      await supabase.from('prospects').update({ 
+        pipeline_status: 'contacted',
+        outreach_status: 'dm sent'
+      }).eq('id', prospect.id);
     }
   } catch (err) {
     logger.error(`Engine Error: ${err.message}`);
