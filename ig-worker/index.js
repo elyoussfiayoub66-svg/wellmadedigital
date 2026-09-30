@@ -36,7 +36,10 @@ async function initIgClient(accountId, username, password) {
     const browser = await puppeteer.launch({ 
       headless: false,
       defaultViewport: null,
-      args: ['--start-maximized', '--disable-notifications']
+      args: [
+        '--disable-notifications',
+        '--window-position=-32000,-32000'
+      ]
     });
     const page = await browser.newPage();
     
