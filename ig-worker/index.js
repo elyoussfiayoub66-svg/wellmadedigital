@@ -249,36 +249,62 @@ async function processAutomations() {
       }
 
       try {
-        logger.info(`Navigating to @${prospectHandle} profile...`);
-        await page.goto(`https://www.instagram.com/${prospectHandle}/`, { waitUntil: 'networkidle2' });
+        logger.info(`Opening inbox to message @${prospectHandle}...`);
+        await page.goto('https://www.instagram.com/direct/inbox/', { waitUntil: 'networkidle2' });
         
-        // Wait for the profile to actually render (Instagram is an SPA)
-        await page.waitForSelector('header', { timeout: 10000 }).catch(() => {});
-        await new Promise(r => setTimeout(r, 2000));
+        // Wait and dismiss "Turn on Notifications" modal if it appears
+        await new Promise(r => setTimeout(r, 3000));
+        await page.evaluate(() => {
+           const btns = Array.from(document.querySelectorAll('button'));
+           const notNow = btns.find(b => b.textContent.trim().toLowerCase() === 'not now' || b.textContent.trim().toLowerCase() === 'plus tard');
+           if (notNow) notNow.click();
+        }).catch(() => {});
         
-        // Find and click the "Message" button
-        const clickedMessage = await page.evaluate(() => {
-          const btns = Array.from(document.querySelectorAll('div[role="button"], button, a'));
-          const msgBtn = btns.find(b => {
-             const t = b.textContent.trim().toLowerCase();
-             return t === 'message' || t.includes('message') || t === 'envoyer un message' || t === 'send message';
-          });
-          if (msgBtn) {
-            msgBtn.click();
-            return true;
-          }
-          return false;
+        await new Promise(r => setTimeout(r, 1000));
+
+        // Click "New Message" pencil icon
+        await page.evaluate(() => {
+           const svg = document.querySelector('svg[aria-label="New message"], svg[aria-label="Nouveau message"]');
+           if (svg) svg.closest('div[role="button"]').click();
         });
 
-        if (!clickedMessage) {
-           await page.screenshot({path: 'error-profile.png'});
-           throw new Error("Could not find 'Message' button on profile. Maybe private or blocked? See error-profile.png");
+        // Wait for search box in modal
+        await page.waitForSelector('input[name="queryBox"]', { timeout: 10000 });
+        await page.type('input[name="queryBox"]', prospectHandle, { delay: 100 });
+        
+        // Wait for search results
+        await new Promise(r => setTimeout(r, 3000));
+        
+        // Click the first result's circle/checkbox
+        const selected = await page.evaluate((handle) => {
+           // Find a row containing the exact handle and click its checkbox/row
+           const rows = Array.from(document.querySelectorAll('div[role="button"]'));
+           const row = rows.find(r => r.textContent.toLowerCase().includes(handle.toLowerCase()));
+           if (row) {
+             row.click();
+             return true;
+           }
+           return false;
+        }, prospectHandle);
+
+        if (!selected) {
+           await page.screenshot({ path: 'error-no-user.png' });
+           throw new Error("Could not find user in search results. See error-no-user.png");
         }
+        
+        await new Promise(r => setTimeout(r, 1000));
+        
+        // Click Chat button
+        await page.evaluate(() => {
+           const btns = Array.from(document.querySelectorAll('div[role="button"]'));
+           const chatBtn = btns.find(b => b.textContent.trim().toLowerCase() === 'chat' || b.textContent.trim().toLowerCase() === 'discuter');
+           if (chatBtn) chatBtn.click();
+        });
 
         // Wait for the DM textarea
-        const chatSelector = 'div[contenteditable="true"], textarea, div[aria-label*="Message" i]';
+        const chatSelector = 'div[contenteditable="true"][role="textbox"], textarea[placeholder*="Message" i]';
         try {
-          await page.waitForSelector(chatSelector, { timeout: 15000 });
+          await page.waitForSelector(chatSelector, { timeout: 10000 });
         } catch (err) {
           await page.screenshot({ path: 'error-chatbox.png' });
           throw new Error("Chat input not found. See error-chatbox.png");
@@ -287,10 +313,9 @@ async function processAutomations() {
         const finalMessage = parseMessage(auto.message_template, prospect);
         await page.type(chatSelector, finalMessage, { delay: 50 });
         
-        // Wait a small moment for React to register the text and show the Send button
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 1000));
         
-        // Try to click the Send button explicitly (Instagram web usually shows "Send" when text is entered)
+        // Click Send button
         const clickedSendBtn = await page.evaluate(() => {
           const btns = Array.from(document.querySelectorAll('div[role="button"], button'));
           const send = btns.find(b => {
@@ -304,15 +329,13 @@ async function processAutomations() {
           return false;
         });
 
-        // If no Send button was found, fallback to hitting Enter
         if (!clickedSendBtn) {
           await page.keyboard.press('Enter');
         }
         
-        logger.info(`-> Successfully sent REAL DM to @${prospectHandle} via Puppeteer!`);
-        
-        // Wait a second for it to actually send before navigating away
         await new Promise(r => setTimeout(r, 2000));
+        
+        logger.info(`-> Successfully sent REAL DM to @${prospectHandle} via Puppeteer!`);
         
       } catch (sendErr) {
         logger.error(`Failed to send DM to @${prospectHandle}: ${sendErr.message}`);
