@@ -85,14 +85,15 @@ export default function AutomationsPage() {
 
 const handleConnectSubmit = async (e) => {
     e.preventDefault();
-    if (!igCredentials.handle || !igCredentials.password) return toast.error("Please enter both username and password");
+    if (!igCredentials.handle || (!igCredentials.password && !igCredentials.session_id)) return toast.error("Please enter a username and either a password or session ID");
     
     setConnectingIg(true);
     const supabase = createClient();
     try {
       const { data, error } = await supabase.from('ig_accounts').insert([{
         handle: igCredentials.handle.startsWith('@') ? igCredentials.handle : '@' + igCredentials.handle,
-        password_hash: igCredentials.password, // Stored directly for MVP worker access
+        password_hash: igCredentials.password || null,
+        session_id: igCredentials.session_id || null,
         status: 'active'
       }]).select().single();
       
@@ -359,13 +360,33 @@ const handleConnectSubmit = async (e) => {
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-brand-text">Password</label>
                 <input 
-                  required 
                   type="password" 
                   placeholder="••••••••"
-                  value={igCredentials.password} 
+                  value={igCredentials.password || ''} 
                   onChange={e => setIgCredentials(prev => ({ ...prev, password: e.target.value }))} 
                   className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" 
                 />
+              </div>
+
+              <div className="relative flex items-center py-2">
+                <div className="flex-grow border-t border-brand-border"></div>
+                <span className="flex-shrink-0 mx-4 text-brand-text/40 text-xs font-medium uppercase tracking-wider">Or bypass login</span>
+                <div className="flex-grow border-t border-brand-border"></div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-brand-text flex justify-between">
+                  <span>Session ID Cookie</span>
+                  <span className="text-brand-accent text-xs">Recommended</span>
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="sessionid value from devtools"
+                  value={igCredentials.session_id || ''} 
+                  onChange={e => setIgCredentials(prev => ({ ...prev, session_id: e.target.value }))} 
+                  className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent font-mono text-xs" 
+                />
+                <p className="text-[10px] text-brand-text/50">If provided, you don't need a password and won't face CAPTCHAs.</p>
               </div>
 
               <div className="pt-4 flex items-center justify-end gap-3 border-t border-brand-border mt-6">
