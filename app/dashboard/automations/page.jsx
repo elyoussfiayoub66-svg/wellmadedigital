@@ -22,8 +22,6 @@ export default function AutomationsPage() {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', type: 'warning', onConfirm: null });
 
   const fetchRealData = async () => {
-    // Only show the loading spinner on the very first load to avoid layout shifts during auto-refresh
-    setLoading(prev => automations.length === 0 ? true : prev);
     const supabase = createClient();
     try {
       const { data: accountsData, error: accountsError } = await supabase.from('ig_accounts').select('*');
