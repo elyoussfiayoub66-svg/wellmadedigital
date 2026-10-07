@@ -15,6 +15,7 @@ export default function AutomationsPage() {
   const [automations, setAutomations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [loginMethod, setLoginMethod] = useState('credentials'); // 'credentials' or 'session'
   const [igCredentials, setIgCredentials] = useState({ handle: '', password: '' });
   const [connectingIg, setConnectingIg] = useState(false);
 
@@ -338,56 +339,93 @@ const handleConnectSubmit = async (e) => {
             </div>
             
             <form onSubmit={handleConnectSubmit} className="p-6 space-y-4">
-              <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 p-3 rounded-lg text-xs mb-4">
-                Your credentials are required so the backend worker can authenticate on your behalf to send DMs automatically.
-              </div>
-              
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-brand-text">Instagram Username</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-text/40 font-medium">@</span>
-                  <input 
-                    required 
-                    type="text" 
-                    placeholder="username"
-                    value={igCredentials.handle} 
-                    onChange={e => setIgCredentials(prev => ({ ...prev, handle: e.target.value.replace('@', '') }))} 
-                    className="w-full bg-brand-bg border border-brand-border rounded-lg pl-8 pr-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" 
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-brand-text">Password</label>
-                <input 
-                  type="password" 
-                  placeholder="••••••••"
-                  value={igCredentials.password || ''} 
-                  onChange={e => setIgCredentials(prev => ({ ...prev, password: e.target.value }))} 
-                  className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" 
-                />
+              <div className="flex border-b border-brand-border mb-4">
+                <button 
+                  type="button" 
+                  onClick={() => setLoginMethod('credentials')} 
+                  className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${loginMethod === 'credentials' ? 'border-brand-accent text-brand-accent' : 'border-transparent text-brand-text/50 hover:text-brand-text'}`}
+                >
+                  Credentials
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setLoginMethod('session')} 
+                  className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${loginMethod === 'session' ? 'border-brand-accent text-brand-accent' : 'border-transparent text-brand-text/50 hover:text-brand-text'}`}
+                >
+                  Session ID
+                </button>
               </div>
 
-              <div className="relative flex items-center py-2">
-                <div className="flex-grow border-t border-brand-border"></div>
-                <span className="flex-shrink-0 mx-4 text-brand-text/40 text-xs font-medium uppercase tracking-wider">Or bypass login</span>
-                <div className="flex-grow border-t border-brand-border"></div>
-              </div>
+              {loginMethod === 'credentials' && (
+                <>
+                  <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 p-3 rounded-lg text-xs mb-4">
+                    Basic login via username and password. Note: You might face CAPTCHAs during connection.
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-brand-text">Instagram Username</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-text/40 font-medium">@</span>
+                      <input 
+                        required 
+                        type="text" 
+                        placeholder="username"
+                        value={igCredentials.handle} 
+                        onChange={e => setIgCredentials(prev => ({ ...prev, handle: e.target.value.replace('@', '') }))} 
+                        className="w-full bg-brand-bg border border-brand-border rounded-lg pl-8 pr-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" 
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-brand-text">Password</label>
+                    <input 
+                      required={loginMethod === 'credentials'}
+                      type="password" 
+                      placeholder="••••••••"
+                      value={igCredentials.password || ''} 
+                      onChange={e => setIgCredentials(prev => ({ ...prev, password: e.target.value }))} 
+                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" 
+                    />
+                  </div>
+                </>
+              )}
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-brand-text flex justify-between">
-                  <span>Session ID Cookie</span>
-                  <span className="text-brand-accent text-xs">Recommended</span>
-                </label>
-                <input 
-                  type="text" 
-                  placeholder="sessionid value from devtools"
-                  value={igCredentials.session_id || ''} 
-                  onChange={e => setIgCredentials(prev => ({ ...prev, session_id: e.target.value }))} 
-                  className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent font-mono text-xs" 
-                />
-                <p className="text-[10px] text-brand-text/50">If provided, you don't need a password and won't face CAPTCHAs.</p>
-              </div>
+              {loginMethod === 'session' && (
+                <>
+                  <div className="bg-brand-accent/10 border border-brand-accent/20 text-brand-accent p-3 rounded-lg text-xs mb-4">
+                    Recommended: Connect instantly using your sessionid cookie. Bypasses CAPTCHA and 2FA.
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-brand-text">Instagram Username</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-text/40 font-medium">@</span>
+                      <input 
+                        required 
+                        type="text" 
+                        placeholder="username"
+                        value={igCredentials.handle} 
+                        onChange={e => setIgCredentials(prev => ({ ...prev, handle: e.target.value.replace('@', '') }))} 
+                        className="w-full bg-brand-bg border border-brand-border rounded-lg pl-8 pr-3 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent" 
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-brand-text">Session ID Cookie</label>
+                    <input 
+                      required={loginMethod === 'session'}
+                      type="text" 
+                      placeholder="sessionid value from devtools"
+                      value={igCredentials.session_id || ''} 
+                      onChange={e => setIgCredentials(prev => ({ ...prev, session_id: e.target.value }))} 
+                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent font-mono text-xs" 
+                    />
+                    <p className="text-[10px] text-brand-text/50">Find this in Chrome DevTools: F12 → Application → Cookies → instagram.com → sessionid</p>
+                  </div>
+                </>
+              )}
 
               <div className="pt-4 flex items-center justify-end gap-3 border-t border-brand-border mt-6">
                 <button type="button" onClick={() => setIsConnectModalOpen(false)} className="text-brand-text/70 hover:text-brand-text text-sm font-medium px-4 py-2 transition-colors">
