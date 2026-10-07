@@ -119,7 +119,7 @@ export default function HistoricalInsightsPage() {
                     fontSize={12} 
                     tickLine={false} 
                     axisLine={false}
-                    tickFormatter={(value) => \`$\${value}\`}
+                    tickFormatter={(value) => `$${value}`}
                   />
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#1A1A1A', borderColor: '#333', borderRadius: '8px' }}
