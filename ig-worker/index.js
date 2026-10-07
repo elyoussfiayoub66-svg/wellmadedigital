@@ -276,10 +276,16 @@ async function processAutomations() {
         }
 
         // Wait for the DM textarea
-        await page.waitForSelector('div[contenteditable="true"][role="textbox"]', { timeout: 10000 });
+        const chatSelector = 'div[contenteditable="true"], textarea, div[aria-label*="Message" i]';
+        try {
+          await page.waitForSelector(chatSelector, { timeout: 15000 });
+        } catch (err) {
+          await page.screenshot({ path: 'error-chatbox.png' });
+          throw new Error("Chat input not found. See error-chatbox.png");
+        }
         
         const finalMessage = parseMessage(auto.message_template, prospect);
-        await page.type('div[contenteditable="true"][role="textbox"]', finalMessage, { delay: 50 });
+        await page.type(chatSelector, finalMessage, { delay: 50 });
         
         // Hit enter to send
         await page.keyboard.press('Enter');
@@ -291,7 +297,10 @@ async function processAutomations() {
         
       } catch (sendErr) {
         logger.error(`Failed to send DM to @${prospectHandle}: ${sendErr.message}`);
-        await supabase.from('prospects').update({ pipeline_status: 'error' }).eq('id', prospect.id);
+        await supabase.from('prospects').update({ 
+          pipeline_status: 'error',
+          outreach_status: sendErr.message.substring(0, 255)
+        }).eq('id', prospect.id);
         continue; 
       }
 
