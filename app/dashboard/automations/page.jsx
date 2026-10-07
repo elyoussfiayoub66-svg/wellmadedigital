@@ -355,6 +355,7 @@ export default function AutomationsPage() {
                 </div>
               ))}
             </div>
+          </div>
         )}
 
         {activeTab === 'logs' && (
