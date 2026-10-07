@@ -277,8 +277,7 @@ async function processAutomations() {
         
         // Click the first result's circle/checkbox
         const selected = await page.evaluate((handle) => {
-           // Find a row containing the exact handle and click its checkbox/row
-           const rows = Array.from(document.querySelectorAll('div[role="button"]'));
+           const rows = Array.from(document.querySelectorAll('div[role="option"], div[role="button"]'));
            const row = rows.find(r => r.textContent.toLowerCase().includes(handle.toLowerCase()));
            if (row) {
              row.click();

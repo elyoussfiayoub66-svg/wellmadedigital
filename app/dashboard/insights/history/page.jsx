@@ -31,19 +31,18 @@ export default function HistoricalInsightsPage() {
 
         if (error) {
           console.log('Error or table not found:', error);
-          // Mock some historical data if table empty/doesn't exist
-          setMockData();
+          setData([]);
         } else if (insightsData && insightsData.length > 0) {
           setData(insightsData.map(d => ({
             ...d,
             weekLabel: new Date(d.week_start_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
           })));
         } else {
-          setMockData();
+          setData([]);
         }
       } catch (err) {
         console.error(err);
-        setMockData();
+        setData([]);
       } finally {
         setLoading(false);
       }
@@ -51,26 +50,6 @@ export default function HistoricalInsightsPage() {
 
     fetchHistory();
   }, []);
-
-  const setMockData = () => {
-    // Generate some fake historical data for demo
-    const mock = [];
-    const now = new Date();
-    for (let i = 12; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - (i * 7));
-      mock.push({
-        week_start_date: d.toISOString().split('T')[0],
-        weekLabel: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-        revenue: Math.floor(Math.random() * 5000) + 2000 + (12-i)*200, // uptrend
-        profit_per_project: Math.floor(Math.random() * 1000) + 500 + (12-i)*50,
-        dms_made: Math.floor(Math.random() * 200) + 100 + (12-i)*20,
-        meetings: Math.floor(Math.random() * 10) + 2 + Math.floor((12-i)/2),
-        deals: Math.floor(Math.random() * 3) + 1 + Math.floor((12-i)/4),
-      });
-    }
-    setData(mock);
-  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

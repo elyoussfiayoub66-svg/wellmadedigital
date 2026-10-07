@@ -59,41 +59,95 @@ export default function InsightsPage() {
     try {
       const supabase = createClient();
       
-      // We will generate mock data for the current week
+      // Get current week start date (Monday)
       const today = new Date();
-      const currentWeekStart = new Date(today.setDate(today.getDate() - today.getDay())).toISOString().split('T')[0];
+      const day = today.getDay(); // 0 is Sunday, 1 is Monday...
+      const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+      const currentWeekStart = new Date(today.setDate(diff)).toISOString().split('T')[0];
 
-      const mockData = {
+      // Fetch real data from DB for the current week
+      const { data: prospectsData } = await supabase
+        .from('prospects')
+        .select('*')
+        .gte('created_at', currentWeekStart);
+        
+      const prospects = prospectsData || [];
+      const dms_made = prospects.length;
+      
+      const positiveRepliesOptions = ['meeting scheduled', 'discovery call completed', 'negotiation', 'closed', 'contacted'];
+      const positive_replies = prospects.filter(p => p.pipeline_status && positiveRepliesOptions.includes(p.pipeline_status.toLowerCase())).length;
+      const dm_reply_rate = dms_made > 0 ? ((positive_replies / dms_made) * 100).toFixed(1) : 0;
+
+      const { data: appointmentsData } = await supabase
+        .from('appointments')
+        .select('*')
+        .gte('created_at', currentWeekStart);
+      const meetings = appointmentsData ? appointmentsData.length : 0;
+
+      const { data: projectsData } = await supabase
+        .from('projects')
+        .select('*')
+        .gte('created_at', currentWeekStart);
+      const projectsList = projectsData || [];
+      const deals = projectsList.length;
+      const proposals = prospects.filter(p => p.pipeline_status && p.pipeline_status.toLowerCase() === 'negotiation').length + deals;
+      
+      const revenue = projectsList.reduce((acc, p) => acc + (parseFloat(p.value) || 0), 0);
+      
+      let deliveryDaysSum = 0;
+      let projectsWithDelivery = 0;
+      projectsList.forEach(p => {
+        if (p.start_date && p.delivery_date) {
+          const diffTime = Math.abs(new Date(p.delivery_date) - new Date(p.start_date));
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          deliveryDaysSum += diffDays;
+          projectsWithDelivery++;
+        }
+      });
+      const delivery_time_days = projectsWithDelivery > 0 ? (deliveryDaysSum / projectsWithDelivery).toFixed(1) : 0;
+
+      const { data: expensesData } = await supabase
+        .from('expenses')
+        .select('*')
+        .gte('expense_date', currentWeekStart);
+      const expensesList = expensesData || [];
+      const totalExpenses = expensesList.reduce((acc, exp) => acc + (parseFloat(exp.amount) || 0), 0);
+      const totalProfit = revenue - totalExpenses;
+      const profit_per_project = deals > 0 ? Math.floor(totalProfit / deals) : 0;
+
+      const realData = {
         week_start_date: currentWeekStart,
-        dms_made: Math.floor(Math.random() * 500) + 100,
-        dm_reply_rate: (Math.random() * 15 + 5).toFixed(1),
-        positive_replies: Math.floor(Math.random() * 50) + 10,
-        meetings: Math.floor(Math.random() * 15) + 2,
-        proposals: Math.floor(Math.random() * 10) + 1,
-        deals: Math.floor(Math.random() * 5) + 1,
-        revenue: Math.floor(Math.random() * 10000) + 2000,
-        delivery_time_days: (Math.random() * 10 + 5).toFixed(1),
-        profit_per_project: Math.floor(Math.random() * 3000) + 500,
+        dms_made,
+        dm_reply_rate,
+        positive_replies,
+        meetings,
+        proposals,
+        deals,
+        revenue,
+        delivery_time_days,
+        profit_per_project,
       };
+
+      // Remove existing record for this week if it exists to replace it with fresh data
+      await supabase.from('weekly_insights').delete().eq('week_start_date', currentWeekStart);
 
       const { data, error } = await supabase
         .from('weekly_insights')
-        .insert([mockData])
+        .insert([realData])
         .select()
         .single();
 
       if (error) {
         toast.error('Could not save data. Please ensure the weekly_insights table exists.');
         console.error(error);
-        // Fallback to setting mock data locally so UI works
-        setInsights(mockData);
+        setInsights(realData);
       } else {
         setInsights(data);
-        toast.success('Weekly insights generated successfully!');
+        toast.success('Weekly insights generated from real data successfully!');
       }
     } catch (err) {
       console.error('Error generating data:', err);
-      toast.error('An error occurred.');
+      toast.error('An error occurred while generating insights.');
     } finally {
       setGenerating(false);
     }
