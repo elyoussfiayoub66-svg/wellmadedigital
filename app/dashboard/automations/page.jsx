@@ -18,6 +18,7 @@ export default function AutomationsPage() {
   const [loginMethod, setLoginMethod] = useState('credentials'); // 'credentials' or 'session'
   const [igCredentials, setIgCredentials] = useState({ handle: '', password: '' });
   const [connectingIg, setConnectingIg] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', type: 'warning', onConfirm: null });
 
   const fetchRealData = async () => {
     setLoading(true);
@@ -70,21 +71,28 @@ export default function AutomationsPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to permanently delete this automation?")) return;
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.from('dm_automations').delete().eq('id', id);
-      if (error) throw error;
-      setAutomations(prev => prev.filter(a => a.id !== id));
-      toast.success("Automation deleted");
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to delete automation');
-    }
+  const handleDelete = (id) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Automation',
+      message: 'Are you sure you want to permanently delete this automation? This action cannot be undone.',
+      type: 'error',
+      onConfirm: async () => {
+        try {
+          const supabase = createClient();
+          const { error } = await supabase.from('dm_automations').delete().eq('id', id);
+          if (error) throw error;
+          setAutomations(prev => prev.filter(a => a.id !== id));
+          toast.success("Automation deleted");
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to delete automation');
+        }
+      }
+    });
   };
 
-const handleConnectSubmit = async (e) => {
+  const handleConnectSubmit = async (e) => {
     e.preventDefault();
     if (!igCredentials.handle || (!igCredentials.password && !igCredentials.session_id)) return toast.error("Please enter a username and either a password or session ID");
     
@@ -111,20 +119,26 @@ const handleConnectSubmit = async (e) => {
     }
   };
 
-  const removeAccount = async (id) => {
-    if (!window.confirm("Are you sure you want to disconnect this Instagram account?")) return;
-    
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.from('ig_accounts').delete().eq('id', id);
-      if (error) throw error;
-      
-      setIgAccounts(prev => prev.filter(a => a.id !== id));
-      toast.success('Account disconnected');
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to disconnect account');
-    }
+  const removeAccount = (id) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Disconnect Account',
+      message: 'Are you sure you want to disconnect this Instagram account?',
+      type: 'warning',
+      onConfirm: async () => {
+        try {
+          const supabase = createClient();
+          const { error } = await supabase.from('ig_accounts').delete().eq('id', id);
+          if (error) throw error;
+          
+          setIgAccounts(prev => prev.filter(a => a.id !== id));
+          toast.success('Account disconnected');
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to disconnect account');
+        }
+      }
+    });
   };
 
   const getStatusBadge = (status) => {
@@ -440,6 +454,38 @@ const handleConnectSubmit = async (e) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-dark/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-brand-surface w-full max-w-sm rounded-2xl overflow-hidden border border-brand-border flex flex-col shadow-2xl">
+            <div className={`p-5 border-b border-brand-border flex items-center gap-3 ${confirmModal.type === 'error' ? 'bg-red-500/10 text-red-500' : confirmModal.type === 'warning' ? 'bg-orange-500/10 text-orange-500' : 'bg-brand-accent/10 text-brand-accent'}`}>
+              <AlertCircle className="w-5 h-5" />
+              <h2 className="text-lg font-semibold text-brand-text">{confirmModal.title}</h2>
+            </div>
+            <div className="p-5">
+              <p className="text-sm text-brand-text/70 leading-relaxed">{confirmModal.message}</p>
+            </div>
+            <div className="p-4 bg-brand-bg/50 border-t border-brand-border flex items-center justify-end gap-3">
+              <button 
+                onClick={() => setConfirmModal({ ...confirmModal, isOpen: false })} 
+                className="px-4 py-2 text-sm font-medium text-brand-text/70 hover:text-brand-text transition-colors bg-transparent"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={async () => {
+                  if (confirmModal.onConfirm) await confirmModal.onConfirm();
+                  setConfirmModal({ ...confirmModal, isOpen: false });
+                }} 
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90 ${confirmModal.type === 'error' ? 'bg-red-500' : confirmModal.type === 'warning' ? 'bg-orange-500' : 'bg-brand-accent'}`}
+              >
+                Confirm
+              </button>
+            </div>
           </div>
         </div>
       )}
