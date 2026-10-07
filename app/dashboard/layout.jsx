@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { 
   LayoutDashboard, Users, User, CreditCard, Receipt, 
   Settings, LogOut, Calendar, CheckSquare, FolderGit2, Search, PieChart, MessageSquare, TrendingUp,
-  ChevronLeft, ChevronRight, Menu, Calculator, LayoutTemplate
+  ChevronLeft, ChevronRight, Menu, Calculator, LayoutTemplate, BarChart
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import NotificationsDropdown from '@/components/NotificationsDropdown';
@@ -130,6 +130,7 @@ export default function DashboardLayout({ children }) {
 
   const navItems = [
     { name: 'Dashboard',    href: '/dashboard',              icon: LayoutDashboard },
+    { name: 'Insights',     href: '/dashboard/insights',     icon: BarChart },
     { name: 'Leads',        href: '/dashboard/leads',        icon: Users },
     { name: 'Workflows',    href: '/dashboard/workflows',    icon: FolderGit2 },
     { name: 'Prospects',    href: '/dashboard/prospects',    icon: Search },

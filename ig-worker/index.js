@@ -1,7 +1,10 @@
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 const pino = require('pino');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
+const fs = require('fs');
 
 const logger = pino();
 
@@ -30,19 +33,63 @@ const parseMessage = (template, prospect) => {
     .replace(/{city}/g, prospect.city || 'your city');
 };
 
-async function initIgClient(accountId, username, password) {
+async function initIgClient(accountId, username, password, sessionId) {
   try {
     logger.info(`Launching visual browser for ${username}...`);
     const browser = await puppeteer.launch({ 
       headless: false,
       defaultViewport: null,
+      ignoreDefaultArgs: ['--enable-automation'],
       args: [
         '--disable-notifications',
-        '--window-position=-32000,-32000'
+        '--disable-blink-features=AutomationControlled'
       ]
     });
     const page = await browser.newPage();
+    const cookieFile = `cookies_${username}.json`;
+
+    let cookiesLoaded = false;
     
+    if (sessionId) {
+       logger.info(`Session ID provided for ${username}, attempting to use it...`);
+       await page.setCookie({
+         name: 'sessionid',
+         value: sessionId,
+         domain: '.instagram.com',
+         path: '/',
+         secure: true,
+         httpOnly: true
+       });
+       cookiesLoaded = true;
+    } else if (fs.existsSync(cookieFile)) {
+       const cookies = JSON.parse(fs.readFileSync(cookieFile, 'utf8'));
+       await page.setCookie(...cookies);
+       logger.info(`Loaded cookies for ${username}`);
+       cookiesLoaded = true;
+    }
+    
+    if (cookiesLoaded) {
+       await page.goto('https://www.instagram.com/', { waitUntil: 'networkidle2' });
+       
+       const isLoggedIn = await page.evaluate(() => {
+          return !!document.querySelector('svg[aria-label="Home"]') || !!document.querySelector('svg[aria-label="New post"]');
+       });
+       
+       if (isLoggedIn) {
+          logger.info(`Successfully logged in via cookies/session_id for ${username}`);
+          igClients.set(accountId, { browser, page });
+          const cookies = await page.cookies();
+          fs.writeFileSync(cookieFile, JSON.stringify(cookies, null, 2));
+          return;
+       } else {
+          logger.info(`Cookies expired or invalid, proceeding to login...`);
+       }
+    }
+    
+    if (!password) {
+       throw new Error("No valid Session ID and no password provided. Cannot log in.");
+    }
+
     await page.goto('https://www.instagram.com/accounts/login/', { waitUntil: 'networkidle2' });
     
     await page.waitForSelector('input', { timeout: 60000 });
@@ -85,12 +132,20 @@ async function initIgClient(accountId, username, password) {
        await page.keyboard.press('Enter');
     }
     
-    await new Promise(r => setTimeout(r, 10000));
+    logger.info("Waiting 60 seconds for login to complete (please solve any CAPTCHA/2FA on the opened browser window)...");
+    await new Promise(r => setTimeout(r, 60000));
+    await page.screenshot({path: 'login-result.png'});
     
-    const currentUrl = page.url();
-    if (currentUrl.includes('login')) {
+    const isLoggedInAfterWait = await page.evaluate(() => {
+        return !!document.querySelector('svg[aria-label="Home"]') || !!document.querySelector('svg[aria-label="New post"]');
+    });
+
+    if (!isLoggedInAfterWait) {
       throw new Error("Failed to log in. Check credentials, 2FA, or Instagram blocked the IP.");
     }
+    
+    const cookies = await page.cookies();
+    fs.writeFileSync(cookieFile, JSON.stringify(cookies, null, 2));
     
     logger.info(`Successfully logged into ${username} via Puppeteer Browser`);
     igClients.set(accountId, { browser, page });
@@ -111,7 +166,7 @@ async function loadIgAccounts() {
     if (!igClients.has(acc.id)) {
       try {
         const username = acc.handle.replace('@', '').trim();
-        await initIgClient(acc.id, username, acc.password_hash);
+        await initIgClient(acc.id, username, acc.password_hash, acc.session_id);
       } catch (err) {
         await supabase.from('ig_accounts').update({ status: 'error' }).eq('id', acc.id);
       }
@@ -187,8 +242,11 @@ async function processAutomations() {
         
         // Find and click the "Message" button
         const clickedMessage = await page.evaluate(() => {
-          const btns = Array.from(document.querySelectorAll('div[role="button"]'));
-          const msgBtn = btns.find(b => b.textContent.trim().toLowerCase() === 'message');
+          const btns = Array.from(document.querySelectorAll('div[role="button"], button, a'));
+          const msgBtn = btns.find(b => {
+             const t = b.textContent.trim().toLowerCase();
+             return t === 'message' || t.includes('message') || t === 'envoyer un message' || t === 'send message';
+          });
           if (msgBtn) {
             msgBtn.click();
             return true;
@@ -197,7 +255,8 @@ async function processAutomations() {
         });
 
         if (!clickedMessage) {
-           throw new Error("Could not find 'Message' button on profile. Maybe private or blocked?");
+           await page.screenshot({path: 'error-profile.png'});
+           throw new Error("Could not find 'Message' button on profile. Maybe private or blocked? See error-profile.png");
         }
 
         // Wait for the DM textarea
