@@ -13,6 +13,7 @@ export default function AutomationsPage() {
   const [activeTab, setActiveTab] = useState('automations');
   const [igAccounts, setIgAccounts] = useState([]);
   const [automations, setAutomations] = useState([]);
+  const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [loginMethod, setLoginMethod] = useState('credentials'); // 'credentials' or 'session'
@@ -21,7 +22,8 @@ export default function AutomationsPage() {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', type: 'warning', onConfirm: null });
 
   const fetchRealData = async () => {
-    setLoading(true);
+    // Only show the loading spinner on the very first load to avoid layout shifts during auto-refresh
+    setLoading(prev => automations.length === 0 ? true : prev);
     const supabase = createClient();
     try {
       const { data: accountsData, error: accountsError } = await supabase.from('ig_accounts').select('*');
@@ -33,6 +35,16 @@ export default function AutomationsPage() {
       if (!autoError && automationsData) {
         setAutomations(automationsData);
       }
+
+      const { data: logsData, error: logsError } = await supabase
+        .from('prospects')
+        .select('ig_handle, outreach_status, updated_at')
+        .eq('pipeline_status', 'error')
+        .order('updated_at', { ascending: false })
+        .limit(100);
+      if (!logsError && logsData) {
+        setLogs(logsData);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -42,6 +54,9 @@ export default function AutomationsPage() {
 
   useEffect(() => {
     fetchRealData();
+    // Auto-refresh every 10 seconds
+    const interval = setInterval(fetchRealData, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleNewAutomation = () => {
@@ -225,6 +240,12 @@ export default function AutomationsPage() {
         >
           <BarChart2 className="w-4 h-4" /> Analytics
         </button>
+        <button
+          onClick={() => setActiveTab('logs')}
+          className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 flex items-center gap-2 ${activeTab === 'logs' ? 'border-brand-accent text-brand-accent' : 'border-transparent text-brand-text/60 hover:text-brand-text'}`}
+        >
+          <AlertCircle className="w-4 h-4" /> Execution Logs
+        </button>
       </div>
 
       <div className="flex-1 min-h-0 bg-brand-surface rounded-xl border border-brand-border overflow-hidden flex flex-col">
@@ -334,6 +355,32 @@ export default function AutomationsPage() {
                 </div>
               ))}
             </div>
+        )}
+
+        {activeTab === 'logs' && (
+          <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+            <h2 className="text-lg font-semibold text-brand-text mb-4 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-red-500" /> Recent Errors
+            </h2>
+            {logs.length === 0 ? (
+              <div className="p-12 text-center border border-dashed border-brand-border rounded-xl bg-brand-bg/50 text-brand-text/50">
+                <p>No recent errors found. Everything is running smoothly!</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {logs.map((log, i) => (
+                  <div key={i} className="bg-red-500/5 border border-red-500/20 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <div className="text-sm font-semibold text-brand-text mb-1">{log.ig_handle}</div>
+                      <div className="text-xs text-red-400 font-medium">{log.outreach_status || 'Unknown error'}</div>
+                    </div>
+                    <div className="text-[10px] text-brand-text/50 whitespace-nowrap font-mono bg-brand-bg px-2 py-1 rounded-md border border-brand-border">
+                      {new Date(log.updated_at).toLocaleString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
