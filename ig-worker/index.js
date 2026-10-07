@@ -252,6 +252,10 @@ async function processAutomations() {
         logger.info(`Navigating to @${prospectHandle} profile...`);
         await page.goto(`https://www.instagram.com/${prospectHandle}/`, { waitUntil: 'networkidle2' });
         
+        // Wait for the profile to actually render (Instagram is an SPA)
+        await page.waitForSelector('header', { timeout: 10000 }).catch(() => {});
+        await new Promise(r => setTimeout(r, 2000));
+        
         // Find and click the "Message" button
         const clickedMessage = await page.evaluate(() => {
           const btns = Array.from(document.querySelectorAll('div[role="button"], button, a'));
