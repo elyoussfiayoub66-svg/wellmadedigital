@@ -38,6 +38,7 @@ async function initIgClient(accountId, username, password, sessionId) {
     logger.info(`Launching visual browser for ${username}...`);
     const browser = await puppeteer.launch({ 
       headless: false,
+      executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
       defaultViewport: null,
       ignoreDefaultArgs: ['--enable-automation'],
       args: [
@@ -72,7 +73,9 @@ async function initIgClient(accountId, username, password, sessionId) {
        await page.goto('https://www.instagram.com/', { waitUntil: 'networkidle2' });
        
        const isLoggedIn = await page.evaluate(() => {
-          return !!document.querySelector('svg[aria-label="Home"]') || !!document.querySelector('svg[aria-label="New post"]');
+          // If we are on the homepage and there is no password input, we are successfully logged in.
+          // The previous check for the 'Home' SVG icon was failing because Instagram changes its DOM frequently.
+          return !document.querySelector('input[name="password"]');
        });
        
        if (isLoggedIn) {
@@ -88,6 +91,15 @@ async function initIgClient(accountId, username, password, sessionId) {
     
     if (!password) {
        throw new Error("No valid Session ID and no password provided. Cannot log in.");
+    }
+
+    // Clear any corrupted or expired cookies before a fresh credentials login
+    const currentCookies = await page.cookies();
+    if (currentCookies.length > 0) {
+      await page.deleteCookie(...currentCookies);
+    }
+    if (fs.existsSync(cookieFile)) {
+       fs.unlinkSync(cookieFile);
     }
 
     await page.goto('https://www.instagram.com/accounts/login/', { waitUntil: 'networkidle2' });
@@ -137,7 +149,7 @@ async function initIgClient(accountId, username, password, sessionId) {
     await page.screenshot({path: 'login-result.png'});
     
     const isLoggedInAfterWait = await page.evaluate(() => {
-        return !!document.querySelector('svg[aria-label="Home"]') || !!document.querySelector('svg[aria-label="New post"]');
+        return !document.querySelector('input[name="password"]');
     });
 
     if (!isLoggedInAfterWait) {
