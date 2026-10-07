@@ -287,8 +287,27 @@ async function processAutomations() {
         const finalMessage = parseMessage(auto.message_template, prospect);
         await page.type(chatSelector, finalMessage, { delay: 50 });
         
-        // Hit enter to send
-        await page.keyboard.press('Enter');
+        // Wait a small moment for React to register the text and show the Send button
+        await new Promise(r => setTimeout(r, 500));
+        
+        // Try to click the Send button explicitly (Instagram web usually shows "Send" when text is entered)
+        const clickedSendBtn = await page.evaluate(() => {
+          const btns = Array.from(document.querySelectorAll('div[role="button"], button'));
+          const send = btns.find(b => {
+             const t = b.textContent.trim().toLowerCase();
+             return t === 'send' || t === 'envoyer' || t === 'enviar';
+          });
+          if (send) {
+             send.click();
+             return true;
+          }
+          return false;
+        });
+
+        // If no Send button was found, fallback to hitting Enter
+        if (!clickedSendBtn) {
+          await page.keyboard.press('Enter');
+        }
         
         logger.info(`-> Successfully sent REAL DM to @${prospectHandle} via Puppeteer!`);
         
