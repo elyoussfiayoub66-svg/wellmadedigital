@@ -118,8 +118,8 @@ export default function AutomationBuilderPage() {
     }
   };
 
-  const pipelineOptions = ["not contacted", "contacted", "meeting scheduled", "discovery call completed", "negotiation", "closed", "lost"];
-  const outreachOptions = ["email sent", "dm sent", "no answer", "no answer 1", "no answer 2", "no answer 3", "voice mail", "voice mail 1", "voice mail 2", "not called", "meeting booked", "follow up", "not interested", "do not call", "wrong contact"];
+  const pipelineOptions = ["not contacted", "contacted", "unopened dm", "failed dm sent", "error", "meeting scheduled", "discovery call completed", "negotiation", "closed", "lost"];
+  const outreachOptions = ["email sent", "dm sent", "unopened dm", "failed dm sent", "error", "no answer", "no answer 1", "no answer 2", "no answer 3", "voice mail", "voice mail 1", "voice mail 2", "not called", "meeting booked", "follow up", "not interested", "do not call", "wrong contact"];
 
   const customSelectClass = "appearance-none bg-brand-bg border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-accent pr-10 cursor-pointer hover:border-brand-text/30 transition-colors bg-[url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"%23F7F5F0\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M19 9l-7 7-7-7\"/></svg>')] bg-no-repeat bg-[right_12px_center] bg-[length:16px_16px]";
 

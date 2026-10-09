@@ -341,12 +341,14 @@ export default function AutomationsPage() {
                       <div className="text-[10px] uppercase tracking-widest text-brand-text/50 mt-1.5 font-semibold">DMs Sent</div>
                     </div>
                     <div className="text-center p-4 bg-brand-surface rounded-lg border border-brand-border shadow-sm">
-                      <div className="text-3xl font-bold text-brand-text">{Math.floor(auto.sent * 0.4)}</div>
+                      <div className="text-3xl font-bold text-brand-text">{auto.opened || 0}</div>
                       <div className="text-[10px] uppercase tracking-widest text-brand-text/50 mt-1.5 font-semibold">Opened</div>
                     </div>
                     <div className="text-center p-4 bg-brand-surface rounded-lg border border-brand-border shadow-sm relative overflow-hidden group">
                       <div className="absolute inset-0 bg-brand-accent/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                      <div className="text-3xl font-bold text-brand-accent">{Math.floor((auto.sent * 0.15) / auto.sent * 100)}%</div>
+                      <div className="text-3xl font-bold text-brand-accent">
+                        {auto.sent > 0 ? Math.floor(((auto.replies || 0) / auto.sent) * 100) : 0}%
+                      </div>
                       <div className="text-[10px] uppercase tracking-widest text-brand-accent/70 mt-1.5 font-semibold">Reply Rate</div>
                     </div>
                   </div>

@@ -16,6 +16,10 @@ export default function ProspectsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterNiche, setFilterNiche] = useState('All');
   const [filterOutreach, setFilterOutreach] = useState('All');
+  const [filterPipeline, setFilterPipeline] = useState('All');
+  const [filterPhone, setFilterPhone] = useState('All');
+  const [filterIg, setFilterIg] = useState('All');
+  const [filterEmail, setFilterEmail] = useState('All');
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -94,9 +98,27 @@ export default function ProspectsPage() {
       if (profile) setCurrentUser(profile);
     }
     
-    // Fetch Prospects
-    const { data: pData } = await supabase.from('prospects').select('*').order('created_at', { ascending: false });
-    if (pData) setProspects(pData);
+    // Fetch Prospects with Pagination
+    let allProspects = [];
+    let from = 0;
+    const step = 1000;
+    
+    while (true) {
+      const { data: pData } = await supabase
+        .from('prospects')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(from, from + step - 1);
+        
+      if (!pData || pData.length === 0) break;
+      
+      allProspects = [...allProspects, ...pData];
+      
+      if (pData.length < step) break; // Reached the end
+      from += step;
+    }
+    
+    setProspects(allProspects);
     
     // Fetch Global Announcements
     const { data: aData } = await supabase.from('crm_announcements').select('*').order('created_at', { ascending: false }).limit(20);
@@ -614,8 +636,8 @@ export default function ProspectsPage() {
   };
 
 
-  const pipelineOptions = ["not contacted", "contacted", "meeting scheduled", "discovery call completed", "negotiation", "closed", "lost"];
-  const outreachOptions = ["email sent", "dm sent", "no answer", "no answer 1", "no answer 2", "no answer 3", "voice mail", "voice mail 1", "voice mail 2", "not called", "meeting booked", "follow up", "not interested", "do not call", "wrong contact"];
+  const pipelineOptions = ["not contacted", "contacted", "unopened dm", "failed dm sent", "error", "meeting scheduled", "discovery call completed", "negotiation", "closed", "lost"];
+  const outreachOptions = ["email sent", "dm sent", "unopened dm", "failed dm sent", "error", "no answer", "no answer 1", "no answer 2", "no answer 3", "voice mail", "voice mail 1", "voice mail 2", "not called", "meeting booked", "follow up", "not interested", "do not call", "wrong contact"];
   const followupOptions = ["", "meeting booked", "not interested", "do not contact", "no answer", "voice mail"];
 
   const uniqueNiches = [...new Set(prospects.map(p => p.niche).filter(Boolean))].sort();
@@ -634,6 +656,13 @@ export default function ProspectsPage() {
 
     if (filterNiche !== 'All' && p.niche !== filterNiche) return false;
     if (filterOutreach !== 'All' && p.outreach_status !== filterOutreach) return false;
+    if (filterPipeline !== 'All' && p.pipeline_status !== filterPipeline) return false;
+    if (filterPhone === 'Yes' && (!p.phone || p.phone.trim() === '')) return false;
+    if (filterPhone === 'No' && (p.phone && p.phone.trim() !== '')) return false;
+    if (filterIg === 'Yes' && (!p.ig_handle || p.ig_handle.trim() === '')) return false;
+    if (filterIg === 'No' && (p.ig_handle && p.ig_handle.trim() !== '')) return false;
+    if (filterEmail === 'Yes' && (!p.email || p.email.trim() === '')) return false;
+    if (filterEmail === 'No' && (p.email && p.email.trim() !== '')) return false;
 
     if (activeTab === 'all') return true;
     
@@ -772,7 +801,7 @@ export default function ProspectsPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filterNiche, filterOutreach, activeTab, rowsPerPage]);
+  }, [searchQuery, filterNiche, filterOutreach, filterPipeline, filterPhone, filterIg, filterEmail, activeTab, rowsPerPage]);
 
   const getStatusColor = (status) => {
     if (!status) return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -794,19 +823,6 @@ export default function ProspectsPage() {
         </div>
         
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          {/* Niche Filter */}
-          <select value={filterNiche} onChange={e => setFilterNiche(e.target.value)} className={`${customSelectClass} min-w-[140px]`}>
-            <option value="All">All Niches</option>
-            {uniqueNiches.map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
-          
-          {/* Outreach Filter */}
-          <select value={filterOutreach} onChange={e => setFilterOutreach(e.target.value)} className={`${customSelectClass} min-w-[140px]`}>
-            <option value="All">All Outreach</option>
-            {outreachOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
-
-          
           {/* Bulk Select Filter */}
           <select onChange={handleBulkSelectAction} value="" className={`${customSelectClass} min-w-[140px]`}>
             <option value="" disabled>Bulk Select...</option>
@@ -865,6 +881,38 @@ export default function ProspectsPage() {
             Add Prospect
           </button>
         </div>
+      </div>
+
+      {/* FILTER BAR */}
+      <div className="flex flex-wrap items-center gap-3 bg-brand-surface border border-brand-border rounded-xl p-3 mb-6 shrink-0 shadow-sm">
+        <span className="text-sm font-semibold text-brand-text/70 px-2 uppercase tracking-wider text-[10px]">Filters:</span>
+        <select value={filterPipeline} onChange={e => setFilterPipeline(e.target.value)} className={`${customSelectClass} min-w-[140px] text-xs py-1.5`}>
+          <option value="All">All Pipeline Status</option>
+          {pipelineOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+        </select>
+        <select value={filterOutreach} onChange={e => setFilterOutreach(e.target.value)} className={`${customSelectClass} min-w-[140px] text-xs py-1.5`}>
+          <option value="All">All Outreach Status</option>
+          {outreachOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+        </select>
+        <select value={filterNiche} onChange={e => setFilterNiche(e.target.value)} className={`${customSelectClass} min-w-[140px] text-xs py-1.5`}>
+          <option value="All">All Niches</option>
+          {uniqueNiches.map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
+        <select value={filterPhone} onChange={e => setFilterPhone(e.target.value)} className={`${customSelectClass} min-w-[140px] text-xs py-1.5`}>
+          <option value="All">Phone: Any</option>
+          <option value="Yes">Phone: Yes</option>
+          <option value="No">Phone: No</option>
+        </select>
+        <select value={filterIg} onChange={e => setFilterIg(e.target.value)} className={`${customSelectClass} min-w-[140px] text-xs py-1.5`}>
+          <option value="All">IG Handle: Any</option>
+          <option value="Yes">IG Handle: Yes</option>
+          <option value="No">IG Handle: No</option>
+        </select>
+        <select value={filterEmail} onChange={e => setFilterEmail(e.target.value)} className={`${customSelectClass} min-w-[140px] text-xs py-1.5`}>
+          <option value="All">Email: Any</option>
+          <option value="Yes">Email: Yes</option>
+          <option value="No">Email: No</option>
+        </select>
       </div>
 
       {/* Global Announcements Container Above Tabs */}
