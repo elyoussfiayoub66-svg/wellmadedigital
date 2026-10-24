@@ -1,4 +1,6 @@
 'use client';
+import Link from 'next/link';
+
 export default function Footer() {
   return (
     <footer className="bg-[#0E0E0F] text-[#F7F5F0] px-6 md:px-12 pt-20 pb-10">
@@ -37,6 +39,7 @@ export default function Footer() {
           </div>
           <div className="flex flex-col gap-4">
             <span className="text-[#C2496B]">Legal</span>
+            <Link href="/privacy-policy" className="hover:text-[#F7F5F0]">Privacy Policy</Link>
             <span>© 2026 Wellmade Digital.</span>
           </div>
         </div>
